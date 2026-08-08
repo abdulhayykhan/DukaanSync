@@ -1,15 +1,5 @@
 # 🛒 DukaanSync
-
-
-██████╗ ██╗██╗██╗  ██╗ █████╗  ██████╗██╗   ██╗███╗   ██╗██████╗
-██╔══██╗██║██║██║ ██╔╝██╔══██╗██╔════╝╚██╗ ██╔╝████╗  ██║██╔════╝
-██║  ██║██║██║█████═╝ ███████║██║      ╚████╔╝ ██╔██╗ ██║██║
-
-██║  ██║██║██║██╔═██╗ ██╔══██║██║       ╚██╔╝  ██║╚██╗██║██║
-
-██████╔╝╚█████╔╝██║  ██╗██║  ██║╚██████╗   ██║   ██║ ╚████║╚██████╗
-╚═════╝  ╚════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝  ╚═══╝ ╚═════╝
-Multi-Shop Management & Point of Sale SaaS System
+**Multi-Shop Management & Point of Sale SaaS System**
 
 ![Next.js](https://img.shields.io/badge/Next.js-16.0%2B-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
