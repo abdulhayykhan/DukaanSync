@@ -1,4 +1,14 @@
 # 🛒 DukaanSync
+
+```text
+ ____        _                        ____                  
+|  _ \ _   _| | ____ _  __ _ _ __    / ___| _   _ _ __   ___ 
+| | | | | | | |/ / _` |/ _` | '_ \   \___ \| | | | '_ \ / __|
+| |_| | |_| |   < (_| | (_| | | | |   ___) | |_| | | | | (__ 
+|____/ \__,_|_|\_\__,_|\__,_|_| |_|  |____/ \__, |_| |_|\___|
+                                            |___/            
+```
+
 **Multi-Shop Management & Point of Sale SaaS System**
 
 ![Next.js](https://img.shields.io/badge/Next.js-16.0%2B-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
