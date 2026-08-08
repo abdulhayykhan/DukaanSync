@@ -1,0 +1,205 @@
+// =============================================================================
+// DukaanSync — Cloud Firestore Security Rules
+// =============================================================================
+// Enforces strict multi-tenant and multi-shop data isolation.
+// Every subcollection under a shop requires canAccessShop() authorization.
+// Database rules are the source of truth — client-side ShopContext is purely
+// a UI convenience.
+// =============================================================================
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================================
+    // Helper Functions
+    // =========================================================================
+
+    /// Check if the request is from an authenticated user
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    /// Check if the authenticated user is a member of the given business
+    function isBusinessMember(businessId) {
+      return isAuthenticated()
+        && exists(/databases/$(database)/documents/businesses/$(businessId)/members/$(request.auth.uid));
+    }
+
+    /// Check if the authenticated user is the owner of the given business
+    function isBusinessOwner(businessId) {
+      return isAuthenticated()
+        && get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid;
+    }
+
+    /// Get the member document for the current user in the given business
+    function getMember(businessId) {
+      return get(/databases/$(database)/documents/businesses/$(businessId)/members/$(request.auth.uid)).data;
+    }
+
+    /// Check if the user can access a specific shop within a business
+    /// Owners can access all shops; other members need the shopId in their shopIds array
+    function canAccessShop(businessId, shopId) {
+      return isBusinessMember(businessId)
+        && (
+          isBusinessOwner(businessId)
+          || shopId in getMember(businessId).shopIds
+        );
+    }
+
+    /// Enforce immutable system fields on write
+    function isValidTenantWrite(businessId, shopId) {
+      // Allow if businessId and shopId aren't present (some docs don't embed them redundantly since they are in path)
+      // Or if they are present, they must match the path.
+      return (!('businessId' in request.resource.data) || request.resource.data.businessId == businessId)
+          && (!('shopId' in request.resource.data) || request.resource.data.shopId == shopId)
+          && (resource == null || !('createdBy' in request.resource.data) || request.resource.data.createdBy == resource.data.createdBy);
+    }
+
+    // =========================================================================
+    // Global: Block all access by default (no wildcard catch-all)
+    // =========================================================================
+
+    // =========================================================================
+    // Users Collection — /users/{uid}
+    // =========================================================================
+    match /users/{uid} {
+      // Users can only read/write their own profile
+      allow read: if isAuthenticated() && request.auth.uid == uid;
+      allow write: if isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // =========================================================================
+    // Businesses Collection — /businesses/{businessId}
+    // =========================================================================
+    match /businesses/{businessId} {
+      // Only members can read the business document
+      allow read: if isBusinessMember(businessId);
+
+      // Only the owner can update business settings
+      allow update: if isBusinessOwner(businessId);
+
+      // Business creation is handled by backend/admin SDK
+      allow create, delete: if false;
+
+      // -----------------------------------------------------------------------
+      // Business Members — /businesses/{businessId}/members/{uid}
+      // -----------------------------------------------------------------------
+      match /members/{uid} {
+        // Members can read their own record; owners can read all members
+        allow read: if isAuthenticated()
+          && (request.auth.uid == uid || isBusinessOwner(businessId));
+
+        // Only owners can manage members
+        allow write: if isBusinessOwner(businessId);
+      }
+
+      // -----------------------------------------------------------------------
+      // Shops — /businesses/{businessId}/shops/{shopId}
+      // -----------------------------------------------------------------------
+      match /shops/{shopId} {
+        // Members with shop access can read; owners can read all
+        allow read: if canAccessShop(businessId, shopId);
+
+        // Only owners can create, update, or delete shops
+        allow write: if isBusinessOwner(businessId);
+
+        // =====================================================================
+        // Shop Subcollections — All require canAccessShop()
+        // =====================================================================
+
+        // Inventory — /businesses/{businessId}/shops/{shopId}/inventory/{itemId}
+        match /inventory/{itemId} {
+          allow read: if canAccessShop(businessId, shopId);
+          allow create, update: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager', 'inventory_manager']
+            && isValidTenantWrite(businessId, shopId);
+          allow delete: if isBusinessOwner(businessId);
+        }
+
+        // Sales — /businesses/{businessId}/shops/{shopId}/sales/{saleId}
+        match /sales/{saleId} {
+          allow read: if canAccessShop(businessId, shopId);
+          allow create: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager', 'cashier']
+            && isValidTenantWrite(businessId, shopId);
+          allow update: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager']
+            && isValidTenantWrite(businessId, shopId);
+          allow delete: if isBusinessOwner(businessId);
+        }
+
+        // Purchases — /businesses/{businessId}/shops/{shopId}/purchases/{purchaseId}
+        match /purchases/{purchaseId} {
+          allow read: if canAccessShop(businessId, shopId);
+          allow create, update: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager']
+            && isValidTenantWrite(businessId, shopId);
+          allow delete: if isBusinessOwner(businessId);
+        }
+
+        // Customers — /businesses/{businessId}/shops/{shopId}/customers/{customerId}
+        match /customers/{customerId} {
+          allow read: if canAccessShop(businessId, shopId);
+          allow create, update: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager', 'cashier']
+            && isValidTenantWrite(businessId, shopId);
+          allow delete: if isBusinessOwner(businessId);
+        }
+
+        // Suppliers — /businesses/{businessId}/shops/{shopId}/suppliers/{supplierId}
+        match /suppliers/{supplierId} {
+          allow read: if canAccessShop(businessId, shopId);
+          allow create, update: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager']
+            && isValidTenantWrite(businessId, shopId);
+          allow delete: if isBusinessOwner(businessId);
+        }
+
+        // Expenses — /businesses/{businessId}/shops/{shopId}/expenses/{expenseId}
+        match /expenses/{expenseId} {
+          allow read: if canAccessShop(businessId, shopId);
+          allow create, update: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager']
+            && isValidTenantWrite(businessId, shopId);
+          allow delete: if isBusinessOwner(businessId);
+        }
+
+        // Stock Movements — /businesses/{businessId}/shops/{shopId}/stockMovements/{movementId}
+        match /stockMovements/{movementId} {
+          allow read: if canAccessShop(businessId, shopId);
+          allow create: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager', 'inventory_manager']
+            && isValidTenantWrite(businessId, shopId);
+          allow update, delete: if isBusinessOwner(businessId);
+        }
+
+        // Customer Ledger — /businesses/{businessId}/shops/{shopId}/customerLedger/{entryId}
+        match /customerLedger/{entryId} {
+          allow read: if canAccessShop(businessId, shopId);
+          allow create: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager', 'cashier']
+            && isValidTenantWrite(businessId, shopId);
+          allow update, delete: if isBusinessOwner(businessId);
+        }
+
+        // Supplier Ledger — /businesses/{businessId}/shops/{shopId}/supplierLedger/{entryId}
+        match /supplierLedger/{entryId} {
+          allow read: if canAccessShop(businessId, shopId);
+          allow create: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager']
+            && isValidTenantWrite(businessId, shopId);
+          allow update, delete: if isBusinessOwner(businessId);
+        }
+
+        // Audit Logs — /businesses/{businessId}/shops/{shopId}/auditLogs/{logId}
+        match /auditLogs/{logId} {
+          allow read: if isBusinessOwner(businessId);
+          allow create: if canAccessShop(businessId, shopId) && request.resource.data.actorId == request.auth.uid;
+          allow update, delete: if false; // Strict append-only
+        }
+      }
+    }
+  }
+}
