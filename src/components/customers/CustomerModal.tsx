@@ -28,12 +28,14 @@ export function CustomerModal({ isOpen, onClose, onSuccess, customer }: Customer
 
   useEffect(() => {
     if (isOpen && customer) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData({
         name: customer.name,
         phone: customer.phone || "",
         email: customer.email || "",
       });
     } else if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData({ name: "", phone: "", email: "" });
     }
   }, [isOpen, customer]);
@@ -53,8 +55,9 @@ export function CustomerModal({ isOpen, onClose, onSuccess, customer }: Customer
       }
       onSuccess();
       onClose();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to save customer");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to save customer";
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }

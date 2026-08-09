@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface Card3DProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -20,15 +20,12 @@ export function Card3D({
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [glarePosition, setGlarePosition] = useState({ x: 50, y: 50 });
   const [isHovered, setIsHovered] = useState(false);
-  const [shouldAnimate, setShouldAnimate] = useState(true);
-
-  useEffect(() => {
+  const [shouldAnimate] = useState(() => {
+    if (typeof window === "undefined") return true;
     const isTouch = window.matchMedia("(pointer: coarse)").matches;
     const isReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (isTouch || isReducedMotion) {
-      setShouldAnimate(false);
-    }
-  }, []);
+    return !isTouch && !isReducedMotion;
+  });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!shouldAnimate || !cardRef.current) return;

@@ -183,6 +183,7 @@ export interface Purchase {
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
   amountPaidMinor: number;
+  status?: "completed" | "cancelled";
   createdBy: string;
   createdAt: string;
 }

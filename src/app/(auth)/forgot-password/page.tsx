@@ -27,7 +27,7 @@ export default function ForgotPasswordPage() {
     try {
       await resetPassword(data.email);
       setIsSuccess(true);
-    } catch (err) {
+    } catch {
       // Error handled by context
     }
   };
@@ -37,7 +37,7 @@ export default function ForgotPasswordPage() {
       <div className="space-y-6 text-center">
         <h3 className="text-lg font-medium text-gray-900">Check your email</h3>
         <p className="text-sm text-gray-600">
-          We've sent password reset instructions to your email address.
+          We&apos;ve sent password reset instructions to your email address.
         </p>
         <div className="mt-6">
           <Link href="/login" className="font-medium text-[#10B981] hover:text-[#059669]">
@@ -53,7 +53,7 @@ export default function ForgotPasswordPage() {
       <div className="text-center">
         <h3 className="text-lg font-medium text-gray-900">Reset your password</h3>
         <p className="mt-2 text-sm text-gray-600">
-          Enter your email address and we'll send you a link to reset your password.
+          Enter your email address and we&apos;ll send you a link to reset your password.
         </p>
       </div>
 

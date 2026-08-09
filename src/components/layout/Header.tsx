@@ -5,7 +5,6 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { useShop } from "@/contexts/ShopContext";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { ChevronDown, LogOut, Check, Store } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 export function Header() {
   const { userProfile, logout } = useAuth();

@@ -33,7 +33,7 @@ export default function RegisterPage() {
         await updateProfile(user, { displayName: data.name });
       }
       router.push("/onboarding");
-    } catch (err) {
+    } catch {
       // Error is handled by AuthContext and exposed via authError
     }
   };

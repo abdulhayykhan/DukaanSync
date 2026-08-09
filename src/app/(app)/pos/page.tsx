@@ -75,9 +75,19 @@ export default function POSTerminalPage() {
     loadData();
   }, [loadData]);
 
+  // Clear POS cart and state when active shop changes to prevent cross-shop leaks
+  useEffect(() => {
+    setCart([]);
+    setSelectedCustomerId("");
+    setSearchQuery("");
+  }, [activeShop?.id]);
+
   // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger POS hotkeys if a modal dialog is open
+      if (isCheckoutOpen || isInvoiceOpen || isCustomerModalOpen) return;
+
       // F2: Focus Search
       if (e.key === "F2") {
         e.preventDefault();
@@ -86,7 +96,7 @@ export default function POSTerminalPage() {
       // F8: Clear Cart
       if (e.key === "F8") {
         e.preventDefault();
-        if (confirm("Clear cart?")) setCart([]);
+        if (cart.length > 0 && confirm("Clear cart?")) setCart([]);
       }
       // F9: Checkout
       if (e.key === "F9") {
@@ -96,7 +106,7 @@ export default function POSTerminalPage() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [cart]);
+  }, [cart, isCheckoutOpen, isInvoiceOpen, isCustomerModalOpen]);
 
   // Filters
   const filteredInventory = useMemo(() => {

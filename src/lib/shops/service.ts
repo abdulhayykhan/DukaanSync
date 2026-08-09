@@ -6,7 +6,6 @@ import {
   where,
   writeBatch,
   updateDoc,
-  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
 import type { ShopFormData } from "@/lib/validation/shop";

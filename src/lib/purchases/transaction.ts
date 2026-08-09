@@ -35,7 +35,7 @@ export class PurchaseTransactionService {
     data: PurchaseTransactionData
   ): Promise<string> {
     if (!db) throw new Error("Firestore not initialized");
-    const firestore = db as any;
+    const firestore = db;
 
     const purchaseRef = doc(collection(firestore, "businesses", businessId, "shops", shopId, "purchases"));
     
@@ -89,6 +89,7 @@ export class PurchaseTransactionService {
         paymentMethod: data.paymentMethod,
         paymentStatus: data.paymentStatus,
         amountPaidMinor: data.amountPaidMinor,
+        status: "completed",
         createdBy: userId,
         createdAt: now,
       };

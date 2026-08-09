@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Printer, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";

@@ -29,7 +29,7 @@ export default function SuppliersPage() {
     try {
       const data = await SupplierService.getSuppliers(business.id);
       setSuppliers(data);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load suppliers");
     } finally {
       setLoading(false);
@@ -38,6 +38,7 @@ export default function SuppliersPage() {
 
   useEffect(() => {
     if (!isReadOnly) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchSuppliers();
     }
   }, [fetchSuppliers, isReadOnly]);

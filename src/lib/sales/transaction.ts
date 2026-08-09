@@ -1,7 +1,9 @@
 import { 
   collection, 
   doc, 
-  runTransaction 
+  runTransaction,
+  type DocumentSnapshot,
+  type DocumentReference
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
 import type { 
@@ -36,7 +38,7 @@ export interface SaleTransactionData {
 
 export class SaleTransactionService {
   /**
-   * Executes a completely atomic sale transaction.
+   * Executes a completely atomic POS sale transaction.
    * Decrements inventory, preserves historical COGS, updates customer ledger (if credit),
    * logs stock movements, and generates the Sale invoice.
    */
@@ -47,7 +49,7 @@ export class SaleTransactionService {
     data: SaleTransactionData
   ): Promise<string> {
     if (!db) throw new Error("Firestore not initialized");
-    const firestore = db as any;
+    const firestore = db;
 
     const saleRef = doc(collection(firestore, "businesses", businessId, "shops", shopId, "sales"));
     
@@ -63,8 +65,8 @@ export class SaleTransactionService {
       // 1. Read all required data first
       // -------------------------------------------------------------
       
-      let customerDoc: any = null;
-      let customerRef: any = null;
+      let customerDoc: DocumentSnapshot | null = null;
+      let customerRef: DocumentReference | null = null;
       const isCreditOrPartial = data.paymentStatus !== "paid" && data.amountPaidMinor < data.grandTotalMinor;
 
       if (isCreditOrPartial) {
@@ -171,7 +173,7 @@ export class SaleTransactionService {
       // C. Update Customer Ledger if unpaid/partial
       if (isCreditOrPartial && customerRef && customerDoc) {
         const amountUnpaid = data.grandTotalMinor - data.amountPaidMinor;
-        const currentBalance = customerDoc.data().currentBalanceMinor as number;
+        const currentBalance = customerDoc.data()?.currentBalanceMinor as number ?? 0;
         const newBalance = currentBalance + amountUnpaid; // Customer balance is receivables (how much they owe us)
 
         transaction.update(customerRef, {

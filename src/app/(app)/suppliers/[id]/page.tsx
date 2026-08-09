@@ -53,6 +53,7 @@ export default function SupplierLedgerPage() {
   }, [business, id, router]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchLedger();
   }, [fetchLedger]);
 

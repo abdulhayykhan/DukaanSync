@@ -74,8 +74,9 @@ export function SupplierModal({ isOpen, onOpenChange, supplierToEdit, onSuccess 
       
       await onSuccess();
       onOpenChange(false);
-    } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "An error occurred";
+      toast.error(msg);
     }
   };
 

@@ -5,7 +5,6 @@ import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
 import { Toaster } from "sonner";
-import { cn } from "@/lib/utils";
 import { AmbientBackground } from "@/components/ui/AmbientBackground";
 
 export function AppShell({ children }: { children: ReactNode }) {

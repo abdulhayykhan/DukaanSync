@@ -61,7 +61,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !!auth);
   const [error, setError] = useState<string | null>(null);
 
   // ---------------------------------------------------------------------------
@@ -88,10 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ---------------------------------------------------------------------------
   useEffect(() => {
     // Firebase not initialized (build-time / missing env vars)
-    if (!auth) {
-      setLoading(false);
-      return;
-    }
+    if (!auth) return;
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);

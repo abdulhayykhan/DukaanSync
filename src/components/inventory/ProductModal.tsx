@@ -43,6 +43,7 @@ export function ProductModal({ isOpen, onOpenChange, itemToEdit, onSuccess }: Pr
     reset,
     formState: { errors, isSubmitting },
   } = useForm<InventoryFormData>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(inventoryFormSchema) as any,
   });
 
@@ -91,8 +92,9 @@ export function ProductModal({ isOpen, onOpenChange, itemToEdit, onSuccess }: Pr
       
       await onSuccess();
       onOpenChange(false);
-    } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "An error occurred";
+      toast.error(msg);
     }
   };
 

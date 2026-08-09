@@ -121,6 +121,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     if (authLoading) return;
 
     if (userProfile?.businessId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchBusiness();
     } else {
       setBusiness(null);

@@ -1,7 +1,6 @@
 import { 
   collection, 
   doc, 
-   
   getDocs, 
   setDoc, 
   updateDoc, 
@@ -9,8 +8,7 @@ import {
   query, 
   where,
   orderBy,
-  
-  Timestamp
+  QueryConstraint
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
 import type { Expense } from "@/types";
@@ -27,7 +25,7 @@ export class ExpenseService {
   ): Promise<Expense[]> {
     if (!db) throw new Error("Firestore not initialized");
     
-    const constraints: any[] = [orderBy("date", "desc")];
+    const constraints: QueryConstraint[] = [orderBy("date", "desc")];
     
     if (startDate) constraints.push(where("date", ">=", startDate));
     if (endDate) constraints.push(where("date", "<=", endDate));

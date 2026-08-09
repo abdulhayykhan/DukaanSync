@@ -51,10 +51,17 @@ export default function NewPurchasePage() {
     ]).then(([supData, invData]) => {
       setSuppliers(supData);
       setInventory(invData);
-    }).catch(err => {
+    }).catch(() => {
       toast.error("Failed to load necessary data");
     });
   }, [business, activeShop, isReadOnly]);
+
+  // Clear purchase cart and state when active shop changes to prevent cross-shop leaks
+  useEffect(() => {
+    setCart([]);
+    setSelectedSupplierId("");
+    setSearchQuery("");
+  }, [activeShop?.id]);
 
   // Inventory Search
   const filteredInventory = useMemo(() => {

@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { doc, writeBatch, collection } from "firebase/firestore";
 
-import { auth, db } from "@/lib/firebase/client";
+import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { onboardingSchema, type OnboardingFormData } from "@/lib/validation/auth";
@@ -35,68 +35,57 @@ export default function OnboardingPage() {
     setSubmitError(null);
 
     try {
-      const batch = writeBatch(db);
-
-      // Refs
       const businessRef = doc(collection(db, "businesses"));
       const businessId = businessRef.id;
+
       const shopRef = doc(collection(db, "businesses", businessId, "shops"));
       const shopId = shopRef.id;
-      const memberRef = doc(db, "businesses", businessId, "members", user.uid);
+
       const userRef = doc(db, "users", user.uid);
+      const memberRef = doc(db, "businesses", businessId, "members", user.uid);
 
-      const now = new Date().toISOString();
+      const batch = writeBatch(db);
 
-      // 1. Create Business
       batch.set(businessRef, {
         name: data.businessName,
         ownerId: user.uid,
         currency: data.currency,
-        createdAt: now,
-        updatedAt: now,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       });
 
-      // 2. Create Initial Shop
       batch.set(shopRef, {
         name: data.shopName,
         code: data.shopCode,
         address: data.address,
         phone: data.phone,
-        status: "active",
         isMain: true,
-        createdAt: now,
-        updatedAt: now,
+        status: "active",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       });
 
-      // 3. Create Member
       batch.set(memberRef, {
-        uid: user.uid,
-        businessId: businessId,
         role: "owner",
         shopIds: [shopId],
-        displayName: user.displayName || "Owner",
-        email: user.email || "",
-        createdAt: now,
-        updatedAt: now,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       });
 
-      // 4. Update/Create User Profile
-      batch.set(userRef, {
-        businessId: businessId,
-        role: "owner",
-        createdAt: now, // Will overwrite if exists, but typically created here or at auth trigger
-        updatedAt: now,
-      }, { merge: true });
+      batch.set(
+        userRef,
+        {
+          businessId,
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true }
+      );
 
       await batch.commit();
-
-      // Refresh context data to reflect new business/profile
       await refreshProfile();
       await refreshBusiness();
-
       router.push("/dashboard");
-    } catch (err) {
-      console.error("Onboarding failed:", err);
+    } catch {
       setSubmitError("Failed to set up your business. Please try again.");
     }
   };
@@ -106,7 +95,7 @@ export default function OnboardingPage() {
       <div className="text-center">
         <h3 className="text-2xl font-bold text-gray-900">Set up your business</h3>
         <p className="mt-2 text-sm text-gray-600">
-          Let's create your primary business and first shop location.
+          Let&apos;s create your primary business and first shop location.
         </p>
       </div>
 

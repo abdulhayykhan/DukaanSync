@@ -29,7 +29,7 @@ export default function LoginPage() {
     try {
       await login(data.email, data.password);
       router.push("/dashboard"); // AuthGuard will redirect to onboarding if needed
-    } catch (err) {
+    } catch {
       // Error is handled by AuthContext and exposed via authError
     }
   };

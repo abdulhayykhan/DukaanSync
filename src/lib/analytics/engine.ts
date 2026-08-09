@@ -132,7 +132,16 @@ export class AnalyticsEngine {
     });
 
     // 4. Compute Chart Data
-    let chartData: DashboardTelemetry["chartData"] = [];
+    interface InternalChartBucket {
+      date: string;
+      _rawDate: Date;
+      revenue: number;
+      netProfit: number;
+      cogs: number;
+      exp: number;
+    }
+
+    let chartData: InternalChartBucket[] = [];
     
     // Generate empty buckets
     if (period === "today" || period === "week" || period === "month") {
@@ -161,8 +170,8 @@ export class AnalyticsEngine {
     sales.filter(s => s.status === "completed").forEach(sale => {
       const saleDate = parseISO(sale.createdAt);
       const bucket = chartData.find(b => {
-        if (period === "year") return isSameMonth((b as any)._rawDate, saleDate);
-        return isSameDay((b as any)._rawDate, saleDate);
+        if (period === "year") return isSameMonth(b._rawDate, saleDate);
+        return isSameDay(b._rawDate, saleDate);
       });
       
       if (bucket) {
@@ -170,26 +179,25 @@ export class AnalyticsEngine {
         const cogs = sale.items.reduce((sum, item) => sum + (item.costPriceMinor * item.quantity), 0);
         
         bucket.revenue += rev;
-        (bucket as any).cogs += cogs;
+        bucket.cogs += cogs;
       }
     });
 
     expenses.forEach(exp => {
       const expDate = parseISO(exp.date);
       const bucket = chartData.find(b => {
-        if (period === "year") return isSameMonth((b as any)._rawDate, expDate);
-        return isSameDay((b as any)._rawDate, expDate);
+        if (period === "year") return isSameMonth(b._rawDate, expDate);
+        return isSameDay(b._rawDate, expDate);
       });
       if (bucket) {
-        (bucket as any).exp += exp.amountMinor;
+        bucket.exp += exp.amountMinor;
       }
     });
 
     // Finalize bucket profits
     chartData.forEach(bucket => {
-      const b = bucket as any;
-      const gp = b.revenue - b.cogs;
-      bucket.netProfit = gp - b.exp;
+      const gp = bucket.revenue - bucket.cogs;
+      bucket.netProfit = gp - bucket.exp;
     });
 
     // Map expense distribution

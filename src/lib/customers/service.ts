@@ -99,8 +99,8 @@ export class CustomerService {
     referenceId?: string
   ): Promise<void> {
     if (!db) throw new Error("Firestore not initialized");
-    const firestore = db as any;
-    
+    const firestore = db;
+
     await runTransaction(firestore, async (transaction) => {
       const customerRef = doc(firestore, "businesses", businessId, "customers", customerId);
       const customerSnap = await transaction.get(customerRef);

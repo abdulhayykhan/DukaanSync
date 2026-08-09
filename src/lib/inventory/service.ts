@@ -103,7 +103,8 @@ export class InventoryService {
     
     // Do not allow updating quantity through this standard update method.
     // Stock must be updated via movements (adjustments, sales, purchases).
-    const { quantity, ...safeUpdates } = updates as any;
+    const safeUpdates: Record<string, unknown> = { ...updates };
+    delete safeUpdates.quantity;
 
     await updateDoc(itemRef, {
       ...safeUpdates,
