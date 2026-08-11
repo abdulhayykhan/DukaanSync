@@ -1,0 +1,57 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with subtle gradient for 3D effect -->
+  <rect width="256" height="256" rx="64" fill="url(#bg-gradient)"/>
+  
+  <!-- Outer glowing ring / aura -->
+  <circle cx="128" cy="128" r="90" stroke="url(#glow-gradient)" stroke-width="8" opacity="0.6"/>
+  
+  <!-- Abstract 3D Shopping Cart / Storefront motif -->
+  <g filter="url(#drop-shadow)">
+    <!-- Base / Wheels -->
+    <circle cx="96" cy="176" r="12" fill="#38BDF8"/>
+    <circle cx="160" cy="176" r="12" fill="#38BDF8"/>
+    <circle cx="160" cy="176" r="8" fill="#0EA5E9"/>
+    <circle cx="96" cy="176" r="8" fill="#0EA5E9"/>
+    
+    <!-- Cart Body - Glassmorphic / 3D appearance -->
+    <path d="M64 80 L200 80 L184 144 L80 144 Z" fill="url(#cart-body-gradient)" stroke="url(#glow-gradient)" stroke-width="4" stroke-linejoin="round"/>
+    
+    <!-- Cart Handle / Support -->
+    <path d="M48 64 L64 80 L80 144 L96 176" fill="none" stroke="#38BDF8" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Storefront Awning (The "Dukaan" element) -->
+    <path d="M56 80 Q96 64 128 80 Q160 96 208 80 L200 112 Q160 128 128 112 Q96 96 64 112 Z" fill="#0284C7" opacity="0.8"/>
+    <path d="M60 84 Q96 68 128 84 Q160 100 204 84 L196 108 Q160 124 128 108 Q96 92 64 108 Z" fill="#38BDF8"/>
+  </g>
+
+  <!-- Synchronization Arrows (The "Sync" element) -->
+  <path d="M112 112 A 24 24 0 0 1 144 112 M144 112 L144 104 M144 112 L136 112" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M144 136 A 24 24 0 0 1 112 136 M112 136 L112 144 M112 136 L120 136" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Definition of gradients and filters -->
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bg-gradient" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="50%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    
+    <!-- Cart Body Glassmorphism Gradient -->
+    <linearGradient id="cart-body-gradient" x1="64" y1="80" x2="200" y2="144" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0EA5E9" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#0369A1" stop-opacity="0.4"/>
+    </linearGradient>
+    
+    <!-- Neon Glow Gradient -->
+    <linearGradient id="glow-gradient" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#818CF8"/>
+    </linearGradient>
+
+    <!-- 3D Drop Shadow -->
+    <filter id="drop-shadow" x="20" y="40" width="220" height="200" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+</svg>
