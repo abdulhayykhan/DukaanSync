@@ -1,18 +1,21 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Plus, Search, Filter, Trash2, Calendar, FileText, Download } from "lucide-react";
+import { Plus, Search, Filter, Trash2, Calendar, FileText, Download, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
 import * as Dialog from "@radix-ui/react-dialog";
 
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useShop } from "@/contexts/ShopContext";
 import { ExpenseService } from "@/lib/expenses/service";
+import type { ExpenseImportPayload } from "@/lib/expenses/service";
 import { formatCurrency, toMinorUnit } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ExportDropdown } from "@/components/ui/ExportDropdown";
 import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
+import { BulkImportModal } from "@/components/ui/BulkImportModal";
 import type { Expense, ExpenseCategory } from "@/types";
 import { parseISO, format } from "date-fns";
 
@@ -32,6 +35,7 @@ export default function ExpensesPage() {
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   // Filters
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -160,6 +164,57 @@ export default function ExpensesPage() {
 
   if (!business || !activeShop) return null;
 
+  const expenseRowSchema = z.object({
+    date: z.string().optional().default(""),
+    category: z.enum(["rent", "utilities", "salary", "transport", "maintenance", "marketing", "other"]).catch("other"),
+    description: z.string().optional().default(""),
+    amountPKR: z.coerce.number().min(0).default(0),
+    paymentMethod: z.enum(["cash", "bank", "card"]).catch("cash"),
+  });
+
+  const EXPENSE_COLUMNS = ["date", "category", "description", "amountPKR", "paymentMethod"];
+  const EXPENSE_SAMPLE = [
+    { date: "2026-01-10", category: "rent", description: "Monthly Rent", amountPKR: 75000, paymentMethod: "bank" },
+    { date: "2026-01-12", category: "utilities", description: "K-Electric Bill", amountPKR: 35000, paymentMethod: "cash" },
+  ];
+
+  const handleValidateExpenseRow = (row: Record<string, string | number | boolean | null>) => {
+    const normalizeKey = (k: string) => k.toLowerCase().replace(/[\s_-]/g, "");
+    const normalized: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(row)) normalized[normalizeKey(k)] = v;
+
+    const get = (aliases: string[]) => {
+      for (const a of aliases) if (normalized[a] !== undefined && normalized[a] !== "") return normalized[a];
+      return undefined;
+    };
+
+    const mapped = {
+      date: get(["date", "expensedate"]),
+      category: get(["category", "type", "expensecategory"]),
+      description: get(["description", "desc", "memo", "notes"]),
+      amountPKR: get(["amountpkr", "amount", "amountpkr", "cost"]),
+      paymentMethod: get(["paymentmethod", "method", "payment"]),
+    };
+
+    const parsed = expenseRowSchema.safeParse(mapped);
+    if (!parsed.success) {
+      return { isValid: false, errors: parsed.error.issues.map(i => `'${i.path.join(".")}: ${i.message}`) };
+    }
+
+    const d = parsed.data;
+    const dateIso = d.date ? new Date(d.date).toISOString() : new Date().toISOString();
+    return {
+      isValid: true,
+      data: {
+        date: dateIso,
+        category: d.category,
+        description: d.description,
+        amountMinor: Math.round(d.amountPKR * 100),
+        paymentMethod: d.paymentMethod,
+      } as ExpenseImportPayload,
+    };
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] mx-auto space-y-6">
       
@@ -169,9 +224,16 @@ export default function ExpensesPage() {
           <h1 className="text-2xl font-bold text-gray-900">Operating Expenses</h1>
           <p className="text-sm text-gray-500 mt-1">Manage and track shop expenses for P&L deductions.</p>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+        <div className="flex flex-row items-center gap-2 flex-shrink-0">
           <ExportDropdown onExport={handleExport} />
-          <Button onClick={() => setIsModalOpen(true)} className="h-10 rounded-xl flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4">
+          <button
+            onClick={() => setIsImportModalOpen(true)}
+            className="h-10 inline-flex items-center gap-2 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-colors shadow-sm whitespace-nowrap"
+          >
+            <UploadCloud className="h-4 w-4 shrink-0" />
+            Import
+          </button>
+          <Button onClick={() => setIsModalOpen(true)} className="h-10 rounded-xl inline-flex items-center justify-center gap-2 px-4 whitespace-nowrap">
             <Plus className="w-4 h-4 text-current" /> Log Expense
           </Button>
         </div>
@@ -375,6 +437,19 @@ export default function ExpensesPage() {
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
+
+      <BulkImportModal<ExpenseImportPayload>
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        title="Import Expenses"
+        sampleData={EXPENSE_SAMPLE}
+        expectedColumns={EXPENSE_COLUMNS}
+        onValidateRow={handleValidateExpenseRow}
+        onImport={(validRows, _strategy, onProgress) =>
+          ExpenseService.bulkImportExpenses(business.id, activeShop.id, validRows, onProgress)
+        }
+        onSuccess={loadExpenses}
+      />
 
     </div>
   );

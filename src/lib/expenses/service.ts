@@ -5,13 +5,23 @@ import {
   setDoc, 
   updateDoc, 
   deleteDoc,
+  writeBatch,
   query, 
   where,
   orderBy,
   QueryConstraint
 } from "firebase/firestore";
-import { db } from "@/lib/firebase/client";
-import type { Expense } from "@/types";
+import { db, auth } from "@/lib/firebase/client";
+import type { Expense, ExpenseCategory } from "@/types";
+import type { BulkImportResult } from "@/components/ui/BulkImportModal";
+
+export interface ExpenseImportPayload {
+  date: string;
+  category: ExpenseCategory;
+  description: string;
+  amountMinor: number;
+  paymentMethod: "cash" | "bank" | "card";
+}
 
 export class ExpenseService {
   /**
@@ -92,5 +102,54 @@ export class ExpenseService {
     
     const ref = doc(db, "businesses", businessId, "shops", shopId, "expenses", expenseId);
     await deleteDoc(ref);
+  }
+
+  /**
+   * Bulk imports expense records from a parsed CSV/Excel payload.
+   * Writes in chunks of 400 to stay under Firestore batch limits.
+   */
+  static async bulkImportExpenses(
+    businessId: string,
+    shopId: string,
+    rows: ExpenseImportPayload[],
+    onProgress?: (processed: number, total: number) => void
+  ): Promise<BulkImportResult> {
+    if (!db) throw new Error("Firestore not initialized");
+
+    const CHUNK_SIZE = 400;
+    let successCount = 0;
+    const errors: string[] = [];
+    const uid = auth?.currentUser?.uid || "system";
+    const expensesRef = collection(db, "businesses", businessId, "shops", shopId, "expenses");
+    const total = rows.length;
+
+    for (let i = 0; i < total; i += CHUNK_SIZE) {
+      const chunk = rows.slice(i, i + CHUNK_SIZE);
+      const batch = writeBatch(db);
+      const now = new Date().toISOString();
+
+      for (const row of chunk) {
+        const ref = doc(expensesRef);
+        batch.set(ref, {
+          ...row,
+          businessId,
+          shopId,
+          createdBy: uid,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+
+      try {
+        await batch.commit();
+        successCount += chunk.length;
+        if (onProgress) onProgress(Math.min(i + CHUNK_SIZE, total), total);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Unknown error";
+        errors.push(`Batch write failed at index ${i}: ${msg}`);
+      }
+    }
+
+    return { successCount, updatedCount: 0, skippedCount: 0, errors };
   }
 }

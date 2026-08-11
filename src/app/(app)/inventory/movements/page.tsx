@@ -1,19 +1,22 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { ArrowLeft, Clock, History, Search } from "lucide-react";
+import { ArrowLeft, Clock, History, Search, UploadCloud } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useShop } from "@/contexts/ShopContext";
 import { StockMovementService } from "@/lib/inventory/movements";
+import type { StockMovementImportPayload } from "@/lib/inventory/movements";
 import { InventoryService } from "@/lib/inventory/service";
 import { Input } from "@/components/ui/Input";
 import { ExportDropdown } from "@/components/ui/ExportDropdown";
 import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
+import { BulkImportModal } from "@/components/ui/BulkImportModal";
 import { format } from "date-fns";
-import type { StockMovement, InventoryItem } from "@/types";
+import type { StockMovement, InventoryItem, StockMovementType } from "@/types";
 
 export default function StockMovementsPage() {
   const router = useRouter();
@@ -24,6 +27,7 @@ export default function StockMovementsPage() {
   const [inventoryDict, setInventoryDict] = useState<Record<string, InventoryItem>>({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!business || !activeShop) return;
@@ -98,6 +102,68 @@ export default function StockMovementsPage() {
     }
   };
 
+  const movementRowSchema = z.object({
+    timestamp: z.string().optional().default(""),
+    sku: z.string().min(1, "SKU is required"),
+    productName: z.string().optional().default(""),
+    type: z.enum(["initial", "sale", "purchase", "adjustment", "import_update", "import_addition", "customer_return", "supplier_return"]).catch("adjustment"),
+    quantityBefore: z.coerce.number().default(0),
+    quantityChange: z.coerce.number(),
+    quantityAfter: z.coerce.number().default(0),
+    reason: z.string().optional().default(""),
+  });
+
+  const MOVEMENT_COLUMNS = ["timestamp", "sku", "productName", "type", "quantityBefore", "quantityChange", "quantityAfter", "reason"];
+  const MOVEMENT_SAMPLE = [
+    { timestamp: "2026-01-15T10:30:00Z", sku: "GRO-RICE-5KG", productName: "Rice (5kg)", type: "purchase", quantityBefore: 10, quantityChange: 50, quantityAfter: 60, reason: "Stock Replenishment" },
+    { timestamp: "2026-01-16T14:00:00Z", sku: "BEV-COLA-1.5L", productName: "Cola Soft Drink", type: "sale", quantityBefore: 30, quantityChange: -5, quantityAfter: 25, reason: "Customer Sale" },
+  ];
+
+  const handleValidateMovementRow = (row: Record<string, string | number | boolean | null>) => {
+    const normalizeKey = (k: string) => k.toLowerCase().replace(/[\s_-]/g, "");
+    const normalized: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(row)) normalized[normalizeKey(k)] = v;
+
+    const get = (aliases: string[]) => {
+      for (const a of aliases) if (normalized[a] !== undefined && normalized[a] !== "") return normalized[a];
+      return undefined;
+    };
+
+    const mapped = {
+      timestamp: get(["timestamp", "date", "createdat"]),
+      sku: get(["sku", "productsku", "code"]),
+      productName: get(["productname", "name", "product"]),
+      type: get(["type", "movementtype"]),
+      quantityBefore: get(["quantitybefore", "before", "qtybefore"]),
+      quantityChange: get(["quantitychange", "change", "qtychange", "delta"]),
+      quantityAfter: get(["quantityafter", "after", "qtyafter"]),
+      reason: get(["reason", "notes", "description"]),
+    };
+
+    const parsed = movementRowSchema.safeParse(mapped);
+    if (!parsed.success) {
+      return { isValid: false, errors: parsed.error.issues.map(i => `'${i.path.join(".")}: ${i.message}`) };
+    }
+
+    const d = parsed.data;
+    const tsIso = d.timestamp ? new Date(d.timestamp).toISOString() : new Date().toISOString();
+    // Try to resolve itemId from inventoryDict by SKU
+    const matchedItem = Object.values(inventoryDict).find(item => item.sku === d.sku);
+    return {
+      isValid: true,
+      data: {
+        itemId: matchedItem?.id || d.sku,
+        sku: d.sku,
+        type: d.type as StockMovementType,
+        quantityBefore: d.quantityBefore,
+        quantityChange: d.quantityChange,
+        quantityAfter: d.quantityAfter,
+        reason: d.reason,
+        timestamp: tsIso,
+      } as StockMovementImportPayload,
+    };
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto h-full flex flex-col">
       <div className="mb-6">
@@ -113,7 +179,16 @@ export default function StockMovementsPage() {
             <h1 className="text-2xl font-bold text-gray-900">Stock Movements Audit</h1>
             <p className="text-sm text-gray-500 mt-1">Ledger of all inventory quantity changes for {activeShop?.name}.</p>
           </div>
-          <ExportDropdown onExport={handleExport} />
+          <div className="flex items-center gap-2">
+            <ExportDropdown onExport={handleExport} />
+            <button
+              onClick={() => setIsImportModalOpen(true)}
+              className="h-10 inline-flex items-center gap-2 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-colors shadow-sm whitespace-nowrap"
+            >
+              <UploadCloud className="h-4 w-4 shrink-0" />
+              Import
+            </button>
+          </div>
         </div>
       </div>
 
@@ -201,6 +276,19 @@ export default function StockMovementsPage() {
           </table>
         </div>
       </div>
+
+      <BulkImportModal<StockMovementImportPayload>
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        title="Import Stock Movements"
+        sampleData={MOVEMENT_SAMPLE}
+        expectedColumns={MOVEMENT_COLUMNS}
+        onValidateRow={handleValidateMovementRow}
+        onImport={(validRows, _strategy, onProgress) =>
+          StockMovementService.bulkImportMovements(business!.id, activeShop!.id, validRows, onProgress)
+        }
+        onSuccess={fetchData}
+      />
     </div>
   );
 }

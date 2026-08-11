@@ -2,18 +2,21 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { Plus, Search, Filter, FileText, ArrowRight } from "lucide-react";
+import { Plus, Search, Filter, FileText, ArrowRight, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
 import { parseISO, format } from "date-fns";
 
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useShop } from "@/contexts/ShopContext";
 import { PurchaseService } from "@/lib/purchases/service";
+import type { PurchaseImportPayload } from "@/lib/purchases/service";
 import { formatCurrency } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ExportDropdown } from "@/components/ui/ExportDropdown";
 import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
+import { BulkImportModal } from "@/components/ui/BulkImportModal";
 import type { Purchase } from "@/types";
 
 export default function PurchasesPage() {
@@ -22,6 +25,7 @@ export default function PurchasesPage() {
 
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -55,6 +59,63 @@ export default function PurchasesPage() {
   }, [purchases, statusFilter, searchQuery]);
 
   const isReadOnly = memberRole === "cashier";
+
+  const purchaseRowSchema = z.object({
+    purchaseNumber: z.string().min(1),
+    supplierName: z.string().min(1, "Supplier Name is required"),
+    date: z.string().optional().default(""),
+    grandTotalPKR: z.coerce.number().min(0).default(0),
+    paymentStatus: z.enum(["paid", "partial", "unpaid"]).catch("unpaid"),
+    paymentMethod: z.enum(["cash", "bank", "card", "easypaisa", "jazzcash", "credit", "mixed"]).catch("cash"),
+    notes: z.string().optional().default(""),
+  });
+
+  const PURCHASE_COLUMNS = ["purchaseNumber", "supplierName", "date", "grandTotalPKR", "paymentStatus", "paymentMethod"];
+  const PURCHASE_SAMPLE = [
+    { purchaseNumber: "PO-0001", supplierName: "Unilever Pakistan", date: "2026-01-15", grandTotalPKR: 50000, paymentStatus: "paid", paymentMethod: "bank" },
+    { purchaseNumber: "PO-0002", supplierName: "Nestlé Wholesale", date: "2026-01-20", grandTotalPKR: 30000, paymentStatus: "unpaid", paymentMethod: "credit" },
+  ];
+
+  const handleValidatePurchaseRow = (row: Record<string, string | number | boolean | null>) => {
+    const normalizeKey = (k: string) => k.toLowerCase().replace(/[\s_-]/g, "");
+    const normalized: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(row)) normalized[normalizeKey(k)] = v;
+
+    const get = (aliases: string[]) => {
+      for (const a of aliases) if (normalized[a] !== undefined && normalized[a] !== "") return normalized[a];
+      return undefined;
+    };
+
+    const mapped = {
+      purchaseNumber: get(["purchasenumber", "ponumber", "invoicenumber"]) || `IMP-${Date.now()}`,
+      supplierName: get(["suppliername", "supplier", "vendor"]),
+      date: get(["date", "purchasedate", "orderdate"]),
+      grandTotalPKR: get(["grandtotalpkr", "grandtotal", "total", "amount"]),
+      paymentStatus: get(["paymentstatus", "status"]),
+      paymentMethod: get(["paymentmethod", "method", "payment"]),
+      notes: get(["notes", "remarks"]),
+    };
+
+    const parsed = purchaseRowSchema.safeParse(mapped);
+    if (!parsed.success) {
+      return { isValid: false, errors: parsed.error.issues.map(i => `'${i.path.join(".")}: ${i.message}`) };
+    }
+
+    const d = parsed.data;
+    const dateIso = d.date ? new Date(d.date).toISOString() : new Date().toISOString();
+    return {
+      isValid: true,
+      data: {
+        purchaseNumber: d.purchaseNumber,
+        supplierName: d.supplierName,
+        date: dateIso,
+        grandTotalMinor: Math.round(d.grandTotalPKR * 100),
+        paymentStatus: d.paymentStatus,
+        paymentMethod: d.paymentMethod,
+        notes: d.notes,
+      } as PurchaseImportPayload,
+    };
+  };
 
   if (loading) {
     return (
@@ -117,12 +178,21 @@ export default function PurchasesPage() {
         <div className="flex items-center gap-2">
           <ExportDropdown onExport={handleExport} />
           {!isReadOnly && (
-            <Link href="/purchases/new">
-              <Button className="shrink-0 flex items-center gap-2 rounded-xl shadow-lg shadow-[#10B981]/20">
-                <Plus className="w-4 h-4" />
-                <span>Create Purchase</span>
-              </Button>
-            </Link>
+            <>
+              <button
+                onClick={() => setIsImportModalOpen(true)}
+                className="h-10 inline-flex items-center gap-2 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-colors shadow-sm whitespace-nowrap"
+              >
+                <UploadCloud className="h-4 w-4 shrink-0" />
+                Import
+              </button>
+              <Link href="/purchases/new">
+                <Button className="shrink-0 flex items-center gap-2 rounded-xl shadow-lg shadow-[#10B981]/20">
+                  <Plus className="w-4 h-4" />
+                  <span>Create Purchase</span>
+                </Button>
+              </Link>
+            </>
           )}
         </div>
       </div>
@@ -232,6 +302,18 @@ export default function PurchasesPage() {
           </table>
         </div>
       </div>
+      <BulkImportModal<PurchaseImportPayload>
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        title="Import Purchases"
+        sampleData={PURCHASE_SAMPLE}
+        expectedColumns={PURCHASE_COLUMNS}
+        onValidateRow={handleValidatePurchaseRow}
+        onImport={(validRows, _strategy, onProgress) =>
+          PurchaseService.bulkImportPurchases(business!.id, activeShop!.id, validRows, onProgress)
+        }
+        onSuccess={loadPurchases}
+      />
     </div>
   );
 }
