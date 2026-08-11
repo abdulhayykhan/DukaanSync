@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
-import { Plus, CheckCircle2, XCircle, MoreVertical, Star } from "lucide-react";
+import { Plus, CheckCircle2, XCircle, MoreVertical, Star, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 
@@ -124,20 +125,26 @@ export default function ShopsSettingsPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto animate-in fade-in zoom-in-95 duration-500">
+      <div className="mb-4">
+        <Link href="/settings" className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">
+          <ChevronLeft className="w-4 h-4 mr-1" /> Back to Settings
+        </Link>
+      </div>
+      
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Shops & Branches</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage physical locations for your business.</p>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Shops & Branches</h1>
+          <p className="text-lg text-gray-500 mt-2">Manage physical locations for your business.</p>
         </div>
-        <Button onClick={handleOpenCreateModal} className="w-full sm:w-auto">
+        <Button onClick={handleOpenCreateModal} className="w-full sm:w-auto shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
           <Plus className="mr-2 h-4 w-4" /> Add New Shop
         </Button>
       </div>
 
       {/* Shop List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="glass-card bg-white/70 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
