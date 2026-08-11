@@ -116,9 +116,7 @@ service cloud.firestore {
         // =====================================================================
 
         match /inventory/{document=**} {
-          allow read: if canAccessShop(businessId, shopId);
-          allow write: if canAccessShop(businessId, shopId)
-            && getMember(businessId).role in ['owner', 'manager', 'inventory_manager'];
+          allow read, write: if canAccessShop(businessId, shopId);
         }
 
         match /sales/{document=**} {
@@ -152,9 +150,7 @@ service cloud.firestore {
         }
 
         match /stockMovements/{document=**} {
-          allow read: if canAccessShop(businessId, shopId);
-          allow write: if canAccessShop(businessId, shopId)
-            && getMember(businessId).role in ['owner', 'manager', 'inventory_manager'];
+          allow read, create: if canAccessShop(businessId, shopId);
         }
 
         match /customerLedger/{document=**} {

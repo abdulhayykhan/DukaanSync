@@ -7,7 +7,7 @@ import {
   writeBatch,
   updateDoc,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase/client";
+import { db, auth } from "@/lib/firebase/client";
 import type { InventoryServicePayload } from "@/lib/validation/inventory";
 import type { InventoryItem } from "@/types";
 
@@ -63,6 +63,9 @@ export class InventoryService {
     
     batch.set(newItemRef, {
       ...data,
+      businessId,
+      shopId,
+      createdBy: auth?.currentUser?.uid || "system",
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -73,12 +76,14 @@ export class InventoryService {
       const movementRef = doc(collection(db, "businesses", businessId, "shops", shopId, "movements"));
       batch.set(movementRef, {
         itemId: newItemRef.id,
-        type: "opening_stock",
+        businessId,
+        shopId,
+        type: "initial",
         quantityBefore: 0,
         quantityChange: data.quantity,
         quantityAfter: data.quantity,
         reason: "Initial inventory setup",
-        createdBy: "system", // We would ideally pass the uid here
+        createdBy: auth?.currentUser?.uid || "system",
         createdAt: now,
       });
     }
@@ -176,6 +181,9 @@ export class InventoryService {
         
         batch.set(newItemRef, {
           ...data,
+          businessId,
+          shopId,
+          createdBy: auth?.currentUser?.uid || "system",
           isActive: true,
           createdAt: now,
           updatedAt: now,
@@ -185,12 +193,14 @@ export class InventoryService {
           const movementRef = doc(collection(db, "businesses", businessId, "shops", shopId, "movements"));
           batch.set(movementRef, {
             itemId: newItemRef.id,
-            type: "opening_stock",
+            businessId,
+            shopId,
+            type: "initial",
             quantityBefore: 0,
             quantityChange: data.quantity,
             quantityAfter: data.quantity,
             reason: "Bulk Import",
-            createdBy: "system",
+            createdBy: auth?.currentUser?.uid || "system",
             createdAt: now,
           });
         }
