@@ -12,7 +12,7 @@ export function Header() {
   const { activeShop, activeShopId, availableShops, setActiveShop } = useShop();
 
   return (
-    <header className="h-16 glass-card border-b-0 m-4 rounded-2xl flex items-center justify-between px-4 lg:px-8 z-10 shadow-xl">
+    <header className="h-16 bg-white border border-slate-200/80 rounded-2xl flex items-center justify-between px-4 lg:px-6 z-10 shadow-sm shrink-0 mb-6">
       {/* Left side: Business Name & Shop Context (Mobile hides business name) */}
       <div className="flex items-center gap-4">
         <div className="hidden sm:block">

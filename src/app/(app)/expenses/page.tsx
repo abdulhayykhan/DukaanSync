@@ -211,24 +211,24 @@ export default function ExpensesPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] mx-auto space-y-6">
+    <div className="space-y-6 max-w-[1600px] mx-auto">
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Operating Expenses</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage and track shop expenses for P&L deductions.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Operating Expenses</h1>
+          <p className="text-sm text-slate-500 mt-1">Manage and track shop expenses for P&L deductions.</p>
         </div>
-        <div className="flex flex-row items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
           <ExportDropdown onExport={handleExport} />
           <button
             onClick={() => setIsImportModalOpen(true)}
-            className="h-10 inline-flex items-center gap-2 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-colors shadow-sm whitespace-nowrap"
+            className="h-10 inline-flex items-center gap-2 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-colors shadow-sm shrink-0 whitespace-nowrap"
           >
             <UploadCloud className="h-4 w-4 shrink-0" />
             Import
           </button>
-          <Button onClick={() => setIsModalOpen(true)} className="h-10 rounded-xl inline-flex items-center justify-center gap-2 px-4 whitespace-nowrap">
+          <Button onClick={() => setIsModalOpen(true)} className="h-10 rounded-xl inline-flex items-center justify-center gap-2 px-4 shrink-0 whitespace-nowrap">
             <Plus className="w-4 h-4 text-current" /> Log Expense
           </Button>
         </div>
@@ -236,20 +236,20 @@ export default function ExpensesPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col">
-          <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Total Listed</span>
-          <div className="text-2xl font-bold text-gray-900">{formatCurrency(totalFilteredAmount, business.currency)}</div>
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+          <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Total Listed</span>
+          <div className="text-2xl font-bold text-slate-900">{formatCurrency(totalFilteredAmount, business.currency)}</div>
         </div>
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:col-span-2">
-           <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Category Breakdown (Filtered)</span>
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col sm:col-span-2">
+           <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Category Breakdown (Filtered)</span>
            <div className="flex flex-wrap gap-2 mt-1">
              {CATEGORIES.map(cat => {
                const catTotal = filteredExpenses.filter(e => e.category === cat.value).reduce((s, e) => s + e.amountMinor, 0);
                if (catTotal === 0) return null;
                return (
-                 <div key={cat.value} className="px-3 py-1 bg-gray-50 border border-gray-200 rounded-lg text-sm">
-                   <span className="font-medium text-gray-600 mr-2">{cat.label}:</span>
-                   <span className="font-bold text-gray-900">{formatCurrency(catTotal, business.currency)}</span>
+                 <div key={cat.value} className="px-3 py-1 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+                   <span className="font-medium text-slate-600 mr-2">{cat.label}:</span>
+                   <span className="font-bold text-slate-900">{formatCurrency(catTotal, business.currency)}</span>
                  </div>
                );
              })}
@@ -258,7 +258,7 @@ export default function ExpensesPage() {
       </div>
 
       {/* Main List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col min-h-[500px]">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden flex flex-col min-h-[500px] hover:shadow-md transition-shadow">
         {/* Toolbar */}
         <div className="p-4 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-md">

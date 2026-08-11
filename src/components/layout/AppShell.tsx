@@ -12,7 +12,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden text-gray-900">
+    <div className="flex h-screen w-full overflow-hidden text-slate-900 bg-slate-50/80 p-2 md:p-6 gap-4 md:gap-6">
       <AmbientBackground />
       
       {/* Accessibility Skip Link */}
@@ -34,7 +34,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Main Content Area */}
         <main
           id="main-content"
-          className="flex-1 overflow-y-auto overflow-x-hidden relative focus:outline-none pb-20 md:pb-0 z-0"
+          className="flex-1 overflow-y-auto overflow-x-hidden relative focus:outline-none pb-20 md:pb-0 z-0 p-1"
           tabIndex={-1}
         >
           {children}

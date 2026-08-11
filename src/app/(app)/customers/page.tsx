@@ -125,11 +125,11 @@ export default function CustomersPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] mx-auto h-full flex flex-col">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <div className="space-y-6 max-w-[1600px] mx-auto">
+      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your customers and track receivables.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Customers</h1>
+          <p className="text-sm text-slate-500 mt-1">Manage your customers and track receivables.</p>
         </div>
         {!isReadOnly && (
           <div className="shrink-0 flex items-center gap-3">
@@ -150,7 +150,7 @@ export default function CustomersPage() {
         )}
       </div>
 
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
+      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row gap-4 items-center justify-between">
         <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input 
@@ -160,13 +160,13 @@ export default function CustomersPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <div className="text-sm text-gray-600 flex items-center">
-          <Users className="w-4 h-4 mr-2 text-gray-400" />
+        <div className="text-sm text-slate-600 flex items-center">
+          <Users className="w-4 h-4 mr-2 text-slate-400" />
           <span>{filtered.length} Customers</span>
         </div>
       </div>
 
-      <div className="bg-white flex-1 rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col min-h-[400px]">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden flex flex-col min-h-[400px] hover:shadow-md transition-shadow">
         <div className="overflow-x-auto flex-1">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 bg-white z-10 border-b border-gray-200">

@@ -48,8 +48,8 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "hidden md:flex flex-col glass-card border-r-0 rounded-r-2xl my-4 ml-4 transition-all duration-300 z-20 shadow-xl",
-        isCollapsed ? "w-[64px]" : "w-[240px]"
+        "hidden md:flex flex-col bg-white border border-slate-200/80 rounded-2xl transition-all duration-300 z-20 shadow-sm shrink-0 h-full",
+        isCollapsed ? "w-[68px]" : "w-[240px]"
       )}
     >
       {/* Brand Header */}

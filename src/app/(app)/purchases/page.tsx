@@ -162,28 +162,28 @@ export default function PurchasesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-6 max-w-[1600px] mx-auto">
+      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Purchases</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-slate-900">Purchases</h1>
+          <p className="text-sm text-slate-500 mt-1">
             Manage purchase orders and supplier invoices.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 shrink-0">
           <ExportDropdown onExport={handleExport} />
           {!isReadOnly && (
             <>
               <button
                 onClick={() => setIsImportModalOpen(true)}
-                className="h-10 inline-flex items-center gap-2 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-colors shadow-sm whitespace-nowrap"
+                className="h-10 inline-flex items-center gap-2 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-colors shadow-sm shrink-0 whitespace-nowrap"
               >
                 <UploadCloud className="h-4 w-4 shrink-0" />
                 Import
               </button>
               <Link href="/purchases/new">
-                <Button className="shrink-0 flex items-center gap-2 rounded-xl shadow-lg shadow-[#10B981]/20">
-                  <Plus className="w-4 h-4" />
+                <Button className="shrink-0 flex items-center gap-2 rounded-xl h-10 px-4 whitespace-nowrap">
+                  <Plus className="w-4 h-4 shrink-0" />
                   <span>Create Purchase</span>
                 </Button>
               </Link>
@@ -192,7 +192,7 @@ export default function PurchasesPage() {
         </div>
       </div>
 
-      <div className="glass-card rounded-2xl overflow-hidden border border-white/40 shadow-xl shadow-gray-200/50">
+      <div className="bg-white rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow">
         <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />

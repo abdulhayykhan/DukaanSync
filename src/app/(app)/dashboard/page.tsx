@@ -84,37 +84,37 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto space-y-6">
+    <div className="space-y-6 max-w-[1600px] mx-auto">
       
       {/* Header & Period Selector */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Telemetry Overview</h1>
-          <p className="text-sm text-gray-500 mt-1">Real-time performance metrics for {activeShop.name}</p>
+          <h1 className="text-2xl font-bold text-slate-900">Telemetry Overview</h1>
+          <p className="text-sm text-slate-500 mt-1">Real-time performance metrics for {activeShop?.name || 'All Shops'}</p>
         </div>
         
-        <div className="bg-white p-1 rounded-lg border border-gray-200 shadow-sm flex text-sm font-medium">
+        <div className="bg-slate-100 p-1 rounded-xl border border-slate-200/80 flex text-sm font-medium">
           <button 
             onClick={() => setPeriod("today")}
-            className={`px-4 py-1.5 rounded-md transition-colors ${period === "today" ? "bg-gray-100 text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
+            className={`px-4 py-1.5 rounded-lg transition-colors ${period === "today" ? "bg-white text-slate-900 shadow-sm font-semibold" : "text-slate-500 hover:text-slate-900"}`}
           >
             Today
           </button>
           <button 
             onClick={() => setPeriod("week")}
-            className={`px-4 py-1.5 rounded-md transition-colors ${period === "week" ? "bg-gray-100 text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
+            className={`px-4 py-1.5 rounded-lg transition-colors ${period === "week" ? "bg-white text-slate-900 shadow-sm font-semibold" : "text-slate-500 hover:text-slate-900"}`}
           >
             This Week
           </button>
           <button 
             onClick={() => setPeriod("month")}
-            className={`px-4 py-1.5 rounded-md transition-colors ${period === "month" ? "bg-gray-100 text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
+            className={`px-4 py-1.5 rounded-lg transition-colors ${period === "month" ? "bg-white text-slate-900 shadow-sm font-semibold" : "text-slate-500 hover:text-slate-900"}`}
           >
             This Month
           </button>
           <button 
             onClick={() => setPeriod("year")}
-            className={`px-4 py-1.5 rounded-md transition-colors ${period === "year" ? "bg-gray-100 text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
+            className={`px-4 py-1.5 rounded-lg transition-colors ${period === "year" ? "bg-white text-slate-900 shadow-sm font-semibold" : "text-slate-500 hover:text-slate-900"}`}
           >
             This Year
           </button>
@@ -123,7 +123,7 @@ export default function DashboardPage() {
 
       {loading && !data && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => <div key={i} className="bg-white h-32 rounded-xl border border-gray-100 animate-pulse"></div>)}
+          {[...Array(4)].map((_, i) => <div key={i} className="bg-white h-32 rounded-2xl border border-slate-200/80 animate-pulse"></div>)}
         </div>
       )}
 
@@ -131,20 +131,20 @@ export default function DashboardPage() {
       {data && (
         <motion.div variants={containerVariants} initial="hidden" animate="show" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Revenue */}
-          <motion.div variants={itemVariants} className="h-full"><Card3D className="glass-card p-5 rounded-2xl border-none shadow-xl flex flex-col h-full overflow-hidden">
+          <motion.div variants={itemVariants} className="h-full"><Card3D className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full overflow-hidden">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Revenue</span>
+              <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Revenue</span>
               <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
                 <DollarSign className="w-4 h-4 text-blue-500" />
               </div>
             </div>
-            <div className="text-2xl font-bold text-gray-900">{formatCurrency(data.revenueMinor, business.currency)}</div>
+            <div className="text-2xl font-bold text-slate-900">{formatCurrency(data.revenueMinor, business.currency)}</div>
           </Card3D></motion.div>
 
           {/* Gross Profit */}
-          <motion.div variants={itemVariants} className="h-full"><Card3D className="glass-card p-5 rounded-2xl border-none shadow-xl flex flex-col h-full overflow-hidden">
+          <motion.div variants={itemVariants} className="h-full"><Card3D className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full overflow-hidden">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Gross Profit</span>
+              <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Gross Profit</span>
               <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center">
                 <TrendingUp className="w-4 h-4 text-emerald-500" />
               </div>
@@ -153,25 +153,25 @@ export default function DashboardPage() {
           </Card3D></motion.div>
 
           {/* Net Profit */}
-          <motion.div variants={itemVariants} className="h-full"><Card3D className="glass-card p-5 rounded-2xl border-none shadow-xl flex flex-col h-full overflow-hidden relative overflow-hidden">
+          <motion.div variants={itemVariants} className="h-full"><Card3D className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full overflow-hidden relative">
             <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-purple-500/10 to-transparent rounded-bl-full pointer-events-none"></div>
             <div className="flex items-center justify-between mb-4 relative z-10">
-              <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Net Profit</span>
+              <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Net Profit</span>
               <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center">
                 <Activity className="w-4 h-4 text-purple-600" />
               </div>
             </div>
-            <div className={`text-2xl font-bold relative z-10 ${data.netProfitMinor >= 0 ? 'text-gray-900' : 'text-red-600'}`}>
+            <div className={`text-2xl font-bold relative z-10 ${data.netProfitMinor >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
               {formatCurrency(data.netProfitMinor, business.currency)}
             </div>
-            <p className="text-xs text-gray-400 mt-1">Gross Profit - Expenses</p>
+            <p className="text-xs text-slate-400 mt-1">Gross Profit - Expenses</p>
           </Card3D></motion.div>
 
           {/* Low Stock */}
-          <motion.div variants={itemVariants} className="h-full"><Card3D className="glass-card p-5 rounded-2xl border border-amber-200/50 shadow-xl flex flex-col hover:border-amber-300/50 transition-colors group relative overflow-hidden h-full cursor-pointer" onClick={() => window.location.href="/inventory"}>
+          <motion.div variants={itemVariants} className="h-full"><Card3D className="bg-white p-5 rounded-2xl border border-amber-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col group relative overflow-hidden h-full cursor-pointer" onClick={() => window.location.href="/inventory"}>
             <div className="absolute right-0 top-0 h-full w-1 bg-amber-400"></div>
             <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Stock Alerts</span>
+              <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Stock Alerts</span>
               <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <AlertTriangle className="w-4 h-4 text-amber-500" />
               </div>
@@ -184,26 +184,26 @@ export default function DashboardPage() {
       {/* Secondary Financials */}
       {data && (
         <motion.div variants={containerVariants} initial="hidden" animate="show" className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <motion.div variants={itemVariants} className="h-full"><Card3D className="glass-card p-4 rounded-2xl border-none shadow-lg flex items-center justify-between group hover:border-[#10B981] transition-colors cursor-pointer h-full" onClick={() => window.location.href="/customers"}>
+          <motion.div variants={itemVariants} className="h-full"><Card3D className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between group hover:border-[#10B981] cursor-pointer h-full" onClick={() => window.location.href="/customers"}>
             <div>
-              <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Receivables (Owed to you)</p>
+              <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Receivables (Owed to you)</p>
               <p className="text-xl font-bold text-blue-600">{formatCurrency(data.totalReceivablesMinor, business.currency)}</p>
             </div>
-            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-[#10B981] group-hover:translate-x-1 transition-all" />
+            <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-[#10B981] group-hover:translate-x-1 transition-all" />
           </Card3D></motion.div>
-          <motion.div variants={itemVariants} className="h-full"><Card3D className="glass-card p-4 rounded-2xl border-none shadow-lg flex items-center justify-between group hover:border-[#10B981] transition-colors cursor-pointer h-full" onClick={() => window.location.href="/suppliers"}>
+          <motion.div variants={itemVariants} className="h-full"><Card3D className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between group hover:border-[#10B981] cursor-pointer h-full" onClick={() => window.location.href="/suppliers"}>
             <div>
-              <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Payables (You owe)</p>
+              <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Payables (You owe)</p>
               <p className="text-xl font-bold text-red-600">{formatCurrency(data.totalPayablesMinor, business.currency)}</p>
             </div>
-            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-[#10B981] group-hover:translate-x-1 transition-all" />
+            <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-[#10B981] group-hover:translate-x-1 transition-all" />
           </Card3D></motion.div>
-          <motion.div variants={itemVariants} className="h-full"><Card3D className="glass-card p-4 rounded-2xl border-none shadow-lg flex items-center justify-between h-full">
+          <motion.div variants={itemVariants} className="h-full"><Card3D className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between h-full">
             <div>
-              <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Inventory Value</p>
-              <p className="text-xl font-bold text-gray-900">{formatCurrency(data.inventoryValueMinor, business.currency)}</p>
+              <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Inventory Value</p>
+              <p className="text-xl font-bold text-slate-900">{formatCurrency(data.inventoryValueMinor, business.currency)}</p>
             </div>
-            <PackageOpen className="w-6 h-6 text-gray-400" />
+            <PackageOpen className="w-6 h-6 text-slate-400" />
           </Card3D></motion.div>
         </motion.div>
       )}
@@ -213,15 +213,15 @@ export default function DashboardPage() {
         <motion.div variants={containerVariants} initial="hidden" animate="show" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Main Trend Chart */}
-          <motion.div variants={itemVariants} className="lg:col-span-2 h-full"><Card3D className="glass-card p-5 rounded-3xl border-none shadow-2xl min-h-[350px] flex flex-col h-full" maxTilt={2}>
-            <h3 className="font-semibold text-gray-900 mb-6">Revenue vs Net Profit</h3>
+          <motion.div variants={itemVariants} className="lg:col-span-2 h-full"><Card3D className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow min-h-[350px] flex flex-col h-full" maxTilt={2}>
+            <h3 className="font-semibold text-slate-900 mb-6">Revenue vs Net Profit</h3>
             <div className="flex-1 w-full min-h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={data.chartData} margin={{ top: 5, right: 0, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tickFormatter={formatYAxis} tick={{ fontSize: 12, fill: '#6B7280' }} dx={-10} />
-                  <Tooltip formatter={formatTooltip} cursor={{ fill: '#F3F4F6' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tickFormatter={formatYAxis} tick={{ fontSize: 12, fill: '#64748B' }} dx={-10} />
+                  <Tooltip formatter={formatTooltip} cursor={{ fill: '#F1F5F9' }} contentStyle={{ borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)' }} />
                   <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
                   <Bar dataKey="revenue" name="Revenue" fill="#3B82F6" radius={[4, 4, 0, 0]} maxBarSize={40} />
                   <Line type="monotone" dataKey="netProfit" name="Net Profit" stroke="#10B981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
@@ -231,8 +231,8 @@ export default function DashboardPage() {
           </Card3D></motion.div>
 
           {/* Expense Distribution Pie Chart */}
-          <motion.div variants={itemVariants} className="h-full"><Card3D className="glass-card p-5 rounded-3xl border-none shadow-2xl min-h-[350px] flex flex-col h-full" maxTilt={3}>
-            <h3 className="font-semibold text-gray-900 mb-2">Operating Expenses</h3>
+          <motion.div variants={itemVariants} className="h-full"><Card3D className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow min-h-[350px] flex flex-col h-full" maxTilt={3}>
+            <h3 className="font-semibold text-slate-900 mb-2">Operating Expenses</h3>
             
             {data.expenseDistribution.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center text-gray-400">

@@ -219,24 +219,24 @@ export default function InventoryPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto h-full flex flex-col">
+    <div className="space-y-6 max-w-[1600px] mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Inventory Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage product catalog and stock levels for {activeShop?.name}.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Inventory Management</h1>
+          <p className="text-sm text-slate-500 mt-1">Manage product catalog and stock levels for {activeShop?.name || 'All Shops'}.</p>
         </div>
         {!isReadOnly && (
-          <div className="flex flex-row items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-3 shrink-0">
             <ExportDropdown onExport={handleExport} />
             <button
               onClick={() => setIsImportModalOpen(true)}
-              className="h-10 inline-flex items-center gap-2 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-colors shadow-sm whitespace-nowrap"
+              className="h-10 inline-flex items-center gap-2 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-colors shadow-sm shrink-0 whitespace-nowrap"
             >
               <UploadCloud className="h-4 w-4 shrink-0" />
               Import
             </button>
-            <Button onClick={handleOpenCreateModal} className="h-10 inline-flex items-center gap-2 px-4 rounded-xl whitespace-nowrap">
+            <Button onClick={handleOpenCreateModal} className="h-10 inline-flex items-center gap-2 px-4 rounded-xl shrink-0 whitespace-nowrap">
               <Plus className="h-4 w-4 shrink-0" /> Add Product
             </Button>
           </div>
@@ -244,7 +244,7 @@ export default function InventoryPage() {
       </div>
 
       {/* Filters Bar */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-col lg:flex-row gap-4 items-center justify-between">
+      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col lg:flex-row gap-4 items-center justify-between">
         <div className="flex-1 w-full flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -286,8 +286,8 @@ export default function InventoryPage() {
         </div>
       </div>
 
-      {/* Data Table */}
-      <div className="bg-white flex-1 rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col min-h-[400px]">
+      {/* Inventory Table Container */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden flex flex-col min-h-[400px] hover:shadow-md transition-shadow">
         <div className="overflow-x-auto flex-1">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 bg-gray-50 z-10 border-b border-gray-200 shadow-sm">

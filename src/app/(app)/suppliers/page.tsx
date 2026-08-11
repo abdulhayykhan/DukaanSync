@@ -127,11 +127,11 @@ export default function SuppliersPage() {
   const totalPayables = suppliers.reduce((acc, s) => acc + s.currentBalanceMinor, 0);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] mx-auto h-full flex flex-col">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+    <div className="space-y-6 max-w-[1600px] mx-auto">
+      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Suppliers</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage wholesale vendors and payables.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Suppliers</h1>
+          <p className="text-sm text-slate-500 mt-1">Manage wholesale vendors and payables.</p>
         </div>
         <div className="shrink-0 flex items-center gap-3">
           <ExportDropdown onExport={handleExport} />
@@ -151,25 +151,25 @@ export default function SuppliersPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-500">Total Suppliers</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{suppliers.length}</p>
+            <p className="text-sm font-medium text-slate-500">Total Suppliers</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">{suppliers.length}</p>
           </div>
           <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
             <UserCog className="h-6 w-6" />
           </div>
         </div>
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-500">Total Payables</p>
+            <p className="text-sm font-medium text-slate-500">Total Payables</p>
             <p className="text-2xl font-bold text-red-600 mt-1">{formatCurrency(totalPayables, business?.currency)}</p>
           </div>
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6">
+      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input 
@@ -181,7 +181,7 @@ export default function SuppliersPage() {
         </div>
       </div>
 
-      <div className="bg-white flex-1 rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col min-h-[400px]">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden flex flex-col min-h-[400px] hover:shadow-md transition-shadow">
         <div className="overflow-x-auto flex-1">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 bg-gray-50 z-10 border-b border-gray-200 shadow-sm">
