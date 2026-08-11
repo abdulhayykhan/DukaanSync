@@ -1,132 +1,193 @@
-# 🚀 DukaanSync Setup Guide
+# DukaanSync — End-to-End Setup & Deployment Guide
 
-Welcome to the DukaanSync local development setup guide! This document will walk you through setting up the project on your local machine.
-
-## Prerequisites
-
-Before you begin, ensure you have the following installed on your machine:
-- **Node.js 18+** (We recommend the latest LTS version)
-- **npm** (Node Package Manager)
-- **Git**
-- A Google/Firebase account
+Welcome to **DukaanSync**, a multi-tenant Point of Sale (POS) and multi-branch retail management SaaS platform built with Next.js 16 (App Router), TypeScript, Tailwind CSS, and Firebase Cloud Firestore.
 
 ---
 
-## Step 1: Firebase Project Setup
-
-DukaanSync relies heavily on Firebase for authentication and database services.
-
-1. Go to the [Firebase Console](https://console.firebase.google.com/).
-2. Click **Add project** and name it something like `DukaanSync-Dev`.
-3. Disable Google Analytics for the development environment (optional but recommended).
-4. Click **Create project**.
-
-### Enable Authentication
-1. In the Firebase console, go to **Build** > **Authentication**.
-2. Click **Get started**.
-3. Under the **Sign-in method** tab, click **Email/Password** and enable it. Save the changes.
-
-### Create Cloud Firestore Database
-1. Go to **Build** > **Firestore Database**.
-2. Click **Create database**.
-3. Choose **Native mode** and select a location close to you.
-4. Start in **test mode** (or production mode, we will deploy security rules later).
-
-### Get Firebase Config
-1. Go to **Project Overview** > **Project settings** (the gear icon).
-2. Scroll down to **Your apps** and click the **Web** (`</>`) icon.
-3. Register the app with a nickname (e.g., `DukaanSync Web`).
-4. You will be provided with a `firebaseConfig` object containing keys like `apiKey`, `authDomain`, `projectId`, etc. Keep this tab open.
+## 📋 Table of Contents
+1. [System Requirements & Architecture Overview](#1-system-requirements--architecture-overview)
+2. [Environment Variables Configuration](#2-environment-variables-configuration)
+3. [Complete Firebase & Firestore Setup](#3-complete-firebase--firestore-setup)
+4. [Local Development Walkthrough](#4-local-development-walkthrough)
+5. [Manual Data Import Guide (`mock-data/`)](#5-manual-data-import-guide-mock-data)
+6. [Multi-Branch Context & Navigation](#6-multi-branch-context--navigation)
+7. [Vercel Deployment & Production Verification](#7-vercel-deployment--production-verification)
 
 ---
 
-## Step 2: Local Environment Configuration
+## 1. System Requirements & Architecture Overview
 
-1. Clone the repository and navigate into the project directory:
+### Core Technology Stack
+- **Framework:** Next.js 16+ (App Router with Turbopack)
+- **Language:** TypeScript 5.0+ (Strict type checking)
+- **Styling:** Vanilla CSS & Tailwind CSS v3
+- **Database & Auth:** Firebase Web SDK v11 (Cloud Firestore & Authentication)
+- **State & Context:** React Context API (`AuthContext`, `BusinessContext`, `ShopContext`)
+- **Icons & Visuals:** Lucide React, Recharts & Framer Motion
+- **Parsing & Exports:** PapaParse & XLSX
+
+### System Prerequisites
+- **Node.js:** v18.17.0 LTS or higher (Node 20+ recommended)
+- **Package Manager:** npm (v9.0.0+) or pnpm
+- **Git:** v2.30+
+- **Firebase CLI:** `npm install -g firebase-tools` or via `npx firebase`
+
+---
+
+## 2. Environment Variables Configuration
+
+Create a `.env.local` file in the project root directory. Use the template below to configure your Firebase project credentials:
+
+```env
+# =============================================================================
+# DukaanSync — Environment Configuration
+# =============================================================================
+
+NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
+```
+
+---
+
+## 3. Complete Firebase & Firestore Setup
+
+### 3.1 Authentication Configuration
+1. Open the [Firebase Console](https://console.firebase.google.com/).
+2. Select your Firebase project (or create a new one).
+3. Navigate to **Build > Authentication**.
+4. Click **Get Started** and enable the **Email/Password** sign-in provider.
+
+### 3.2 Cloud Firestore Database
+1. Navigate to **Build > Firestore Database**.
+2. Click **Create Database** and select **Start in production mode**.
+3. Choose a Firestore location close to your primary user base (e.g., `asia-south1`).
+
+### 3.3 Security Rules Deployment
+DukaanSync relies on `firestore.rules` for tenant isolation and role-based permissions across `/businesses/{businessId}/shops/{shopId}/...`.
+
+Deploy rules directly using the Firebase CLI:
+```bash
+npx firebase login
+npx firebase use --add # Select your Firebase project ID
+npx firebase deploy --only firestore:rules
+```
+
+---
+
+## 4. Local Development Walkthrough
+
+Follow these steps to run DukaanSync on your local machine:
+
+1. **Clone the Repository:**
    ```bash
    git clone https://github.com/abdulhayykhan/DukaanSync.git
    cd DukaanSync
    ```
 
-2. Copy the example environment variables file:
-   ```bash
-   cp .env.example .env.local
-   ```
-   *(On Windows Command Prompt/PowerShell, you can manually copy `.env.example` and rename the copy to `.env.local`)*
-
-3. Open `.env.local` in your code editor and fill in the values from your Firebase Config obtained in Step 1:
-   ```env
-   NEXT_PUBLIC_FIREBASE_API_KEY="your-api-key"
-   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your-project.firebaseapp.com"
-   NEXT_PUBLIC_FIREBASE_PROJECT_ID="your-project-id"
-   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="your-project.appspot.com"
-   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="your-sender-id"
-   NEXT_PUBLIC_FIREBASE_APP_ID="your-app-id"
-   ```
-
----
-
-## Step 3: Database Security Rules
-
-DukaanSync uses strict Firestore Security Rules to enforce multi-tenant isolation. You need to deploy these rules to your Firebase project.
-
-1. Install the Firebase CLI globally if you haven't already:
-   ```bash
-   npm install -g firebase-tools
-   ```
-
-2. Login to Firebase:
-   ```bash
-   firebase login
-   ```
-
-3. Initialize Firebase in the project directory (select your `DukaanSync-Dev` project):
-   ```bash
-   firebase use --add
-   ```
-   *(Select your project and alias it as `default`)*
-
-4. Deploy the Firestore rules:
-   ```bash
-   firebase deploy --only firestore:rules
-   ```
-
----
-
-## Step 4: Running the Development Server
-
-1. Install the project dependencies:
+2. **Install Dependencies:**
    ```bash
    npm install
    ```
 
-2. Start the development server:
+3. **Set Up Environment File:**
+   Create `.env.local` as described in Section 2.
+
+4. **Launch Local Server:**
    ```bash
    npm run dev
    ```
-
-3. Open your browser and navigate to [http://localhost:3000](http://localhost:3000). You should see the DukaanSync login/onboarding screen!
-
----
-
-## Step 5: Production Build Testing
-
-Before deploying to production (Vercel, Netlify, etc.), it's best practice to test the optimized build locally:
-
-1. Create a production build:
-   ```bash
-   npm run build
-   ```
-
-2. Start the production server:
-   ```bash
-   npm run start
-   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## Troubleshooting
+## 5. Manual Data Import Guide (`mock-data/` Directory)
 
-- **Firestore Permission Denied Errors:** Ensure you have deployed the `firestore.rules` file successfully using the Firebase CLI.
-- **Hydration Errors:** Next.js expects the server and client HTML to match. Avoid using browser extensions that modify HTML (like translators) during development.
-- **Authentication Issues:** Double-check that Email/Password auth is enabled in your Firebase project and that your `.env.local` keys exactly match the Firebase console.
+DukaanSync supports bulk CSV importing across all operational pages. Realistic seed files are provided inside the `mock-data/` directory.
+
+### 5.1 Import Locations & Dashboard Navigation
+
+| CSV File Name | Target Dashboard Route | Header Action Button |
+| :--- | :--- | :--- |
+| `suppliers.csv` | `/suppliers` | `Import Data` |
+| `customers.csv` | `/customers` | `Import Data` |
+| `inventory_items.csv` | `/inventory` | `Import Data` |
+| `expenses.csv` | `/expenses` | `Import Data` |
+| `purchase_orders.csv` | `/purchases` | `Import Data` |
+| `sales_transactions.csv` | `/pos` | `Import Sales` |
+
+### 5.2 CSV Schema & Formatting Expectations
+
+#### A. `suppliers.csv`
+- **Required Columns:** `name`, `contactPerson`, `email`, `phone`, `category`, `address`, `city`
+- **Currency Columns:** `currentBalancePKR` (Numeric in PKR)
+
+#### B. `customers.csv`
+- **Required Columns:** `name`, `email`, `phone`, `city`
+- **Currency Columns:** `creditLimitPKR`, `currentBalancePKR`
+
+#### C. `inventory_items.csv`
+- **Required Columns:** `sku`, `name`, `category`, `quantity`, `reorderLevel`, `unit`
+- **Currency Columns:** `costPricePKR`, `sellingPricePKR`
+
+#### D. `expenses.csv`
+- **Required Columns:** `date` (YYYY-MM-DD), `category` (rent, utilities, salary, transport, marketing, maintenance, other), `description`, `paymentMethod` (cash, bank, card)
+- **Currency Columns:** `amountPKR`
+
+#### E. `purchase_orders.csv`
+- **Required Columns:** `supplierName`, `supplierId`, `status` (received, pending), `paymentStatus` (paid, unpaid, partial), `paymentMethod`, `date`
+- **Currency Columns:** `subtotalPKR`, `discountPKR`, `taxPKR`, `grandTotalPKR`
+
+#### F. `sales_transactions.csv`
+- **Required Columns:** `invoiceNumber`, `customerName`, `paymentStatus` (paid, unpaid, partial), `paymentMethod`, `date`
+- **Currency Columns:** `subtotalPKR`, `discountPKR`, `taxPKR`, `grandTotalPKR`
+
+### 5.3 Recommended Import Sequence
+To maintain referential integrity, import CSV files in the following order:
+1. **Suppliers** (`suppliers.csv`) & **Customers** (`customers.csv`)
+2. **Inventory Items** (`inventory_items.csv`)
+3. **Purchase Orders** (`purchase_orders.csv`) & **Operating Expenses** (`expenses.csv`)
+4. **Sales Transactions** (`sales_transactions.csv`)
+
+---
+
+## 6. Multi-Branch Context & Navigation
+
+### Tenant Data Hierarchy
+DukaanSync enforces strict data isolation using a multi-tenant hierarchy:
+```
+businesses/{businessId}
+  ├── members/{userId}
+  └── shops/{shopId}
+        ├── sales/{saleId}
+        ├── inventory/{itemId}
+        ├── expenses/{expenseId}
+        ├── purchases/{purchaseId}
+        ├── customers/{customerId}
+        └── suppliers/{supplierId}
+```
+
+### Switching Branch Views
+Use the **Shop Switcher Dropdown** in the top navigation bar:
+- **Individual Branch (`MAIN`, `BR-02`, `BR-03`):** Displays telemetry and records scoped strictly to the selected shop location.
+- **All Shops (Multi-Branch):** Triggers `AnalyticsEngine` multi-shop parallel query aggregation across all branches, showing total chain metrics.
+
+---
+
+## 7. Vercel Deployment & Production Verification
+
+### 7.1 Vercel Deployment Steps
+1. Push your repository to GitHub.
+2. Import the project into the [Vercel Dashboard](https://vercel.com/import).
+3. In **Environment Variables**, paste all keys from your `.env.local` file.
+4. Click **Deploy**.
+
+### 7.2 Production Build Verification
+Verify clean compilation locally prior to deployment:
+```bash
+npm run build
+```
+A clean build output confirms zero TypeScript or App Router metadata errors.
