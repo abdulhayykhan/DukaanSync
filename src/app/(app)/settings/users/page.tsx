@@ -36,9 +36,10 @@ export default function UsersSettingsPage() {
         membersData.push({ uid: doc.id, ...doc.data() } as BusinessMember);
       });
       setMembers(membersData);
-    } catch (err) {
-      console.error("Failed to fetch members:", err);
-      toast.error("Failed to load team members");
+    } catch (err: any) {
+      console.error("Failed to fetch members:", err?.message || err);
+      // Fallback empty list gracefully if error occurs
+      setMembers([]);
     } finally {
       setLoading(false);
     }

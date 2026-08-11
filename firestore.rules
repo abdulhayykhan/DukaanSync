@@ -114,9 +114,14 @@ service cloud.firestore {
       // Business Members — /businesses/{businessId}/members/{uid}
       // -----------------------------------------------------------------------
       match /members/{uid} {
-        // Members can read their own record; owners can read all members
+        // Members of the business (and owners/admin) can read member records
         allow read: if isAuthenticated()
-          && (request.auth.uid == uid || isBusinessOwner(businessId));
+          && (
+            isSeedAdmin()
+            || request.auth.uid == uid
+            || isBusinessMember(businessId)
+            || isBusinessOwner(businessId)
+          );
 
         // Allow creating initial member during onboarding batch write (when uid == request.auth.uid) or by owner
         allow create: if isAuthenticated() && (request.auth.uid == uid || isBusinessOwner(businessId));
@@ -129,8 +134,14 @@ service cloud.firestore {
       // Shops — /businesses/{businessId}/shops/{shopId}
       // -----------------------------------------------------------------------
       match /shops/{shopId} {
-        // Members with shop access can read; owners can read all
-        allow read: if canAccessShop(businessId, shopId);
+        // Any authenticated member of the business can read shop definitions
+        allow read: if isAuthenticated()
+          && (
+            isSeedAdmin()
+            || isBusinessMember(businessId)
+            || isBusinessOwner(businessId)
+            || canAccessShop(businessId, shopId)
+          );
 
         // Allow shop creation during onboarding batch write by authenticated users or business owner
         allow create: if isAuthenticated();

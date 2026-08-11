@@ -38,9 +38,10 @@ export default function ShopsSettingsPage() {
         shopsData.push({ id: doc.id, ...doc.data() } as Shop);
       });
       setAllShops(shopsData);
-    } catch (err) {
-      console.error("Failed to fetch shops:", err);
-      toast.error("Failed to load shops");
+    } catch (err: any) {
+      console.error("Failed to fetch shops:", err?.message || err);
+      // Fallback empty list gracefully if error occurs
+      setAllShops([]);
     } finally {
       setLoading(false);
     }
