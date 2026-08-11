@@ -57,16 +57,23 @@ export class AnalyticsEngine {
 
     // 1. Determine Target Shops (Multi-Shop Aggregation when shopId === 'all' or empty)
     let targetShopIds: string[] = [];
-    if (!shopId || shopId === "all") {
+    const isMultiShop = !shopId || shopId === "all" || shopId.toLowerCase() === "all" || shopId.toLowerCase() === "all_shops" || shopId === "null";
+
+    if (isMultiShop) {
       try {
         const shopsSnap = await getDocs(collection(db, "businesses", businessId, "shops"));
         targetShopIds = shopsSnap.docs.map(d => d.id);
       } catch (e) {
         console.error("Error fetching shops for multi-shop aggregation:", e);
       }
-      if (targetShopIds.length === 0) {
-        targetShopIds = ["MAIN"];
-      }
+      
+      // Ensure fallback candidate shop IDs are included if not present
+      const fallbackCandidates = ["shop_main", "shop_br02", "shop_br03", "MAIN", "BR-02", "BR-03", "Wb7ATjxgAzTKV84YnSP3", "KESnAyCvHIDVA8h4onjR", "y7DtbMHN4ZKhxhM9mq6H"];
+      fallbackCandidates.forEach(id => {
+        if (!targetShopIds.includes(id)) {
+          targetShopIds.push(id);
+        }
+      });
     } else {
       targetShopIds = [shopId];
     }
