@@ -7,7 +7,8 @@ import {
   updateDoc, 
   query, 
   orderBy, 
-  runTransaction 
+  runTransaction,
+  writeBatch
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
 import type { Customer, CustomerLedgerEntry, AuditLog } from "@/types";
@@ -148,5 +149,71 @@ export class CustomerService {
       };
       transaction.set(auditRef, auditLog);
     });
+  }
+
+  /**
+   * Bulk imports customers.
+   * Processes in chunks of 250 to stay under the 500 writes batch limit.
+   */
+  static async bulkImportCustomers(
+    businessId: string,
+    shopId: string,
+    customers: { name: string; phone?: string; email?: string; currentBalanceMinor: number }[],
+    onProgress?: (processed: number, total: number) => void
+  ): Promise<{ successCount: number; errors: string[] }> {
+    if (!db) throw new Error("Firestore not initialized");
+
+    const CHUNK_SIZE = 250;
+    let successCount = 0;
+    const errors: string[] = [];
+    const total = customers.length;
+
+    for (let i = 0; i < total; i += CHUNK_SIZE) {
+      const chunk = customers.slice(i, i + CHUNK_SIZE);
+      const batch = writeBatch(db);
+      const now = new Date().toISOString();
+
+      for (const data of chunk) {
+        const newCustomerRef = doc(collection(db, "businesses", businessId, "shops", shopId, "customers"));
+        
+        batch.set(newCustomerRef, {
+          name: data.name,
+          phone: data.phone || "",
+          email: data.email || "",
+          currentBalanceMinor: data.currentBalanceMinor,
+          isActive: true,
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        // Add ledger entry if there is an initial balance
+        if (data.currentBalanceMinor > 0) {
+          const ledgerRef = doc(collection(db, "businesses", businessId, "shops", shopId, "customers", newCustomerRef.id, "ledger"));
+          batch.set(ledgerRef, {
+            customerId: newCustomerRef.id,
+            type: "opening_balance",
+            amountMinor: data.currentBalanceMinor,
+            referenceType: "import",
+            balanceBeforeMinor: 0,
+            balanceAfterMinor: data.currentBalanceMinor,
+            createdBy: "system",
+            createdAt: now,
+          });
+        }
+      }
+
+      try {
+        await batch.commit();
+        successCount += chunk.length;
+        if (onProgress) {
+          onProgress(successCount, total);
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Unknown batch error";
+        errors.push(`Batch write failed at index ${i}: ${msg}`);
+      }
+    }
+
+    return { successCount, errors };
   }
 }

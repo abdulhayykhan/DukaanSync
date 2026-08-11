@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Plus, Search, Filter, AlertTriangle, Edit2, Archive, ArchiveRestore } from "lucide-react";
+import { Plus, Search, Filter, AlertTriangle, Edit2, Archive, ArchiveRestore, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -9,9 +9,12 @@ import { useShop } from "@/contexts/ShopContext";
 import { InventoryService } from "@/lib/inventory/service";
 import { formatCurrency } from "@/lib/utils/currency";
 import { ProductModal } from "@/components/inventory/ProductModal";
+import { BulkImportModal } from "@/components/ui/BulkImportModal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import type { InventoryItem } from "@/types";
+import { toMinorUnit } from "@/lib/utils/currency";
+import type { InventoryItem, UnitType } from "@/types";
+import type { InventoryServicePayload } from "@/lib/validation/inventory";
 
 const CATEGORIES = [
   { id: "cat_electronics", name: "Electronics" },
@@ -19,6 +22,12 @@ const CATEGORIES = [
   { id: "cat_groceries", name: "Groceries" },
   { id: "cat_cosmetics", name: "Health & Beauty" },
   { id: "cat_general", name: "General Merchandise" },
+];
+
+const IMPORT_COLUMNS = ["SKU", "Product Name", "Category", "Unit", "Cost Price", "Retail Price", "Initial Quantity", "Reorder Level"];
+const IMPORT_SAMPLE = [
+  { "SKU": "PRD-001", "Product Name": "Wireless Mouse", "Category": "Electronics", "Unit": "pcs", "Cost Price": 500, "Retail Price": 1200, "Initial Quantity": 50, "Reorder Level": 10 },
+  { "SKU": "PRD-002", "Product Name": "Mechanical Keyboard", "Category": "Electronics", "Unit": "pcs", "Cost Price": 1500, "Retail Price": 3500, "Initial Quantity": 20, "Reorder Level": 5 }
 ];
 
 export default function InventoryPage() {
@@ -32,6 +41,7 @@ export default function InventoryPage() {
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<InventoryItem | null>(null);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
 
@@ -100,6 +110,59 @@ export default function InventoryPage() {
 
   const getCategoryName = (id: string) => CATEGORIES.find(c => c.id === id)?.name || "Unknown";
 
+  const handleValidateInventoryRow = (row: Record<string, string | number | boolean | null>) => {
+    const errors: string[] = [];
+    
+    const sku = String(row["SKU"] || "").trim();
+    if (!sku) errors.push("SKU is required");
+
+    const name = String(row["Product Name"] || "").trim();
+    if (!name) errors.push("Product Name is required");
+
+    const catName = String(row["Category"] || "").trim().toLowerCase();
+    let categoryId = "cat_general";
+    if (catName) {
+      const match = CATEGORIES.find(c => c.name.toLowerCase() === catName || c.id === catName);
+      if (match) categoryId = match.id;
+    }
+
+    let unit = String(row["Unit"] || "pcs").trim().toLowerCase();
+    const validUnits = ["pcs", "kg", "g", "box", "pack", "liter", "other"];
+    if (!validUnits.includes(unit)) {
+      unit = "pcs";
+    }
+
+    const costPrice = parseFloat(String(row["Cost Price"] || "0"));
+    if (isNaN(costPrice) || costPrice < 0) errors.push("Invalid Cost Price");
+
+    const retailPrice = parseFloat(String(row["Retail Price"] || "0"));
+    if (isNaN(retailPrice) || retailPrice < 0) errors.push("Invalid Retail Price");
+
+    const quantity = parseFloat(String(row["Initial Quantity"] || "0"));
+    if (isNaN(quantity) || quantity < 0) errors.push("Invalid Initial Quantity");
+
+    const reorderLevel = parseFloat(String(row["Reorder Level"] || "0"));
+    if (isNaN(reorderLevel) || reorderLevel < 0) errors.push("Invalid Reorder Level");
+
+    if (errors.length > 0) {
+      return { isValid: false, errors };
+    }
+
+    return {
+      isValid: true,
+      data: {
+        sku,
+        name,
+        categoryId,
+        unit: unit as UnitType,
+        quantity,
+        reorderLevel,
+        costPriceMinor: toMinorUnit(costPrice),
+        retailPriceMinor: toMinorUnit(retailPrice)
+      }
+    };
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto h-full flex flex-col">
       {/* Header */}
@@ -109,9 +172,14 @@ export default function InventoryPage() {
           <p className="text-sm text-gray-500 mt-1">Manage product catalog and stock levels for {activeShop?.name}.</p>
         </div>
         {!isReadOnly && (
-          <Button onClick={handleOpenCreateModal} className="w-full sm:w-auto shrink-0">
-            <Plus className="mr-2 h-4 w-4" /> Add Product
-          </Button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button variant="outline" onClick={() => setIsImportModalOpen(true)} className="flex-1 sm:flex-none">
+              <UploadCloud className="mr-2 h-4 w-4" /> Import
+            </Button>
+            <Button onClick={handleOpenCreateModal} className="flex-1 sm:flex-none">
+              <Plus className="mr-2 h-4 w-4" /> Add Product
+            </Button>
+          </div>
         )}
       </div>
 
@@ -273,6 +341,19 @@ export default function InventoryPage() {
         isOpen={isModalOpen}
         onOpenChange={setIsModalOpen}
         itemToEdit={itemToEdit}
+        onSuccess={fetchInventory}
+      />
+
+      <BulkImportModal<InventoryServicePayload>
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        title="Import Inventory"
+        sampleData={IMPORT_SAMPLE}
+        expectedColumns={IMPORT_COLUMNS}
+        onValidateRow={handleValidateInventoryRow}
+        onImport={(validRows, onProgress) => 
+          InventoryService.bulkImportProducts(business!.id, activeShop!.id, validRows, onProgress)
+        }
         onSuccess={fetchInventory}
       />
     </div>

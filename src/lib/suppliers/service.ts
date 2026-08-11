@@ -142,4 +142,70 @@ export class SupplierService {
       });
     });
   }
+
+  /**
+   * Bulk imports suppliers.
+   * Processes in chunks of 250 to stay under the 500 writes batch limit.
+   */
+  static async bulkImportSuppliers(
+    businessId: string,
+    shopId: string,
+    suppliers: { name: string; phone?: string; email?: string; currentBalanceMinor: number }[],
+    onProgress?: (processed: number, total: number) => void
+  ): Promise<{ successCount: number; errors: string[] }> {
+    if (!db) throw new Error("Firestore not initialized");
+
+    const CHUNK_SIZE = 250;
+    let successCount = 0;
+    const errors: string[] = [];
+    const total = suppliers.length;
+
+    for (let i = 0; i < total; i += CHUNK_SIZE) {
+      const chunk = suppliers.slice(i, i + CHUNK_SIZE);
+      const batch = writeBatch(db);
+      const now = new Date().toISOString();
+
+      for (const data of chunk) {
+        const newSupplierRef = doc(collection(db, "businesses", businessId, "shops", shopId, "suppliers"));
+        
+        batch.set(newSupplierRef, {
+          name: data.name,
+          phone: data.phone || "",
+          email: data.email || "",
+          currentBalanceMinor: data.currentBalanceMinor,
+          isActive: true,
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        // Add ledger entry if there is an initial balance
+        if (data.currentBalanceMinor > 0) {
+          const ledgerRef = doc(collection(db, "businesses", businessId, "shops", shopId, "suppliers", newSupplierRef.id, "ledger"));
+          batch.set(ledgerRef, {
+            supplierId: newSupplierRef.id,
+            type: "purchase",
+            amountMinor: data.currentBalanceMinor,
+            referenceType: "import",
+            balanceBeforeMinor: 0,
+            balanceAfterMinor: data.currentBalanceMinor,
+            createdBy: "system",
+            createdAt: now,
+          });
+        }
+      }
+
+      try {
+        await batch.commit();
+        successCount += chunk.length;
+        if (onProgress) {
+          onProgress(successCount, total);
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Unknown batch error";
+        errors.push(`Batch write failed at index ${i}: ${msg}`);
+      }
+    }
+
+    return { successCount, errors };
+  }
 }

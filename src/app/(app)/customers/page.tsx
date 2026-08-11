@@ -10,8 +10,17 @@ import { formatCurrency } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { CustomerModal } from "@/components/customers/CustomerModal";
+import { BulkImportModal } from "@/components/ui/BulkImportModal";
+import { UploadCloud } from "lucide-react";
+import { toMinorUnit } from "@/lib/utils/currency";
 import type { Customer } from "@/types";
 import { toast } from "sonner";
+
+const IMPORT_COLUMNS = ["Customer Name", "Phone", "Email", "Initial Outstanding Balance"];
+const IMPORT_SAMPLE = [
+  { "Customer Name": "Ahmed Raza", "Phone": "03001234567", "Email": "ahmed@example.com", "Initial Outstanding Balance": 0 },
+  { "Customer Name": "Fatima Ali", "Phone": "03211234567", "Email": "", "Initial Outstanding Balance": 5000 }
+];
 
 export default function CustomersPage() {
   const { business, memberRole } = useBusiness();
@@ -22,6 +31,7 @@ export default function CustomersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | undefined>();
 
   const isReadOnly = memberRole === "cashier";
@@ -59,6 +69,33 @@ export default function CustomersPage() {
     c.phone?.includes(searchQuery)
   );
 
+  const handleValidateCustomerRow = (row: Record<string, string | number | boolean | null>) => {
+    const errors: string[] = [];
+    
+    const name = String(row["Customer Name"] || "").trim();
+    if (!name) errors.push("Customer Name is required");
+
+    const phone = String(row["Phone"] || "").trim();
+    const email = String(row["Email"] || "").trim();
+
+    const balance = parseFloat(String(row["Initial Outstanding Balance"] || "0"));
+    if (isNaN(balance) || balance < 0) errors.push("Invalid Initial Outstanding Balance");
+
+    if (errors.length > 0) {
+      return { isValid: false, errors };
+    }
+
+    return {
+      isValid: true,
+      data: {
+        name,
+        phone,
+        email,
+        currentBalanceMinor: toMinorUnit(balance)
+      }
+    };
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] mx-auto h-full flex flex-col">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -67,9 +104,14 @@ export default function CustomersPage() {
           <p className="text-sm text-gray-500 mt-1">Manage your customers and track receivables.</p>
         </div>
         {!isReadOnly && (
-          <Button onClick={handleAddNew}>
-            <Plus className="w-4 h-4 mr-2" /> Add Customer
-          </Button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button variant="outline" onClick={() => setIsImportModalOpen(true)} className="flex-1 sm:flex-none">
+              <UploadCloud className="mr-2 h-4 w-4" /> Import
+            </Button>
+            <Button onClick={handleAddNew} className="flex-1 sm:flex-none">
+              <Plus className="w-4 h-4 mr-2" /> Add Customer
+            </Button>
+          </div>
         )}
       </div>
 
@@ -155,6 +197,19 @@ export default function CustomersPage() {
         onClose={() => setIsModalOpen(false)}
         onSuccess={loadCustomers}
         customer={selectedCustomer}
+      />
+
+      <BulkImportModal<{ name: string; phone: string; email: string; currentBalanceMinor: number }>
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        title="Import Customers"
+        sampleData={IMPORT_SAMPLE}
+        expectedColumns={IMPORT_COLUMNS}
+        onValidateRow={handleValidateCustomerRow}
+        onImport={(validRows, onProgress) => 
+          CustomerService.bulkImportCustomers(business!.id, activeShop!.id, validRows, onProgress)
+        }
+        onSuccess={loadCustomers}
       />
     </div>
   );

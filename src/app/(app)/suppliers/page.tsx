@@ -10,9 +10,18 @@ import { useShop } from "@/contexts/ShopContext";
 import { SupplierService } from "@/lib/suppliers/service";
 import { formatCurrency } from "@/lib/utils/currency";
 import { SupplierModal } from "@/components/suppliers/SupplierModal";
+import { BulkImportModal } from "@/components/ui/BulkImportModal";
+import { UploadCloud } from "lucide-react";
+import { toMinorUnit } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import type { Supplier } from "@/types";
+
+const IMPORT_COLUMNS = ["Supplier Name", "Phone", "Email", "Initial Payable Balance"];
+const IMPORT_SAMPLE = [
+  { "Supplier Name": "Tech Wholesalers", "Phone": "03001234567", "Email": "sales@techwholesale.com", "Initial Payable Balance": 15000 },
+  { "Supplier Name": "General Goods Inc", "Phone": "03211234567", "Email": "", "Initial Payable Balance": 0 }
+];
 
 export default function SuppliersPage() {
   const { business, memberRole } = useBusiness();
@@ -21,6 +30,7 @@ export default function SuppliersPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   // Cashiers should not see suppliers at all
   const isReadOnly = memberRole === "cashier";
@@ -50,6 +60,33 @@ export default function SuppliersPage() {
     (s.phone && s.phone.includes(searchQuery))
   );
 
+  const handleValidateSupplierRow = (row: Record<string, string | number | boolean | null>) => {
+    const errors: string[] = [];
+    
+    const name = String(row["Supplier Name"] || "").trim();
+    if (!name) errors.push("Supplier Name is required");
+
+    const phone = String(row["Phone"] || "").trim();
+    const email = String(row["Email"] || "").trim();
+
+    const balance = parseFloat(String(row["Initial Payable Balance"] || "0"));
+    if (isNaN(balance) || balance < 0) errors.push("Invalid Initial Payable Balance");
+
+    if (errors.length > 0) {
+      return { isValid: false, errors };
+    }
+
+    return {
+      isValid: true,
+      data: {
+        name,
+        phone,
+        email,
+        currentBalanceMinor: toMinorUnit(balance)
+      }
+    };
+  };
+
   if (isReadOnly) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center">
@@ -69,9 +106,14 @@ export default function SuppliersPage() {
           <h1 className="text-2xl font-bold text-gray-900">Suppliers</h1>
           <p className="text-sm text-gray-500 mt-1">Manage wholesale vendors and payables.</p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)} className="w-full sm:w-auto shrink-0">
-          <Plus className="mr-2 h-4 w-4" /> Add Supplier
-        </Button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button variant="outline" onClick={() => setIsImportModalOpen(true)} className="flex-1 sm:flex-none">
+            <UploadCloud className="mr-2 h-4 w-4" /> Import
+          </Button>
+          <Button onClick={() => setIsModalOpen(true)} className="flex-1 sm:flex-none">
+            <Plus className="mr-2 h-4 w-4" /> Add Supplier
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -157,6 +199,19 @@ export default function SuppliersPage() {
       <SupplierModal 
         isOpen={isModalOpen}
         onOpenChange={setIsModalOpen}
+        onSuccess={fetchSuppliers}
+      />
+
+      <BulkImportModal<{ name: string; phone: string; email: string; currentBalanceMinor: number }>
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        title="Import Suppliers"
+        sampleData={IMPORT_SAMPLE}
+        expectedColumns={IMPORT_COLUMNS}
+        onValidateRow={handleValidateSupplierRow}
+        onImport={(validRows, onProgress) => 
+          SupplierService.bulkImportSuppliers(business!.id, activeShop!.id, validRows, onProgress)
+        }
         onSuccess={fetchSuppliers}
       />
     </div>
