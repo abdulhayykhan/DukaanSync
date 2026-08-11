@@ -243,8 +243,8 @@ export default function SuppliersPage() {
         sampleData={IMPORT_SAMPLE}
         expectedColumns={IMPORT_COLUMNS}
         onValidateRow={handleValidateSupplierRow}
-        onImport={(validRows, _strategy, onProgress) =>
-          SupplierService.bulkImportSuppliers(business!.id, activeShop!.id, validRows, onProgress)
+        onImport={(validRows, strategy, onProgress) =>
+          SupplierService.bulkImportSuppliers(business!.id, activeShop!.id, validRows, strategy, onProgress)
         }
         onSuccess={fetchSuppliers}
       />

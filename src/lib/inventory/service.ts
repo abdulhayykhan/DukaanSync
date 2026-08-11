@@ -172,6 +172,20 @@ export class InventoryService {
       existingBySku.set(data.sku, { id: d.id, quantity: data.quantity ?? 0 });
     });
 
+    if (duplicateStrategy === "overwrite") {
+      try {
+        const existingSnap = await getDocs(itemsRef);
+        if (!existingSnap.empty) {
+          const deleteBatch = writeBatch(db);
+          existingSnap.docs.forEach((d) => deleteBatch.delete(d.ref));
+          await deleteBatch.commit();
+        }
+        existingBySku.clear();
+      } catch (err) {
+        console.error("Error clearing existing inventory during overwrite import:", err);
+      }
+    }
+
     // --- Classify products: new vs existing ---
     type ProductWithKind = InventoryServicePayload & { _kind: "new" | "update" | "skip" };
 

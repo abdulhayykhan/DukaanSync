@@ -159,6 +159,7 @@ export class CustomerService {
     businessId: string,
     shopId: string,
     customers: { name: string; phone?: string; email?: string; currentBalanceMinor: number }[],
+    strategy: DuplicateStrategy = "upsert",
     onProgress?: (processed: number, total: number) => void
   ): Promise<{ successCount: number; errors: string[] }> {
     if (!db) throw new Error("Firestore not initialized");
@@ -166,7 +167,21 @@ export class CustomerService {
     const CHUNK_SIZE = 250;
     let successCount = 0;
     const errors: string[] = [];
+    const customersRef = collection(db, "businesses", businessId, "shops", shopId, "customers");
     const total = customers.length;
+
+    if (strategy === "overwrite") {
+      try {
+        const existingSnap = await getDocs(customersRef);
+        if (!existingSnap.empty) {
+          const deleteBatch = writeBatch(db);
+          existingSnap.docs.forEach((d) => deleteBatch.delete(d.ref));
+          await deleteBatch.commit();
+        }
+      } catch (err) {
+        console.error("Error clearing existing customers during overwrite import:", err);
+      }
+    }
 
     for (let i = 0; i < total; i += CHUNK_SIZE) {
       const chunk = customers.slice(i, i + CHUNK_SIZE);

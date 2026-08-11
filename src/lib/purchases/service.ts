@@ -43,6 +43,7 @@ export class PurchaseService {
     businessId: string,
     shopId: string,
     rows: PurchaseImportPayload[],
+    strategy: DuplicateStrategy = "upsert",
     onProgress?: (processed: number, total: number) => void
   ): Promise<BulkImportResult> {
     if (!db) throw new Error("Firestore not initialized");
@@ -54,6 +55,25 @@ export class PurchaseService {
     const purchasesRef = collection(db, "businesses", businessId, "shops", shopId, "purchases");
     const salesRef = collection(db, "businesses", businessId, "shops", shopId, "sales");
     const total = rows.length;
+
+    if (strategy === "overwrite") {
+      try {
+        const existingPurchasesSnap = await getDocs(purchasesRef);
+        if (!existingPurchasesSnap.empty) {
+          const deleteBatch = writeBatch(db);
+          existingPurchasesSnap.docs.forEach((d) => deleteBatch.delete(d.ref));
+          await deleteBatch.commit();
+        }
+        const existingSalesSnap = await getDocs(salesRef);
+        if (!existingSalesSnap.empty) {
+          const deleteBatch = writeBatch(db);
+          existingSalesSnap.docs.forEach((d) => deleteBatch.delete(d.ref));
+          await deleteBatch.commit();
+        }
+      } catch (err) {
+        console.error("Error clearing existing purchases/sales during overwrite import:", err);
+      }
+    }
 
     for (let i = 0; i < total; i += CHUNK_SIZE) {
       const chunk = rows.slice(i, i + CHUNK_SIZE);

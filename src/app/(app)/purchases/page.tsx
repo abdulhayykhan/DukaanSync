@@ -304,8 +304,8 @@ export default function PurchasesPage() {
         sampleData={PURCHASE_SAMPLE}
         expectedColumns={PURCHASE_COLUMNS}
         onValidateRow={handleValidatePurchaseRow}
-        onImport={(validRows, _strategy, onProgress) =>
-          PurchaseService.bulkImportPurchases(business!.id, activeShop!.id, validRows, onProgress)
+        onImport={(validRows, strategy, onProgress) =>
+          PurchaseService.bulkImportPurchases(business!.id, activeShop!.id, validRows, strategy, onProgress)
         }
         onSuccess={loadPurchases}
       />

@@ -151,6 +151,7 @@ export class SupplierService {
     businessId: string,
     shopId: string,
     suppliers: { name: string; phone?: string; email?: string; currentBalanceMinor: number }[],
+    strategy: DuplicateStrategy = "upsert",
     onProgress?: (processed: number, total: number) => void
   ): Promise<{ successCount: number; errors: string[] }> {
     if (!db) throw new Error("Firestore not initialized");
@@ -158,7 +159,21 @@ export class SupplierService {
     const CHUNK_SIZE = 250;
     let successCount = 0;
     const errors: string[] = [];
+    const suppliersRef = collection(db, "businesses", businessId, "shops", shopId, "suppliers");
     const total = suppliers.length;
+
+    if (strategy === "overwrite") {
+      try {
+        const existingSnap = await getDocs(suppliersRef);
+        if (!existingSnap.empty) {
+          const deleteBatch = writeBatch(db);
+          existingSnap.docs.forEach((d) => deleteBatch.delete(d.ref));
+          await deleteBatch.commit();
+        }
+      } catch (err) {
+        console.error("Error clearing existing suppliers during overwrite import:", err);
+      }
+    }
 
     for (let i = 0; i < total; i += CHUNK_SIZE) {
       const chunk = suppliers.slice(i, i + CHUNK_SIZE);

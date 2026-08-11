@@ -241,8 +241,8 @@ export default function CustomersPage() {
         sampleData={IMPORT_SAMPLE}
         expectedColumns={IMPORT_COLUMNS}
         onValidateRow={handleValidateCustomerRow}
-        onImport={(validRows, _strategy, onProgress) =>
-          CustomerService.bulkImportCustomers(business!.id, activeShop!.id, validRows, onProgress)
+        onImport={(validRows, strategy, onProgress) =>
+          CustomerService.bulkImportCustomers(business!.id, activeShop!.id, validRows, strategy, onProgress)
         }
         onSuccess={loadCustomers}
       />
