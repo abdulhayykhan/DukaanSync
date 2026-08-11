@@ -10,95 +10,201 @@ A lightweight, multi-tenant POS and inventory analytics platform designed for Pa
 
 ---
 
-## 💼 Non-Technical Executive Overview
-
-### Retail Challenges in Pakistan
-Managing retail stores, supermarkets, pharmacies, electronics shops, and wholesale chains across Pakistan presents significant operational friction:
-
-1. **Inventory Leakage & Stock Mismatches:** Tracking inventory across multiple physical branches manually leads to phantom stock, sudden stockouts, undetected theft, and unrecorded inter-branch transfers.
-2. **Manual Paper Ledgers & Khata:** Physical register entries and paper *Khata* notebooks result in frequent calculation errors, uncollected customer credit receivables, and missed supplier payment deadlines.
-3. **Multi-Branch Visibility Deficit:** Store owners and franchise managers lack real-time visibility into overall chain profitability, branch sales performance, and operational expense drains (such as utility bills, rent, and staff salaries).
-4. **Payment Method Rigidity:** Modern Pakistani shoppers utilize diverse split payment channels (Cash, Bank Transfer, EasyPaisa, JazzCash, and Customer Credit). Legacy POS setups fail to capture split payments cleanly.
-
-### DukaanSync Solution Framework
-**DukaanSync** solves these challenges by unifying multi-branch operations into a single, cloud-native SaaS platform:
-
-- **Instant Branch Context Switching:** A merchant logs in once and seamlessly switches between individual branches (`MAIN`, `BR-02`, `BR-03`) or views an aggregated **All Shops (Multi-Branch)** chain view without logging out.
-- **High-Speed Cashier Checkout:** A barcode-scanner-optimized POS terminal equipped with instant keyboard hotkeys (<kbd>F2</kbd>, <kbd>F8</kbd>, <kbd>F9</kbd>) and split-payment processing.
-- **Thermal Receipt Engine:** Auto-generates clean thermal receipts formatted specifically for standard 80mm thermal receipt printers via CSS `@media print`.
-- **Real-Time Telemetry & Profitability:** Integer paisa financial accounting, Profit & Loss tracking, receivables/payables management, and automated low-stock reorder alerts.
+## 📋 Table of Contents
+1. [Executive Overview & Business Context](#1-executive-overview--business-context)
+2. [Service Architecture & Method Index](#2-service-architecture--method-index)
+3. [State Management & Context Scoping](#3-state-management--context-scoping)
+4. [UI Component & Page Map](#4-ui-component--page-map)
+5. [In-Depth Database Schema & Security Policy](#5-in-depth-database-schema--security-policy)
+6. [Financial & Accounting Algorithms](#6-financial--accounting-algorithms)
+7. [Project Directory Tree](#7-project-directory-tree)
+8. [Quick Start & Setup Reference](#8-quick-start--setup-reference)
+9. [License & Credits](#9-license--credits)
 
 ---
 
-## 🔬 Technical Feature Matrix & Architecture Capabilities
+## 1. Executive Overview & Business Context
 
-### ⚡ 1. POS Terminal & High-Speed Checkout Engine
-- **Barcode & SKU Auto-Add Mechanics:** The product search input actively listens to barcode scanner hardware inputs, automatically resolving SKUs and updating cart item quantities in real time.
-- **Keyboard Shortcut Navigation:**
-  - <kbd>F2</kbd> — Focus product search bar instantly.
-  - <kbd>F8</kbd> — Clear current cart safely with confirmation modal.
-  - <kbd>F9</kbd> — Open payment checkout dialog.
-- **Split & Digital Payment Processing:** Supports Cash (with change due calculation), Bank Transfer, EasyPaisa, JazzCash, Customer Credit, and Mixed Payments.
-- **Atomic Stock Deduction & COGS Preservation:** Checkout operations execute within atomic Cloud Firestore transactions (`runTransaction`), preventing race conditions, decrementing stock atomically, and snapshotting historical Cost of Goods Sold (COGS) per item.
-- **Thermal Printing CSS Formatting:** Clean CSS `@media print` layout engineered specifically for 80mm thermal receipt printers.
+Retail management across Pakistan (supermarkets, apparel stores, electronics outlets, and wholesale marts) suffers from four critical operational bottlenecks:
 
-### 📊 2. Multi-Branch Telemetry & Analytics Engine
-- **Tenant Context Scoping:** All database queries are scoped dynamically via `businesses/{businessId}/shops/{shopId}`.
-- **Aggregated Multi-Shop Query Handler (`AnalyticsEngine`):** When `shopId === "all"`, `AnalyticsEngine` executes parallel queries (`Promise.all`) across all active shop subcollections, merging total revenue, gross profit, expenses, net profit, receivables, and payables in under 500ms.
-- **Recharts Visual Analytics:** Interactive trend charts displaying sales vs. net profit trajectories across `Today`, `This Week`, `This Month`, and `This Year` time horizons.
+1. **Multi-Branch Visibility Deficit:** Store owners lack a unified view of chain-wide sales, profit margins, and inventory levels, relying on fragmented branch-by-branch manual reports.
+2. **Inventory Leakage & Stock Mismatches:** Disconnected registers lead to unrecorded stock movements, phantom inventory, sudden stockouts, and undetected shrinkage.
+3. **Manual Paper Ledgers (*Khata*):** Paper registers cause calculation errors, uncollected customer credit receivables, and missed supplier payables.
+4. **Rigid Payment Processing:** Modern shoppers expect flexible split payment channels (Cash, Bank Transfer, EasyPaisa, JazzCash, and Customer Credit), which legacy POS software fails to track.
 
-### 📦 3. Inventory & Immutable Stock Movement Auditing
-- **Catalog Management:** Item SKU tracking, category definitions, cost prices, retail selling prices, and safety stock reorder levels.
-- **Real-Time Low-Stock Alerts:** Automated visual badges and notifications when inventory quantities fall below threshold levels.
-- **Immutable Movement Audit Logs:** Append-only stock movement logging (`movements/{movementId}`) capturing movement types (`sale`, `purchase`, `adjustment`, `return`), reference document IDs, actor UIDs, and timestamps.
-
-### 💸 4. Operating Expenses & Financial P&L Engine
-- **Categorized Expense Tracking:** Categorized operational deductions across Rent, Utilities (K-Electric/Gas), Staff Salaries, Transport, Marketing, and Maintenance.
-- **Exact Integer Paisa Accounting:** Eliminates IEEE floating-point rounding errors by storing all currency values strictly as integer minor units (paisa).
-- **Formal P&L Formula:**
-  $$\text{Net Profit} = (\text{Revenue} - \text{COGS}) - \text{Operating Expenses}$$
-
-### 📥 5. Bulk Data Migration & CSV Import Engine
-- **Client-Side CSV Parser:** Papaparse integration for bulk data ingestion across Inventory, Sales, Expenses, Customers, and Suppliers.
-- **Flexible Header Normalization:** Header normalizer maps diverse CSV column variations (e.g., `Customer Name`, `customer_name`, `client`) into canonical lookup keys.
+### The DukaanSync Solution
+**DukaanSync** addresses these bottlenecks with a cloud-native SaaS architecture:
+- **Instant Branch Switching:** Access individual branch views (`MAIN`, `BR-02`, `BR-03`) or an aggregated **All Shops (Multi-Branch)** view seamlessly without relogging.
+- **High-Speed POS Checkout:** Barcode hardware integration, rapid keyboard hotkeys (<kbd>F2</kbd>, <kbd>F8</kbd>, <kbd>F9</kbd>), and split payment support.
+- **Automated Thermal Invoicing:** Thermal receipts formatted for standard 80mm printers via CSS `@media print`.
+- **Integer Paisa Accounting:** Eliminates floating-point calculation drift across all financial ledgers and P&L calculations.
 
 ---
 
-## 🛠️ Technology Stack & Multi-Tenant Database Architecture
+## 2. Service Architecture & Method Index
 
-### Frontend Stack & UI Libraries
-- **Framework:** Next.js 16+ (App Router with Turbopack compiler)
-- **Language:** TypeScript 5.0+ (Strict type checking)
-- **Styling:** Tailwind CSS v3 & Glassmorphism Utility Tokens
-- **Icons & Visuals:** Lucide React, Recharts & Framer Motion
-- **UI Primitives:** Radix UI Dialog & Dropdown Menu
-- **State & Context:** React Context API (`AuthContext`, `BusinessContext`, `ShopContext`)
+DukaanSync encapsulates core business logic into domain-driven service modules located in `src/lib/services/`:
 
-### Backend & Cloud Infrastructure
-- **Database Engine:** Google Cloud Firestore (Multi-tenant document hierarchy)
-- **Authentication:** Firebase Authentication (Email/Password provider)
-- **Security:** Firebase App Check & `firestore.rules` security policies
-- **Hosting & CI/CD:** Vercel Cloud Platform with automated build pipelines
+### 2.1 `AnalyticsEngine.ts` (Telemetry Aggregation)
+- **`getDashboardTelemetry(businessId: string, shopId: string, timeRange: TimeRange)`**:
+  - Executes parallel Firestore queries across sales, purchases, expenses, and inventory subcollections.
+  - When `shopId === "all"`, fetches active branch IDs from `businesses/{businessId}/shops/` and executes parallel multi-shop `Promise.all` queries.
+  - Groups sales data into time buckets (`Today`, `This Week`, `This Month`, `This Year`).
+  - Calculates total Revenue, Gross Profit, Operating Expenses, Net Profit, Customer Receivables, and Supplier Payables.
 
-### Database Schema Hierarchy & Multi-Tenant Scoping
+### 2.2 `SalesService.ts` (Point of Sale Transactions)
+- **`createSaleTransaction(businessId: string, shopId: string, saleData: SaleInput)`**:
+  - Executes atomic Firestore transactions (`db.runTransaction`).
+  - Validates item stock availability before decrementing quantities.
+  - Snapshots historical Cost Price per item (`costPricePKR`) into line items to preserve COGS accuracy.
+  - Generates immutable stock movement records in `movements/`.
+  - Atomically updates customer balance if payment is on credit.
+
+### 2.3 `InventoryService.ts` (Catalog & Stock Control)
+- **`getInventoryItems(businessId: string, shopId: string)`**: Retrieves active stock items for the specified shop context.
+- **`updateStockLevel(businessId: string, shopId: string, itemId: string, delta: number, reason: string)`**: Updates inventory quantity and logs an audit record in `movements/`.
+- **`checkLowStock(item: InventoryItem)`**: Returns `true` if `quantity <= reorderLevel`.
+
+### 2.4 `AuditService.ts` (Append-Only Movement Auditing)
+- **`logStockMovement(businessId: string, shopId: string, movement: StockMovementInput)`**:
+  - Creates append-only documents inside `businesses/{businessId}/shops/{shopId}/movements/`.
+  - Captures movement type (`sale`, `purchase`, `adjustment`, `return`), quantity change, actor UID, and timestamp.
+
+### 2.5 Operational & Ledger Services
+- **`ExpenseService.ts`**: CRUD operations for operating expenses, category breakdown calculations, and bulk CSV imports.
+- **`PurchaseService.ts`**: Handles stock purchase entries, updates inventory counts, and manages supplier payables.
+- **`CustomerService.ts`**: Manages customer profiles, credit limits, and receivables ledger transactions.
+- **`SupplierService.ts`**: Manages supplier directory, contact details, and payables ledger transactions.
+
+---
+
+## 3. State Management & Context Scoping
+
+DukaanSync utilizes React Context API providers (`src/contexts/`) for global state management:
+
+### 3.1 `AuthContext.tsx`
+- Wraps Firebase Authentication listeners (`onAuthStateChanged`).
+- Persists user auth state, access tokens, and user profiles.
+
+### 3.2 `BusinessContext.tsx`
+- Fetches business profile document from `businesses/{businessId}` upon authentication.
+- Resolves member role (`owner`, `manager`, `cashier`, `inventory_manager`) from `businesses/{businessId}/members/{uid}`.
+
+### 3.3 `ShopContext.tsx`
+- Controls active shop location selection.
+- Stores active `shopId` (`"shop_main"`, `"shop_br02"`, `"shop_br03"`, or `"all"`).
+- Automatically resets active shop context across inventory queries, POS cart state, and transaction logs.
+
+---
+
+## 4. UI Component & Page Map
+
+### 4.1 Protected Application Routes (`src/app/(app)/`)
+- **/dashboard**: Executive financial telemetry, KPI stat cards, Recharts revenue/profit trends, and expense distribution charts.
+- **/pos**: Barcode checkout interface with cart management, keyboard shortcuts (<kbd>F2</kbd>, <kbd>F8</kbd>, <kbd>F9</kbd>), checkout dialog, and thermal receipt printing.
+- **/inventory**: Stock catalog table, search filters, low-stock threshold badges, item CRUD modal, and `/inventory/movements` audit log.
+- **/purchases**: Stock purchase order entries, supplier selection, payment status tracking, and `/purchases/new` wizard.
+- **/expenses**: Expense logger with category filters (Rent, Utilities, Salaries, Transport, Marketing, Maintenance) and summary totals.
+- **/customers**: Customer directory, credit limits, outstanding receivables, and customer profile details (`/customers/[id]`).
+- **/suppliers**: Supplier directory, contact info, outstanding payables, and supplier profile details (`/suppliers/[id]`).
+- **/reports**: Profit & Loss reports, export controls (CSV/Excel), and range filters.
+- **/settings**: Business profile settings (`/settings/business`), team member management (`/settings/users`), and shop configuration (`/settings/shops`).
+
+### 4.2 POS Keyboard Hotkeys & Thermal Printing
+- **<kbd>F2</kbd>**: Focus Product Search Input.
+- **<kbd>F8</kbd>**: Clear Current Cart (with prompt).
+- **<kbd>F9</kbd>**: Open Checkout Modal.
+- **Thermal Receipt Printing:** CSS `@media print` targets `.thermal-receipt` container with fixed 80mm width, monospaced font rendering, and zero margins.
+
+---
+
+## 5. In-Depth Database Schema & Security Policy
+
+### 5.1 Cloud Firestore Document Tree
 ```text
-users/{userId} ───────────────────► User Profile & Business Reference
-businesses/{businessId} ──────────► Core Business Entity & Owner Metadata
-  ├── members/{userId} ──────────► Role & Shop Access Permissions
-  ├── suppliers/{supplierId} ────► Supplier Profile & Payables Ledger
-  ├── customers/{customerId} ────► Customer Profile & Receivables Ledger
-  ├── auditLogs/{logId} ─────────► System Audit Trail
-  └── shops/{shopId} ────────────► Shop Branch Configuration
-        ├── inventory/{itemId} ──► Product Catalog & Stock Levels
-        ├── sales/{saleId} ──────► Sales Transactions & Invoices
-        ├── purchases/{id} ─────► Stock Purchase Orders
-        ├── expenses/{id} ──────► Branch Operating Expenses
-        └── movements/{id} ─────► Append-Only Stock Audit Trail
+users/{userId}
+  ├── email: string
+  ├── businessId: string
+  └── createdAt: timestamp
+
+businesses/{businessId}
+  ├── name: string
+  ├── ownerId: string
+  ├── createdAt: timestamp
+  │
+  ├── members/{memberUid}
+  │     ├── email: string
+  │     ├── role: "owner" | "manager" | "cashier" | "inventory_manager"
+  │     └── joinedAt: timestamp
+  │
+  ├── customers/{customerId}
+  │     ├── name: string
+  │     ├── phone: string
+  │     ├── currentBalancePKR: number
+  │     └── creditLimitPKR: number
+  │
+  ├── suppliers/{supplierId}
+  │     ├── name: string
+  │     ├── phone: string
+  │     └── currentBalancePKR: number
+  │
+  └── shops/{shopId}
+        ├── name: string
+        ├── code: string
+        │
+        ├── inventory/{itemId}
+        │     ├── sku: string
+        │     ├── name: string
+        │     ├── costPricePKR: number
+        │     ├── sellingPricePKR: number
+        │     ├── quantity: number
+        │     └── reorderLevel: number
+        │
+        ├── sales/{saleId}
+        │     ├── invoiceNumber: string
+        │     ├── items: array
+        │     ├── grandTotalPKR: number
+        │     ├── paymentStatus: string
+        │     └── createdAt: timestamp
+        │
+        ├── expenses/{expenseId}
+        │     ├── category: string
+        │     ├── amountPKR: number
+        │     └── date: string
+        │
+        └── movements/{movementId}
+              ├── type: "sale" | "purchase" | "adjustment" | "return"
+              ├── quantityDelta: number
+              ├── actorUid: string
+              └── timestamp: timestamp
 ```
 
+### 5.2 Security Policy Rules (`firestore.rules`)
+- **Tenant Access Control:** Read and write permissions require authentication (`request.auth != null`).
+- **Business Authorization:** Users can only access `businesses/{businessId}` if `request.auth.uid` matches `ownerId` OR exists in `businesses/{businessId}/members/{request.auth.uid}`.
+- **Role Permissions:** Write operations on business settings and team members are restricted to `owner` and `manager` roles.
+
 ---
 
-## 📁 Project Directory Tree
+## 6. Financial & Accounting Algorithms
+
+### 6.1 Integer Minor Unit Currency Accounting
+To avoid IEEE 754 floating-point drift, currency operations convert decimal PKR amounts to integer paisa:
+$$1 \text{ PKR} = 100 \text{ paisa}$$
+
+### 6.2 Financial Profit & Loss Formulas
+- **Gross Profit:**
+  $$\text{Gross Profit} = \text{Revenue} - \text{Cost of Goods Sold (COGS)}$$
+
+- **Net Profit:**
+  $$\text{Net Profit} = \text{Gross Profit} - \text{Operating Expenses}$$
+
+- **Net Profit Margin Percentage:**
+  $$\text{Margin \%} = \left( \frac{\text{Net Profit}}{\text{Revenue}} \right) \times 100$$
+
+---
+
+## 7. Project Directory Tree
 
 ```text
 DukaanSync/
@@ -117,17 +223,8 @@ DukaanSync/
 │   └── suppliers.csv
 └── src/
     ├── app/
-    │   ├── (app)/           # Protected Application Routes
-    │   │   ├── dashboard/   # Financial Telemetry & Profitability
-    │   │   ├── pos/         # High-Speed POS Checkout Terminal
-    │   │   ├── inventory/   # Catalog & Stock Movements Audit
-    │   │   ├── purchases/   # Stock Purchase Entry
-    │   │   ├── suppliers/   # Supplier Directory & Payables Ledger
-    │   │   ├── customers/   # Customer Directory & Receivables Ledger
-    │   │   ├── expenses/    # Expense Management
-    │   │   ├── reports/     # Financial Reports & CSV Export
-    │   │   └── settings/    # Business, Users & Shop Configuration
-    │   ├── (auth)/          # Authentication Routes (Login, Register, Forgot Password)
+    │   ├── (app)/           # Protected Application Routes (/dashboard, /pos, /inventory, etc.)
+    │   ├── (auth)/          # Authentication Routes (/login, /register, /forgot-password)
     │   ├── onboarding/      # Business Setup Wizard
     │   ├── error.tsx        # 500 Error Boundary
     │   └── not-found.tsx    # 404 Not Found Page
@@ -149,29 +246,30 @@ DukaanSync/
 
 ---
 
-## ⚡ Quick Start & Setup Documentation Reference
+## 8. Quick Start & Setup Reference
 
-### 1. Local Terminal Execution Commands
-
+### 8.1 Local Terminal Commands
 ```bash
-# 1. Clone the repository
+# Clone the repository
 git clone https://github.com/abdulhayykhan/DukaanSync.git
 cd DukaanSync
 
-# 2. Install dependencies
+# Install dependencies
 npm install
 
-# 3. Run local development server
+# Run local development server
 npm run dev
 
-# 4. Verify production build
+# Verify production build
 npm run build
 ```
 
-### 2. Complete Setup & Deployment Guide Reference
+### 8.2 Setup Documentation Reference
 For complete step-by-step instructions on configuring your Firebase Console, deploying Firestore security rules (`firestore.rules`), setting environment variables (`.env.local`), manual CSV data seeding from `mock-data/`, and Vercel hosting, please refer to **[`SETUP.md`](./SETUP.md)**.
 
 ---
+
+## 9. License & Credits
 
 ## 📄 License
 
