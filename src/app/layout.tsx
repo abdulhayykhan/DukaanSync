@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "DukaanSync — Multi-Shop Management & Point of Sale System",
-    template: "%s | DukaanSync",
+    default: "DukaanSync - Multi-Shop POS & Management",
+    template: "%s - DukaanSync",
   },
   description:
     "One account. One login. One business. Multiple shops. Strict data isolation. A multi-tenant retail management & POS SaaS platform.",
