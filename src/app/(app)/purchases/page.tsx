@@ -82,8 +82,8 @@ export default function PurchasesPage() {
     const get = (aliases: string[]) => getField(norm, aliases);
 
     const mapped = {
-      purchaseNumber: String(get(["purchasenumber", "ponumber", "invoicenumber", "id", "ordernumber"]) || `IMP-${Date.now()}`),
-      supplierName: String(get(["suppliername", "supplier", "supplierName", "vendor", "vendorname"]) ?? ""),
+      purchaseNumber: String(get(["purchasenumber", "ponumber", "invoicenumber", "invoice_number", "invoice", "id", "ordernumber"]) || `IMP-${Date.now()}`),
+      supplierName: String(get(["suppliername", "supplier", "supplierName", "vendor", "vendorname", "customername", "customer_name", "customer", "client", "walk-incustomer", "walkincustomer"]) || "Walk-in Customer"),
       date: String(get(["date", "purchasedate", "orderdate", "createdat", "timestamp"]) ?? ""),
       grandTotalPKR: get(["grandtotalpkr", "grandtotal", "grand_total", "total", "amount", "totalpkr"]),
       paymentStatus: String(get(["paymentstatus", "payment_status", "status"]) ?? ""),
