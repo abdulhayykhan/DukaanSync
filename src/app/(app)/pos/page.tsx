@@ -14,6 +14,7 @@ import { InventoryService } from "@/lib/inventory/service";
 import { CustomerService } from "@/lib/customers/service";
 import { SaleTransactionService, type SaleTransactionData } from "@/lib/sales/transaction";
 import { formatCurrency, toMinorUnit } from "@/lib/utils/currency";
+import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -334,25 +335,46 @@ export default function POSTerminalPage() {
         </div>
 
         {/* Product Grid */}
-        <div className="flex-1 overflow-y-auto pb-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+        <div className="flex-1 overflow-y-auto pb-4 pr-1">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {filteredInventory.map(item => (
               <Card3D 
                 key={item.id}
-                className={`glass-card p-4 rounded-2xl text-left border shadow-xl transition-all h-full flex flex-col ${item.quantity <= 0 ? 'opacity-50 cursor-not-allowed border-gray-200/20' : 'hover:border-[#10B981]/50 hover:shadow-2xl border-white/10 cursor-pointer'}`}
+                className={cn(
+                  "bg-white p-3.5 sm:p-4 rounded-2xl border transition-all h-full flex flex-col justify-between select-none min-w-0 w-full overflow-hidden shadow-sm",
+                  item.quantity <= 0 
+                    ? "opacity-50 cursor-not-allowed border-slate-200 bg-slate-50" 
+                    : "border-slate-200/80 hover:border-emerald-500 hover:shadow-md cursor-pointer"
+                )}
                 onClick={item.quantity > 0 ? () => addToCart(item) : undefined}
-                maxTilt={10}
+                maxTilt={6}
               >
-                <div className="flex justify-between items-start mb-2">
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${item.quantity <= 0 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                    {item.quantity > 0 ? `${item.quantity} in stock` : 'Out of Stock'}
+                <div className="flex flex-col flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1.5 mb-2">
+                    <span className={cn(
+                      "text-[11px] font-medium px-2 py-0.5 rounded-full shrink-0 border whitespace-nowrap",
+                      item.quantity <= 0 
+                        ? "bg-rose-50 text-rose-700 border-rose-200" 
+                        : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    )}>
+                      {item.quantity > 0 ? `${item.quantity} in stock` : 'Out of Stock'}
+                    </span>
+                  </div>
+
+                  <h3 className="font-semibold text-xs sm:text-sm text-slate-900 leading-snug mb-1 line-clamp-2 break-words">
+                    {item.name}
+                  </h3>
+
+                  <p className="text-[11px] font-mono text-slate-400 mb-3 truncate">
+                    {item.sku}
+                  </p>
+                </div>
+
+                <div className="mt-auto pt-2 border-t border-slate-100 flex items-center justify-between min-w-0">
+                  <span className="text-xs sm:text-sm font-bold text-emerald-600 truncate whitespace-nowrap">
+                    {formatCurrency(item.retailPriceMinor, business?.currency)}
                   </span>
                 </div>
-                <h3 className="font-semibold text-gray-900 leading-tight mb-1 line-clamp-2">{item.name}</h3>
-                <p className="text-xs text-gray-500 mb-3 truncate">{item.sku}</p>
-                <p className="text-lg font-bold text-[#10B981]">
-                  {formatCurrency(item.retailPriceMinor, business?.currency)}
-                </p>
               </Card3D>
             ))}
           </div>
