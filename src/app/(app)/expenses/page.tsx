@@ -11,6 +11,8 @@ import { ExpenseService } from "@/lib/expenses/service";
 import { formatCurrency, toMinorUnit } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { ExportDropdown } from "@/components/ui/ExportDropdown";
+import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
 import type { Expense, ExpenseCategory } from "@/types";
 import { parseISO, format } from "date-fns";
 
@@ -137,27 +139,23 @@ export default function ExpensesPage() {
     }
   };
 
-  // Export to CSV
-  const exportCSV = () => {
-    if (filteredExpenses.length === 0) return;
-    const headers = ["Date", "Category", "Description", "Payment Method", "Amount"];
-    const rows = filteredExpenses.map(e => [
-      format(parseISO(e.date), 'yyyy-MM-dd'),
-      e.category,
-      `"${e.description || ""}"`,
-      e.paymentMethod,
-      (e.amountMinor / 100).toFixed(2)
-    ]);
-    
-    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `Expenses_${activeShop?.name}_${format(new Date(), 'yyyyMMdd')}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleExport = (formatType: "csv" | "excel") => {
+    const exportData = filteredExpenses.map(e => ({
+      "Date": format(parseISO(e.date), 'yyyy-MM-dd'),
+      "Category": CATEGORIES.find(c => c.value === e.category)?.label || e.category,
+      "Description": e.description || "",
+      "Payment Method": e.paymentMethod,
+      "Amount (PKR)": (e.amountMinor / 100).toFixed(2)
+    }));
+
+    const dateStr = format(new Date(), "yyyy-MM-dd");
+    const filename = `DukaanSync_Expenses_${activeShop?.id || 'all'}_${dateStr}`;
+
+    if (formatType === "csv") {
+      exportToCSV({ filename, data: exportData });
+    } else {
+      exportToExcel({ filename, data: exportData });
+    }
   };
 
   if (!business || !activeShop) return null;
@@ -172,9 +170,7 @@ export default function ExpensesPage() {
           <p className="text-sm text-gray-500 mt-1">Manage and track shop expenses for P&L deductions.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={exportCSV} disabled={filteredExpenses.length === 0}>
-            <Download className="w-4 h-4 mr-2" /> Export CSV
-          </Button>
+          <ExportDropdown onExport={handleExport} />
           <Button onClick={() => setIsModalOpen(true)}>
             <Plus className="w-4 h-4 mr-2" /> Log Expense
           </Button>

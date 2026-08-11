@@ -11,8 +11,11 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { useShop } from "@/contexts/ShopContext";
 import { AnalyticsEngine } from "@/lib/analytics/engine";
 import { ExpenseService } from "@/lib/expenses/service";
+import { SaleTransactionService } from "@/lib/sales/transaction";
 import { formatCurrency } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/Button";
+import { ExportDropdown } from "@/components/ui/ExportDropdown";
+import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
 
 type ReportType = "pnl" | "sales" | "expenses" | "inventory";
 type DateRange = "today" | "this_week" | "this_month" | "this_year" | "last_30_days";
@@ -67,29 +70,73 @@ export default function ReportsPage() {
     window.print();
   };
 
-  const handleExportCSV = () => {
-    if (!reportData) return;
-    let csvContent = "";
-    const filename = `${selectedReport}_report_${format(new Date(), "yyyyMMdd")}.csv`;
+  const handleExport = async (formatType: "csv" | "excel") => {
+    let exportData: any[] = [];
+    const filename = `DukaanSync_${selectedReport}_report_${format(new Date(), "yyyyMMdd")}`;
 
-    if (reportData.type === "pnl") {
+    if (reportData?.type === "pnl" || reportData?.type === "sales") {
       const { telemetry } = reportData;
-      csvContent = `Metric,Amount\nRevenue,${(telemetry.revenueMinor / 100).toFixed(2)}\nCOGS,${((telemetry.revenueMinor - telemetry.grossProfitMinor) / 100).toFixed(2)}\nGross Profit,${(telemetry.grossProfitMinor / 100).toFixed(2)}\nOperating Expenses,${((telemetry.grossProfitMinor - telemetry.netProfitMinor) / 100).toFixed(2)}\nNet Profit,${(telemetry.netProfitMinor / 100).toFixed(2)}`;
+      exportData = [
+        { Metric: "Revenue", Amount: (telemetry.revenueMinor / 100).toFixed(2) },
+        { Metric: "COGS", Amount: ((telemetry.revenueMinor - telemetry.grossProfitMinor) / 100).toFixed(2) },
+        { Metric: "Gross Profit", Amount: (telemetry.grossProfitMinor / 100).toFixed(2) },
+        { Metric: "Operating Expenses", Amount: ((telemetry.grossProfitMinor - telemetry.netProfitMinor) / 100).toFixed(2) },
+        { Metric: "Net Profit", Amount: (telemetry.netProfitMinor / 100).toFixed(2) },
+      ];
+    } else if (reportData?.type === "expenses") {
+      exportData = reportData.expenses.map((e: any) => ({
+        "Date": format(parseISO(e.date), "yyyy-MM-dd"),
+        "Category": e.category,
+        "Description": e.description || "",
+        "Payment Method": e.paymentMethod,
+        "Amount": (e.amountMinor / 100).toFixed(2)
+      }));
+    } else if (reportData?.type === "inventory") {
+      exportData = [
+        { Metric: "Total Inventory Value", Amount: (reportData.telemetry.inventoryValueMinor / 100).toFixed(2) },
+        { Metric: "Low Stock Items", Amount: reportData.telemetry.lowStockCount }
+      ];
     }
 
-    if (!csvContent) {
-      toast.error("CSV Export not supported for this report yet");
+    if (exportData.length === 0) {
+      toast.error("No data available to export");
       return;
     }
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", filename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (formatType === "csv") {
+      exportToCSV({ filename, data: exportData });
+    } else {
+      exportToExcel({ filename, data: exportData });
+    }
+  };
+
+  const handleExportSalesHistory = async (formatType: "csv" | "excel") => {
+    if (!business || !activeShop) return;
+    try {
+      const sales = await SaleTransactionService.getRecentSales(business.id, activeShop.id, 1000);
+      const exportData = sales.map(s => ({
+        "Invoice #": s.invoiceNumber,
+        "Customer Name": s.customerName || "Guest",
+        "Date": format(new Date(s.createdAt), "yyyy-MM-dd HH:mm"),
+        "Payment Method": s.paymentMethod,
+        "Subtotal": (s.subtotalMinor / 100).toFixed(2),
+        "Tax": (s.taxMinor / 100).toFixed(2),
+        "Discount": (s.discountMinor / 100).toFixed(2),
+        "Grand Total": (s.grandTotalMinor / 100).toFixed(2),
+        "Payment Status": s.paymentStatus
+      }));
+
+      const dateStr = format(new Date(), "yyyy-MM-dd");
+      const filename = `DukaanSync_SalesHistory_${activeShop.id}_${dateStr}`;
+
+      if (formatType === "csv") {
+        exportToCSV({ filename, data: exportData });
+      } else {
+        exportToExcel({ filename, data: exportData });
+      }
+    } catch (err) {
+      toast.error("Failed to export sales history");
+    }
   };
 
   if (!business || !activeShop) return null;
@@ -99,7 +146,10 @@ export default function ReportsPage() {
       
       {/* Configuration Header (Hidden on Print) */}
       <div className="print:hidden mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Financial Reports & Exports</h1>
+        <div className="flex justify-between items-start mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Financial Reports & Exports</h1>
+          <ExportDropdown onExport={handleExportSalesHistory} label="Export Sales History" />
+        </div>
         
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row gap-6 items-end">
           <div className="flex-1 w-full">
@@ -167,9 +217,7 @@ export default function ReportsPage() {
               <FileText className="w-4 h-4 mr-2 text-gray-400" /> Report Preview
             </h2>
             <div className="flex gap-2">
-              <Button variant="outline" className="h-8 px-3 text-sm" onClick={handleExportCSV}>
-                <Download className="w-4 h-4 mr-2" /> CSV
-              </Button>
+              <ExportDropdown onExport={handleExport} />
               <Button className="h-8 px-3 text-sm" onClick={handlePrint}>
                 <Printer className="w-4 h-4 mr-2" /> Print PDF
               </Button>

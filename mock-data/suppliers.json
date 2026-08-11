@@ -1,0 +1,52 @@
+[
+  {
+    "id": "sup_uap60glkh",
+    "name": "Karachi Paper Mart Wholesale",
+    "phone": "03001234567",
+    "email": "",
+    "currentBalancePKR": 16247,
+    "isActive": true,
+    "createdAt": "2026-07-09T11:32:34.149Z",
+    "updatedAt": "2026-08-09T16:59:02.149Z"
+  },
+  {
+    "id": "sup_ce0q3g4cs",
+    "name": "Sindh PVC & Plastics Co.",
+    "phone": "03211234567",
+    "email": "",
+    "currentBalancePKR": 1750,
+    "isActive": true,
+    "createdAt": "2026-06-27T11:47:05.149Z",
+    "updatedAt": "2026-08-09T04:30:56.149Z"
+  },
+  {
+    "id": "sup_fd95qae5u",
+    "name": "K-Electric",
+    "phone": "118",
+    "email": "",
+    "currentBalancePKR": 16116,
+    "isActive": true,
+    "createdAt": "2026-07-27T10:42:20.149Z",
+    "updatedAt": "2026-08-10T18:40:03.149Z"
+  },
+  {
+    "id": "sup_7a0xq98bh",
+    "name": "Digital Print Supplies & Toner",
+    "phone": "03331234567",
+    "email": "",
+    "currentBalancePKR": 4016,
+    "isActive": true,
+    "createdAt": "2026-07-22T04:33:38.149Z",
+    "updatedAt": "2026-08-09T07:16:51.149Z"
+  },
+  {
+    "id": "sup_z484mzl8n",
+    "name": "Tariq Stationers",
+    "phone": "03111234567",
+    "email": "",
+    "currentBalancePKR": 0,
+    "isActive": true,
+    "createdAt": "2026-08-10T18:13:34.149Z",
+    "updatedAt": "2026-08-09T13:03:23.149Z"
+  }
+]

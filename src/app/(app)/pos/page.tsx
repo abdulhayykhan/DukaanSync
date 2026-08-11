@@ -19,6 +19,9 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { InvoiceModal } from "@/components/pos/InvoiceModal";
 import { CustomerModal } from "@/components/customers/CustomerModal";
+import { ExportDropdown } from "@/components/ui/ExportDropdown";
+import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
+import { format } from "date-fns";
 import type { InventoryItem, Customer, PaymentMethod, Sale } from "@/types";
 
 interface CartItem {
@@ -265,6 +268,36 @@ export default function POSTerminalPage() {
       toast.error(err.message || "Transaction failed");
     } finally {
       setIsSubmitting(false);
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleExportSales = async (formatType: "csv" | "excel") => {
+    if (!business || !activeShop) return;
+    try {
+      const sales = await SaleTransactionService.getRecentSales(business.id, activeShop.id, 500);
+      const exportData = sales.map(s => ({
+        "Invoice #": s.invoiceNumber,
+        "Customer Name": s.customerName || "Guest",
+        "Date": format(new Date(s.createdAt), "yyyy-MM-dd HH:mm"),
+        "Payment Method": s.paymentMethod,
+        "Subtotal (PKR)": (s.subtotalMinor / 100).toFixed(2),
+        "Tax (PKR)": (s.taxMinor / 100).toFixed(2),
+        "Discount (PKR)": (s.discountMinor / 100).toFixed(2),
+        "Grand Total (PKR)": (s.grandTotalMinor / 100).toFixed(2),
+        "Payment Status": s.paymentStatus
+      }));
+
+      const dateStr = format(new Date(), "yyyy-MM-dd");
+      const filename = `DukaanSync_POS_Sales_${activeShop.id}_${dateStr}`;
+
+      if (formatType === "csv") {
+        exportToCSV({ filename, data: exportData });
+      } else {
+        exportToExcel({ filename, data: exportData });
+      }
+    } catch (err) {
+      toast.error("Failed to export sales history");
     }
   };
 
@@ -274,24 +307,29 @@ export default function POSTerminalPage() {
       {/* Left Panel: Catalog */}
       <div className="flex-1 flex flex-col p-4 border-r border-gray-200/20 h-full overflow-hidden z-10">
         
-        {/* Search Bar */}
-        <div className="relative mb-4 shrink-0 shadow-sm">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <Input 
-            ref={searchInputRef}
-            placeholder="Search products by SKU or Name [F2]" 
-            className="pl-11 h-14 text-lg rounded-xl border-gray-200"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && filteredInventory.length === 1) {
-                // Auto add to cart if only 1 match (Scanner optimized)
-                addToCart(filteredInventory[0]);
-              }
-            }}
-          />
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2">
-            <span className="hidden sm:inline-flex px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded border border-gray-200 font-mono">F2</span>
+        {/* Search Bar & Actions */}
+        <div className="relative mb-4 shrink-0 shadow-sm flex gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Input 
+              ref={searchInputRef}
+              placeholder="Search products by SKU or Name [F2]" 
+              className="pl-11 h-14 text-lg rounded-xl border-gray-200"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && filteredInventory.length === 1) {
+                  // Auto add to cart if only 1 match (Scanner optimized)
+                  addToCart(filteredInventory[0]);
+                }
+              }}
+            />
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2">
+              <span className="hidden sm:inline-flex px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded border border-gray-200 font-mono">F2</span>
+            </div>
+          </div>
+          <div className="flex items-center">
+             <ExportDropdown onExport={handleExportSales} label="Export Sales" />
           </div>
         </div>
 

@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { CustomerModal } from "@/components/customers/CustomerModal";
 import { BulkImportModal } from "@/components/ui/BulkImportModal";
+import { ExportDropdown } from "@/components/ui/ExportDropdown";
+import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
+import { format } from "date-fns";
 import { UploadCloud } from "lucide-react";
 import { toMinorUnit } from "@/lib/utils/currency";
 import type { Customer } from "@/types";
@@ -96,6 +99,25 @@ export default function CustomersPage() {
     };
   };
 
+  const handleExport = (formatType: "csv" | "excel") => {
+    const exportData = filtered.map(c => ({
+      "Name": c.name,
+      "Phone": c.phone || "N/A",
+      "Email": c.email || "N/A",
+      "Outstanding Balance (PKR)": (c.currentBalanceMinor / 100).toFixed(2),
+      "Registered On": format(new Date(c.createdAt), "yyyy-MM-dd")
+    }));
+
+    const dateStr = format(new Date(), "yyyy-MM-dd");
+    const filename = `DukaanSync_Customers_${activeShop?.id || 'all'}_${dateStr}`;
+
+    if (formatType === "csv") {
+      exportToCSV({ filename, data: exportData });
+    } else {
+      exportToExcel({ filename, data: exportData });
+    }
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] mx-auto h-full flex flex-col">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -105,6 +127,7 @@ export default function CustomersPage() {
         </div>
         {!isReadOnly && (
           <div className="flex gap-2 w-full sm:w-auto">
+            <ExportDropdown onExport={handleExport} />
             <Button variant="outline" onClick={() => setIsImportModalOpen(true)} className="flex-1 sm:flex-none">
               <UploadCloud className="mr-2 h-4 w-4" /> Import
             </Button>

@@ -12,6 +12,8 @@ import { PurchaseService } from "@/lib/purchases/service";
 import { formatCurrency } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { ExportDropdown } from "@/components/ui/ExportDropdown";
+import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
 import type { Purchase } from "@/types";
 
 export default function PurchasesPage() {
@@ -82,6 +84,27 @@ export default function PurchasesPage() {
     );
   }
 
+  const handleExport = (formatType: "csv" | "excel") => {
+    const exportData = filteredPurchases.map(p => ({
+      "Purchase #": p.purchaseNumber,
+      "Supplier ID": p.supplierId,
+      "Date": format(new Date(p.createdAt), "yyyy-MM-dd HH:mm"),
+      "Items Count": p.items.length,
+      "Subtotal (PKR)": (p.subtotalMinor / 100).toFixed(2),
+      "Grand Total (PKR)": (p.grandTotalMinor / 100).toFixed(2),
+      "Status": p.paymentStatus
+    }));
+
+    const dateStr = format(new Date(), "yyyy-MM-dd");
+    const filename = `DukaanSync_Purchases_${activeShop?.id || 'all'}_${dateStr}`;
+
+    if (formatType === "csv") {
+      exportToCSV({ filename, data: exportData });
+    } else {
+      exportToExcel({ filename, data: exportData });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -91,14 +114,17 @@ export default function PurchasesPage() {
             Manage purchase orders and supplier invoices.
           </p>
         </div>
-        {!isReadOnly && (
-          <Link href="/purchases/new">
-            <Button className="shrink-0 flex items-center gap-2 rounded-xl shadow-lg shadow-[#10B981]/20">
-              <Plus className="w-4 h-4" />
-              <span>Create Purchase</span>
-            </Button>
-          </Link>
-        )}
+        <div className="flex items-center gap-2">
+          <ExportDropdown onExport={handleExport} />
+          {!isReadOnly && (
+            <Link href="/purchases/new">
+              <Button className="shrink-0 flex items-center gap-2 rounded-xl shadow-lg shadow-[#10B981]/20">
+                <Plus className="w-4 h-4" />
+                <span>Create Purchase</span>
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className="glass-card rounded-2xl overflow-hidden border border-white/40 shadow-xl shadow-gray-200/50">

@@ -37,7 +37,7 @@ export function CustomerModal({ isOpen, onClose, onSuccess, customer }: Customer
         email: customer.email || "",
       });
     } else if (isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+       
       setFormData({ name: "", phone: "", email: "" });
     }
   }, [isOpen, customer]);

@@ -11,6 +11,9 @@ import { SupplierService } from "@/lib/suppliers/service";
 import { formatCurrency } from "@/lib/utils/currency";
 import { SupplierModal } from "@/components/suppliers/SupplierModal";
 import { BulkImportModal } from "@/components/ui/BulkImportModal";
+import { ExportDropdown } from "@/components/ui/ExportDropdown";
+import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
+import { format } from "date-fns";
 import { UploadCloud } from "lucide-react";
 import { toMinorUnit } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/Button";
@@ -87,6 +90,25 @@ export default function SuppliersPage() {
     };
   };
 
+  const handleExport = (formatType: "csv" | "excel") => {
+    const exportData = filteredSuppliers.map(s => ({
+      "Name": s.name,
+      "Phone": s.phone || "N/A",
+      "Email": s.email || "N/A",
+      "Payable Balance (PKR)": (s.currentBalanceMinor / 100).toFixed(2),
+      "Registered On": format(new Date(s.createdAt), "yyyy-MM-dd")
+    }));
+
+    const dateStr = format(new Date(), "yyyy-MM-dd");
+    const filename = `DukaanSync_Suppliers_${activeShop?.id || 'all'}_${dateStr}`;
+
+    if (formatType === "csv") {
+      exportToCSV({ filename, data: exportData });
+    } else {
+      exportToExcel({ filename, data: exportData });
+    }
+  };
+
   if (isReadOnly) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center">
@@ -107,6 +129,7 @@ export default function SuppliersPage() {
           <p className="text-sm text-gray-500 mt-1">Manage wholesale vendors and payables.</p>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
+          <ExportDropdown onExport={handleExport} />
           <Button variant="outline" onClick={() => setIsImportModalOpen(true)} className="flex-1 sm:flex-none">
             <UploadCloud className="mr-2 h-4 w-4" /> Import
           </Button>

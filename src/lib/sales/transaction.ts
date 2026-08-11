@@ -2,6 +2,11 @@ import {
   collection, 
   doc, 
   runTransaction,
+  query,
+  where,
+  orderBy,
+  limit,
+  getDocs,
   type DocumentSnapshot,
   type DocumentReference
 } from "firebase/firestore";
@@ -211,5 +216,18 @@ export class SaleTransactionService {
     });
 
     return saleRef.id;
+  }
+
+  /**
+   * Fetches recent sales history for a specific shop.
+   */
+  static async getRecentSales(businessId: string, shopId: string, maxResults = 500): Promise<Sale[]> {
+    if (!db) throw new Error("Firestore not initialized");
+    
+    const salesRef = collection(db, "businesses", businessId, "shops", shopId, "sales");
+    const q = query(salesRef, orderBy("createdAt", "desc"), limit(maxResults));
+    
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data() as Sale);
   }
 }

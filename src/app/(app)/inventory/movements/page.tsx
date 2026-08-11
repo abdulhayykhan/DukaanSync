@@ -10,6 +10,9 @@ import { useShop } from "@/contexts/ShopContext";
 import { StockMovementService } from "@/lib/inventory/movements";
 import { InventoryService } from "@/lib/inventory/service";
 import { Input } from "@/components/ui/Input";
+import { ExportDropdown } from "@/components/ui/ExportDropdown";
+import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
+import { format } from "date-fns";
 import type { StockMovement, InventoryItem } from "@/types";
 
 export default function StockMovementsPage() {
@@ -65,8 +68,35 @@ export default function StockMovementsPage() {
     
     return item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
            item.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           item.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
            (m.referenceId && m.referenceId.toLowerCase().includes(searchQuery.toLowerCase()));
   });
+
+  const handleExport = (formatType: "csv" | "excel") => {
+    const exportData = filteredMovements.map(m => {
+      const item = inventoryDict[m.itemId];
+      return {
+        "Date": format(new Date(m.createdAt), "yyyy-MM-dd HH:mm"),
+        "Product Name": item?.name || "Unknown",
+        "SKU": item?.sku || "Unknown",
+        "Type": m.type.replace("_", " ").toUpperCase(),
+        "Qty Before": m.quantityBefore,
+        "Change": m.quantityChange > 0 ? `+${m.quantityChange}` : m.quantityChange,
+        "Qty After": m.quantityAfter,
+        "Reference ID": m.referenceId || "N/A",
+        "Reason": m.reason || ""
+      };
+    });
+
+    const dateStr = format(new Date(), "yyyy-MM-dd");
+    const filename = `DukaanSync_Movements_${activeShop?.id || 'all'}_${dateStr}`;
+
+    if (formatType === "csv") {
+      exportToCSV({ filename, data: exportData });
+    } else {
+      exportToExcel({ filename, data: exportData });
+    }
+  };
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto h-full flex flex-col">
@@ -83,6 +113,7 @@ export default function StockMovementsPage() {
             <h1 className="text-2xl font-bold text-gray-900">Stock Movements Audit</h1>
             <p className="text-sm text-gray-500 mt-1">Ledger of all inventory quantity changes for {activeShop?.name}.</p>
           </div>
+          <ExportDropdown onExport={handleExport} />
         </div>
       </div>
 

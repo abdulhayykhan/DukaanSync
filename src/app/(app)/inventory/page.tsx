@@ -12,7 +12,10 @@ import { ProductModal } from "@/components/inventory/ProductModal";
 import { BulkImportModal } from "@/components/ui/BulkImportModal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { ExportDropdown } from "@/components/ui/ExportDropdown";
+import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
 import { toMinorUnit } from "@/lib/utils/currency";
+import { format } from "date-fns";
 import type { InventoryItem, UnitType } from "@/types";
 import type { InventoryServicePayload } from "@/lib/validation/inventory";
 
@@ -163,6 +166,29 @@ export default function InventoryPage() {
     };
   };
 
+  const handleExport = (formatType: "csv" | "excel") => {
+    const exportData = filteredItems.map(item => ({
+      "SKU": item.sku,
+      "Product Name": item.name,
+      "Category": getCategoryName(item.categoryId),
+      "Unit": item.unit,
+      "Cost Price (PKR)": (item.costPriceMinor / 100).toFixed(2),
+      "Retail Price (PKR)": (item.retailPriceMinor / 100).toFixed(2),
+      "Current Stock": item.quantity,
+      "Reorder Level": item.reorderLevel,
+      "Status": item.isActive ? "Active" : "Archived"
+    }));
+
+    const dateStr = format(new Date(), "yyyy-MM-dd");
+    const filename = `DukaanSync_Inventory_${activeShop?.id || 'all'}_${dateStr}`;
+
+    if (formatType === "csv") {
+      exportToCSV({ filename, data: exportData });
+    } else {
+      exportToExcel({ filename, data: exportData });
+    }
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto h-full flex flex-col">
       {/* Header */}
@@ -173,6 +199,7 @@ export default function InventoryPage() {
         </div>
         {!isReadOnly && (
           <div className="flex gap-2 w-full sm:w-auto">
+            <ExportDropdown onExport={handleExport} />
             <Button variant="outline" onClick={() => setIsImportModalOpen(true)} className="flex-1 sm:flex-none">
               <UploadCloud className="mr-2 h-4 w-4" /> Import
             </Button>
