@@ -64,9 +64,11 @@ export default function DashboardPage() {
   const formatYAxis = (minorUnits: number) => {
     if (!business) return "";
     const major = minorUnits / 100;
-    if (major >= 1000000) return `${business.currency} ${(major / 1000000).toFixed(1)}M`;
-    if (major >= 1000) return `${business.currency} ${(major / 1000).toFixed(1)}k`;
-    return `${business.currency} ${major}`;
+    const absMajor = Math.abs(major);
+    const sign = major < 0 ? "-" : "";
+    if (absMajor >= 1000000) return `${sign}${business.currency} ${(absMajor / 1000000).toFixed(1)}M`;
+    if (absMajor >= 1000) return `${sign}${business.currency} ${(absMajor / 1000).toFixed(0)}k`;
+    return `${sign}${business.currency} ${absMajor.toFixed(0)}`;
   };
 
   const formatTooltip = (value: any) => {
@@ -74,9 +76,9 @@ export default function DashboardPage() {
     return formatCurrency(value, business?.currency);
   };
 
-  if (!activeShop || !business) {
+  if (!activeShop) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-gray-500">
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-gray-500">
         <Activity className="w-12 h-12 mb-4 opacity-20 animate-pulse" />
         <p>No active shop selected.</p>
       </div>
@@ -213,67 +215,84 @@ export default function DashboardPage() {
         <motion.div variants={containerVariants} initial="hidden" animate="show" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Main Trend Chart */}
-          <motion.div variants={itemVariants} className="lg:col-span-2 h-full"><Card3D className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow min-h-[350px] flex flex-col h-full" maxTilt={2}>
-            <h3 className="font-semibold text-slate-900 mb-6">Revenue vs Net Profit</h3>
-            <div className="flex-1 w-full min-h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={data.chartData} margin={{ top: 5, right: 0, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tickFormatter={formatYAxis} tick={{ fontSize: 12, fill: '#64748B' }} dx={-10} />
-                  <Tooltip formatter={formatTooltip} cursor={{ fill: '#F1F5F9' }} contentStyle={{ borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)' }} />
-                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                  <Bar dataKey="revenue" name="Revenue" fill="#3B82F6" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                  <Line type="monotone" dataKey="netProfit" name="Net Profit" stroke="#10B981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
-          </Card3D></motion.div>
-
-          {/* Expense Distribution Pie Chart */}
-          <motion.div variants={itemVariants} className="h-full"><Card3D className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow min-h-[350px] flex flex-col h-full" maxTilt={3}>
-            <h3 className="font-semibold text-slate-900 mb-2">Operating Expenses</h3>
-            
-            {data.expenseDistribution.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
-                <p>No expenses recorded in this period.</p>
-                <Link href="/expenses" className="text-sm text-[#10B981] hover:underline mt-2">Log an expense</Link>
-              </div>
-            ) : (
-              <div className="flex-1 w-full min-h-[250px] relative">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={data.expenseDistribution}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {data.expenseDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={formatTooltip} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-                {/* Custom Legend */}
-                <div className="mt-2 space-y-2 max-h-32 overflow-y-auto px-2">
-                  {data.expenseDistribution.map((entry, index) => (
-                    <div key={index} className="flex justify-between items-center text-xs">
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                        <span className="text-gray-600">{entry.name}</span>
-                      </div>
-                      <span className="font-semibold text-gray-900">{formatCurrency(entry.value, business.currency)}</span>
-                    </div>
-                  ))}
+          <motion.div variants={itemVariants} className="lg:col-span-2 h-full">
+            <Card3D className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full min-h-[380px]" maxTilt={2}>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-semibold text-slate-900">Revenue vs Net Profit</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Financial trajectory over selected period</p>
                 </div>
               </div>
-            )}
-          </Card3D></motion.div>
+
+              <div className="flex-1 w-full min-h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={data.chartData} margin={{ top: 10, right: 15, left: 10, bottom: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748B' }} dy={10} />
+                    <YAxis width={70} axisLine={false} tickLine={false} tickFormatter={formatYAxis} tick={{ fontSize: 11, fill: '#64748B' }} dx={-4} />
+                    <Tooltip formatter={formatTooltip} cursor={{ fill: '#F8FAFC' }} contentStyle={{ borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)' }} />
+                    <Legend iconType="circle" align="center" verticalAlign="bottom" wrapperStyle={{ paddingTop: '20px', fontSize: '12px', color: '#475569' }} />
+                    <Bar dataKey="revenue" name="Revenue" fill="#3B82F6" radius={[6, 6, 0, 0]} maxBarSize={36} />
+                    <Line type="monotone" dataKey="netProfit" name="Net Profit" stroke="#10B981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }} activeDot={{ r: 6 }} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+            </Card3D>
+          </motion.div>
+
+          {/* Expense Distribution Pie Chart */}
+          <motion.div variants={itemVariants} className="h-full">
+            <Card3D className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full justify-between" maxTilt={3}>
+              <div>
+                <h3 className="font-semibold text-slate-900 mb-1">Operating Expenses</h3>
+                <p className="text-xs text-slate-500 mb-4">Breakdown by category</p>
+              </div>
+              
+              {data.expenseDistribution.length === 0 ? (
+                <div className="py-12 flex flex-col items-center justify-center text-slate-400">
+                  <p className="text-sm">No expenses recorded in this period.</p>
+                  <Link href="/expenses" className="text-xs text-[#10B981] font-medium hover:underline mt-2">Log an expense</Link>
+                </div>
+              ) : (
+                <div className="flex flex-col flex-1 justify-between gap-4">
+                  {/* Donut Chart Container */}
+                  <div className="w-full h-[190px] relative flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={data.expenseDistribution}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={55}
+                          outerRadius={75}
+                          paddingAngle={3}
+                          dataKey="value"
+                        >
+                          {data.expenseDistribution.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={formatTooltip} contentStyle={{ borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)' }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Clean Legend Category Indicators */}
+                  <div className="space-y-2 pt-2 border-t border-slate-100">
+                    {data.expenseDistribution.map((entry, index) => (
+                      <div key={index} className="flex justify-between items-center text-xs">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                          <span className="text-slate-600 font-medium truncate capitalize">{entry.name}</span>
+                        </div>
+                        <span className="font-semibold text-slate-900 shrink-0 ml-2">{formatCurrency(entry.value, business.currency)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </Card3D>
+          </motion.div>
           
         </motion.div>
       )}
