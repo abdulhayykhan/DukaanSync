@@ -235,13 +235,17 @@ export default function InventoryPage() {
           <p className="text-sm text-gray-500 mt-1">Manage product catalog and stock levels for {activeShop?.name}.</p>
         </div>
         {!isReadOnly && (
-          <div className="flex gap-2 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
             <ExportDropdown onExport={handleExport} />
-            <Button variant="outline" onClick={() => setIsImportModalOpen(true)} className="flex-1 sm:flex-none">
-              <UploadCloud className="mr-2 h-4 w-4" /> Import
+            <Button 
+              variant="outline" 
+              onClick={() => setIsImportModalOpen(true)} 
+              className="h-10 rounded-xl border border-slate-200 bg-white/80 hover:bg-slate-50 text-slate-700 flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4"
+            >
+              <UploadCloud className="h-4 w-4 text-current" /> Import
             </Button>
-            <Button onClick={handleOpenCreateModal} className="flex-1 sm:flex-none">
-              <Plus className="mr-2 h-4 w-4" /> Add Product
+            <Button onClick={handleOpenCreateModal} className="h-10 rounded-xl flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4">
+              <Plus className="h-4 w-4 text-current" /> Add Product
             </Button>
           </div>
         )}

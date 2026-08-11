@@ -169,10 +169,10 @@ export default function ExpensesPage() {
           <h1 className="text-2xl font-bold text-gray-900">Operating Expenses</h1>
           <p className="text-sm text-gray-500 mt-1">Manage and track shop expenses for P&L deductions.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
           <ExportDropdown onExport={handleExport} />
-          <Button onClick={() => setIsModalOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" /> Log Expense
+          <Button onClick={() => setIsModalOpen(true)} className="h-10 rounded-xl flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4">
+            <Plus className="w-4 h-4 text-current" /> Log Expense
           </Button>
         </div>
       </div>
