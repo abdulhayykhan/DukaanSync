@@ -26,7 +26,7 @@ const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'
 
 export default function DashboardPage() {
   const { business } = useBusiness();
-  const { activeShop } = useShop();
+  const { activeShop, activeShopId } = useShop();
 
   const [period, setPeriod] = useState<TimePeriod>("month");
   const [data, setData] = useState<DashboardTelemetry | null>(null);
@@ -36,7 +36,8 @@ export default function DashboardPage() {
     if (!business) return;
     setLoading(true);
     try {
-      const telemetry = await AnalyticsEngine.getDashboardTelemetry(business.id, activeShop?.id || "all", period);
+      const targetShopId = activeShopId || activeShop?.id || "all";
+      const telemetry = await AnalyticsEngine.getDashboardTelemetry(business.id, targetShopId, period);
       setData(telemetry);
     } catch (err: any) {
       console.error("Failed to load dashboard telemetry data:", err?.code || err, err?.message);
@@ -54,7 +55,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [business, activeShop, period]);
+  }, [business, activeShop, activeShopId, period]);
 
   useEffect(() => {
     loadTelemetry();
@@ -76,14 +77,16 @@ export default function DashboardPage() {
     return formatCurrency(value, business?.currency);
   };
 
-  if (!activeShop) {
+  if (!business) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-gray-500">
         <Activity className="w-12 h-12 mb-4 opacity-20 animate-pulse" />
-        <p>No active shop selected.</p>
+        <p>Loading business telemetry...</p>
       </div>
     );
   }
+
+  const activeShopTitle = activeShopId === "all" || !activeShop ? "All Shops (Multi-Branch)" : activeShop.name;
 
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto">
@@ -92,7 +95,7 @@ export default function DashboardPage() {
       <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Telemetry Overview</h1>
-          <p className="text-sm text-slate-500 mt-1">Real-time performance metrics for {activeShop?.name || 'All Shops'}</p>
+          <p className="text-sm text-slate-500 mt-1">Real-time performance metrics for {activeShopTitle}</p>
         </div>
         
         <div className="bg-slate-100 p-1 rounded-xl border border-slate-200/80 flex text-sm font-medium">

@@ -73,27 +73,49 @@ export class AnalyticsEngine {
 
     // 2. Parallel Query Function per Shop
     const fetchShopData = async (sId: string) => {
-      const [salesSnap, purchasesSnap, expensesSnap, inventorySnap, customersSnap, suppliersSnap] = await Promise.all([
-        getDocs(query(
+      let salesDocs: Sale[] = [];
+      try {
+        const salesSnap = await getDocs(query(
           collection(db, "businesses", businessId, "shops", sId, "sales"),
           where("createdAt", ">=", startIso),
           where("createdAt", "<=", endIso),
           orderBy("createdAt", "asc")
-        )).catch((err) => {
-          console.error(`Telemetry query error - sales (${sId}):`, err?.code || err, err?.message);
-          return { docs: [] };
-        }),
-        getDocs(collection(db, "businesses", businessId, "shops", sId, "purchases")).catch((err) => {
-          console.error(`Telemetry query error - purchases (${sId}):`, err?.code || err, err?.message);
-          return { docs: [] };
-        }),
-        getDocs(query(
+        ));
+        salesDocs = salesSnap.docs.map(d => ({ id: d.id, ...d.data() }) as Sale);
+      } catch (err) {
+        try {
+          const salesSnap = await getDocs(collection(db, "businesses", businessId, "shops", sId, "sales"));
+          salesDocs = salesSnap.docs
+            .map(d => ({ id: d.id, ...d.data() }) as Sale)
+            .filter(s => s.createdAt && s.createdAt >= startIso && s.createdAt <= endIso);
+        } catch (e) {
+          console.error(`Telemetry query error - sales (${sId}):`, e);
+        }
+      }
+
+      let expensesDocs: Expense[] = [];
+      try {
+        const expensesSnap = await getDocs(query(
           collection(db, "businesses", businessId, "shops", sId, "expenses"),
           where("date", ">=", startIso),
           where("date", "<=", endIso),
           orderBy("date", "asc")
-        )).catch((err) => {
-          console.error(`Telemetry query error - expenses (${sId}):`, err?.code || err, err?.message);
+        ));
+        expensesDocs = expensesSnap.docs.map(d => ({ id: d.id, ...d.data() }) as Expense);
+      } catch (err) {
+        try {
+          const expensesSnap = await getDocs(collection(db, "businesses", businessId, "shops", sId, "expenses"));
+          expensesDocs = expensesSnap.docs
+            .map(d => ({ id: d.id, ...d.data() }) as Expense)
+            .filter(exp => exp.date && exp.date >= startIso && exp.date <= endIso);
+        } catch (e) {
+          console.error(`Telemetry query error - expenses (${sId}):`, e);
+        }
+      }
+
+      const [purchasesSnap, inventorySnap, customersSnap, suppliersSnap] = await Promise.all([
+        getDocs(collection(db, "businesses", businessId, "shops", sId, "purchases")).catch((err) => {
+          console.error(`Telemetry query error - purchases (${sId}):`, err?.code || err, err?.message);
           return { docs: [] };
         }),
         getDocs(collection(db, "businesses", businessId, "shops", sId, "inventory")).catch((err) => {
@@ -111,9 +133,9 @@ export class AnalyticsEngine {
       ]);
 
       return {
-        sales: salesSnap.docs.map(d => ({ id: d.id, ...d.data() }) as Sale),
+        sales: salesDocs,
         purchases: purchasesSnap.docs.map(d => ({ id: d.id, ...d.data() }) as Purchase),
-        expenses: expensesSnap.docs.map(d => ({ id: d.id, ...d.data() }) as Expense),
+        expenses: expensesDocs,
         inventory: inventorySnap.docs.map(d => ({ id: d.id, ...d.data() }) as InventoryItem),
         customers: customersSnap.docs.map(d => ({ id: d.id, ...d.data() }) as Customer),
         suppliers: suppliersSnap.docs.map(d => ({ id: d.id, ...d.data() }) as Supplier),
