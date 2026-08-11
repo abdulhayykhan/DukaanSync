@@ -201,11 +201,12 @@ export function BulkImportModal<T>({
                             {row.isValid ? (
                               <CheckCircle className="w-5 h-5 text-emerald-500" />
                             ) : (
-                              <div className="flex items-center gap-2 group relative">
-                                <AlertCircle className="w-5 h-5 text-red-500 cursor-help" />
-                                <div className="hidden group-hover:block absolute left-full ml-2 w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-20">
-                                  {row.errors?.map((err, i) => <div key={i}>• {err}</div>)}
-                                </div>
+                              <div className="flex flex-col gap-1 py-1">
+                                {row.errors?.map((err, i) => (
+                                  <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                                    • {err}
+                                  </span>
+                                ))}
                               </div>
                             )}
                           </td>

@@ -1,21 +1,22 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Plus, Search, Filter, AlertTriangle, Edit2, Archive, ArchiveRestore, UploadCloud } from "lucide-react";
+import { FileText, Plus, Search, Edit2, AlertTriangle, Archive, ArchiveRestore, Upload, Filter, FileSpreadsheet } from "lucide-react";
+import { formatCurrency, toMinorUnit } from "@/lib/utils/currency";
+import { format } from "date-fns";
+import { z } from "zod";
 import { toast } from "sonner";
 
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useShop } from "@/contexts/ShopContext";
 import { InventoryService } from "@/lib/inventory/service";
-import { formatCurrency } from "@/lib/utils/currency";
 import { ProductModal } from "@/components/inventory/ProductModal";
 import { BulkImportModal } from "@/components/ui/BulkImportModal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ExportDropdown } from "@/components/ui/ExportDropdown";
 import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
-import { toMinorUnit } from "@/lib/utils/currency";
-import { format } from "date-fns";
+
 import type { InventoryItem, UnitType } from "@/types";
 import type { InventoryServicePayload } from "@/lib/validation/inventory";
 
@@ -113,55 +114,85 @@ export default function InventoryPage() {
 
   const getCategoryName = (id: string) => CATEGORIES.find(c => c.id === id)?.name || "Unknown";
 
+  const inventoryRowSchema = z.object({
+    sku: z.string().min(1, "SKU is required"),
+    name: z.string().min(1, "Product Name is required"),
+    category: z.string().optional().default("General"),
+    unit: z.enum(["pcs", "kg", "g", "box", "pack", "liter", "other"]).catch("pcs"),
+    costPrice: z.coerce.number().min(0, "Cost Price must be positive").default(0),
+    retailPrice: z.coerce.number().min(0, "Retail Price must be positive").default(0),
+    quantity: z.coerce.number().min(0, "Quantity must be positive").default(0),
+    reorderLevel: z.coerce.number().min(0, "Reorder Level must be positive").default(10),
+  });
+
   const handleValidateInventoryRow = (row: Record<string, string | number | boolean | null>) => {
-    const errors: string[] = [];
-    
-    const sku = String(row["SKU"] || "").trim();
-    if (!sku) errors.push("SKU is required");
+    // 1. Normalize keys (lowercase, remove spaces, underscores, dashes)
+    const normalizeKey = (k: string) => k.toLowerCase().replace(/[\s_-]/g, "");
+    const normalizedRow: Record<string, any> = {};
+    for (const [k, v] of Object.entries(row)) {
+      normalizedRow[normalizeKey(k)] = v;
+    }
 
-    const name = String(row["Product Name"] || "").trim();
-    if (!name) errors.push("Product Name is required");
+    const getVal = (aliases: string[]) => {
+      for (const alias of aliases) {
+        if (normalizedRow[alias] !== undefined && normalizedRow[alias] !== "") return normalizedRow[alias];
+      }
+      return undefined;
+    };
 
-    const catName = String(row["Category"] || "").trim().toLowerCase();
+    // 2. Map to expected Zod schema structure
+    const mappedData = {
+      sku: getVal(['sku', 'productsku', 'code']),
+      name: getVal(['name', 'productname', 'title', 'item']),
+      category: getVal(['category', 'type']),
+      unit: getVal(['unit', 'uom']),
+      costPrice: getVal(['costpricepkr', 'costprice', 'cost', 'costpricepaisa']),
+      retailPrice: getVal(['retailpricepkr', 'retailprice', 'price', 'rate', 'retailpricepaisa']),
+      quantity: getVal(['quantity', 'initialquantity', 'qty', 'stock']),
+      reorderLevel: getVal(['reorderlevel', 'minstock', 'alertlevel'])
+    };
+
+    // 3. Validate with Zod
+    const parsed = inventoryRowSchema.safeParse(mappedData);
+
+    // 4. Safely inject mapped values back into raw row so the preview table displays them correctly
+    row["SKU"] = mappedData.sku || "";
+    row["Product Name"] = mappedData.name || "";
+    row["Category"] = mappedData.category || "General";
+    row["Unit"] = mappedData.unit || "pcs";
+    row["Cost Price"] = mappedData.costPrice || "0";
+    row["Retail Price"] = mappedData.retailPrice || "0";
+    row["Initial Quantity"] = mappedData.quantity || "0";
+    row["Reorder Level"] = mappedData.reorderLevel || "10";
+
+    if (!parsed.success) {
+      return { 
+        isValid: false, 
+        errors: parsed.error.issues.map(i => `'${i.path.join('.')}': ${i.message}`) 
+      };
+    }
+
+    const data = parsed.data;
+
+    // Map string category back to internal category ID
+    const catName = data.category.trim().toLowerCase();
     let categoryId = "cat_general";
     if (catName) {
       const match = CATEGORIES.find(c => c.name.toLowerCase() === catName || c.id === catName);
       if (match) categoryId = match.id;
     }
 
-    let unit = String(row["Unit"] || "pcs").trim().toLowerCase();
-    const validUnits = ["pcs", "kg", "g", "box", "pack", "liter", "other"];
-    if (!validUnits.includes(unit)) {
-      unit = "pcs";
-    }
-
-    const costPrice = parseFloat(String(row["Cost Price"] || "0"));
-    if (isNaN(costPrice) || costPrice < 0) errors.push("Invalid Cost Price");
-
-    const retailPrice = parseFloat(String(row["Retail Price"] || "0"));
-    if (isNaN(retailPrice) || retailPrice < 0) errors.push("Invalid Retail Price");
-
-    const quantity = parseFloat(String(row["Initial Quantity"] || "0"));
-    if (isNaN(quantity) || quantity < 0) errors.push("Invalid Initial Quantity");
-
-    const reorderLevel = parseFloat(String(row["Reorder Level"] || "0"));
-    if (isNaN(reorderLevel) || reorderLevel < 0) errors.push("Invalid Reorder Level");
-
-    if (errors.length > 0) {
-      return { isValid: false, errors };
-    }
-
     return {
       isValid: true,
       data: {
-        sku,
-        name,
+        sku: data.sku,
+        name: data.name,
         categoryId,
-        unit: unit as UnitType,
-        quantity,
-        reorderLevel,
-        costPriceMinor: toMinorUnit(costPrice),
-        retailPriceMinor: toMinorUnit(retailPrice)
+        unit: data.unit,
+        quantity: data.quantity,
+        reorderLevel: data.reorderLevel,
+        costPriceMinor: toMinorUnit(data.costPrice),
+        retailPriceMinor: toMinorUnit(data.retailPrice)
       }
     };
   };
