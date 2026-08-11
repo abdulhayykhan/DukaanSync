@@ -25,9 +25,11 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
   type User,
 } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/client";
 import type { UserProfile } from "@/types";
 
@@ -45,6 +47,7 @@ interface AuthContextValue {
   /** Auth error message (cleared on next attempt) */
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<{ user: User; hasBusiness: boolean } | null>;
   register: (email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -121,6 +124,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const loginWithGoogle = useCallback(async () => {
+    if (!auth || !db) throw new Error("Firebase Auth is not initialized.");
+    setError(null);
+    try {
+      const provider = new GoogleAuthProvider();
+      const credential = await signInWithPopup(auth, provider);
+      const googleUser = credential.user;
+
+      const userRef = doc(db, "users", googleUser.uid);
+      const userSnap = await getDoc(userRef);
+
+      let hasBusiness = false;
+
+      if (!userSnap.exists()) {
+        const now = new Date().toISOString();
+        const newProfile: UserProfile = {
+          uid: googleUser.uid,
+          email: googleUser.email || "",
+          displayName: googleUser.displayName || "User",
+          businessId: null,
+          createdAt: now,
+          updatedAt: now,
+        };
+        await setDoc(userRef, newProfile);
+        setUserProfile(newProfile);
+      } else {
+        const data = userSnap.data();
+        hasBusiness = !!data?.businessId;
+        setUserProfile({ uid: googleUser.uid, ...data } as UserProfile);
+      }
+
+      return { user: googleUser, hasBusiness };
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "code" in err) {
+        const code = (err as { code: string }).code;
+        if (
+          code === "auth/popup-closed-by-user" ||
+          code === "auth/cancelled-popup-request"
+        ) {
+          return null;
+        }
+      }
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Google sign-in failed. Please try again.";
+      setError(message);
+      throw err;
+    }
+  }, []);
+
   const register = useCallback(async (email: string, password: string) => {
     if (!auth) throw new Error("Firebase Auth is not initialized.");
     setError(null);
@@ -179,6 +233,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       error,
       login,
+      loginWithGoogle,
       register,
       logout,
       resetPassword,
@@ -190,6 +245,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       error,
       login,
+      loginWithGoogle,
       register,
       logout,
       resetPassword,

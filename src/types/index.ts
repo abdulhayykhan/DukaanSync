@@ -18,10 +18,10 @@ export interface UserProfile {
   uid: string;
   email: string;
   displayName: string;
-  businessId: string;
-  role: UserRole;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  businessId?: string | null;
+  role?: UserRole;
+  createdAt: string | Timestamp;
+  updatedAt: string | Timestamp;
 }
 
 // -----------------------------------------------------------------------------
