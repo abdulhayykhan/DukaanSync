@@ -12,12 +12,13 @@ import { useShop } from "@/contexts/ShopContext";
 import { InventoryService } from "@/lib/inventory/service";
 import { ProductModal } from "@/components/inventory/ProductModal";
 import { BulkImportModal } from "@/components/ui/BulkImportModal";
+import type { DuplicateStrategy } from "@/components/ui/BulkImportModal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ExportDropdown } from "@/components/ui/ExportDropdown";
 import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
 
-import type { InventoryItem, UnitType } from "@/types";
+import type { InventoryItem } from "@/types";
 import type { InventoryServicePayload } from "@/lib/validation/inventory";
 
 const CATEGORIES = [
@@ -235,17 +236,17 @@ export default function InventoryPage() {
           <p className="text-sm text-gray-500 mt-1">Manage product catalog and stock levels for {activeShop?.name}.</p>
         </div>
         {!isReadOnly && (
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-row items-center gap-2 flex-shrink-0">
             <ExportDropdown onExport={handleExport} />
-            <Button 
-              variant="outline" 
-              onClick={() => setIsImportModalOpen(true)} 
-              className="h-10 rounded-xl border border-slate-200 bg-white/80 hover:bg-slate-50 text-slate-700 flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4"
+            <button
+              onClick={() => setIsImportModalOpen(true)}
+              className="h-10 inline-flex items-center gap-2 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-colors shadow-sm whitespace-nowrap"
             >
-              <UploadCloud className="h-4 w-4 text-current" /> Import
-            </Button>
-            <Button onClick={handleOpenCreateModal} className="h-10 rounded-xl flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4">
-              <Plus className="h-4 w-4 text-current" /> Add Product
+              <UploadCloud className="h-4 w-4 shrink-0" />
+              Import
+            </button>
+            <Button onClick={handleOpenCreateModal} className="h-10 inline-flex items-center gap-2 px-4 rounded-xl whitespace-nowrap">
+              <Plus className="h-4 w-4 shrink-0" /> Add Product
             </Button>
           </div>
         )}
@@ -421,8 +422,8 @@ export default function InventoryPage() {
         sampleData={IMPORT_SAMPLE}
         expectedColumns={IMPORT_COLUMNS}
         onValidateRow={handleValidateInventoryRow}
-        onImport={(validRows, onProgress) => 
-          InventoryService.bulkImportProducts(business!.id, activeShop!.id, validRows, onProgress)
+        onImport={(validRows, duplicateStrategy, onProgress) =>
+          InventoryService.bulkImportProducts(business!.id, activeShop!.id, validRows, duplicateStrategy, onProgress)
         }
         onSuccess={fetchInventory}
       />

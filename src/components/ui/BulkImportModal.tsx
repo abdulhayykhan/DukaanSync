@@ -2,12 +2,21 @@
 
 import { useState, useRef } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, UploadCloud, Download, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { X, UploadCloud, Download, CheckCircle, AlertCircle, Loader2, RefreshCw, PlusCircle, SkipForward } from "lucide-react";
 import { toast } from "sonner";
 import Papa from "papaparse";
 
 import { Button } from "@/components/ui/Button";
 import { parseFile } from "@/lib/utils/fileParser";
+
+export type DuplicateStrategy = "upsert" | "skip" | "add_stock";
+
+export interface BulkImportResult {
+  successCount: number;
+  updatedCount: number;
+  skippedCount: number;
+  errors: string[];
+}
 
 export interface BulkImportModalProps<T> {
   isOpen: boolean;
@@ -16,7 +25,11 @@ export interface BulkImportModalProps<T> {
   sampleData: Record<string, string | number>[];
   expectedColumns: string[];
   onValidateRow: (row: Record<string, string | number | boolean | null>) => { isValid: boolean; data?: T; errors?: string[] };
-  onImport: (validRows: T[], onProgress: (processed: number, total: number) => void) => Promise<{ successCount: number; errors: string[] }>;
+  onImport: (
+    validRows: T[],
+    duplicateStrategy: DuplicateStrategy,
+    onProgress: (processed: number, total: number) => void
+  ) => Promise<BulkImportResult>;
   onSuccess: () => void;
 }
 
@@ -28,6 +41,27 @@ interface ValidatedRow<T> {
   data?: T;
   errors?: string[];
 }
+
+const STRATEGY_OPTIONS: { value: DuplicateStrategy; label: string; description: string; icon: React.ReactNode }[] = [
+  {
+    value: "upsert",
+    label: "Update Existing Items",
+    description: "Matching SKUs will be updated with new prices, category, and stock quantity.",
+    icon: <RefreshCw className="w-4 h-4" />,
+  },
+  {
+    value: "add_stock",
+    label: "Add to Existing Stock",
+    description: "Matching SKUs will have the imported quantity added on top of current stock.",
+    icon: <PlusCircle className="w-4 h-4" />,
+  },
+  {
+    value: "skip",
+    label: "Skip Duplicates",
+    description: "Matching SKUs are ignored. Only brand-new SKUs will be created.",
+    icon: <SkipForward className="w-4 h-4" />,
+  },
+];
 
 export function BulkImportModal<T>({
   isOpen,
@@ -42,8 +76,9 @@ export function BulkImportModal<T>({
   const [step, setStep] = useState<Step>("UPLOAD");
   const [validatedRows, setValidatedRows] = useState<ValidatedRow<T>[]>([]);
   const [progress, setProgress] = useState({ processed: 0, total: 0 });
-  const [importResult, setImportResult] = useState<{ successCount: number; errors: string[] } | null>(null);
-  
+  const [importResult, setImportResult] = useState<BulkImportResult | null>(null);
+  const [duplicateStrategy, setDuplicateStrategy] = useState<DuplicateStrategy>("upsert");
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDownloadSample = () => {
@@ -65,7 +100,7 @@ export function BulkImportModal<T>({
     try {
       toast.loading("Parsing file...", { id: "parsing" });
       const rawData = await parseFile(file);
-      
+
       const processed: ValidatedRow<T>[] = rawData.map(row => {
         const validation = onValidateRow(row);
         return {
@@ -99,7 +134,7 @@ export function BulkImportModal<T>({
     setProgress({ processed: 0, total: validData.length });
 
     try {
-      const result = await onImport(validData, (processed, total) => {
+      const result = await onImport(validData, duplicateStrategy, (processed, total) => {
         setProgress({ processed, total });
       });
       setImportResult(result);
@@ -115,6 +150,7 @@ export function BulkImportModal<T>({
     setValidatedRows([]);
     setImportResult(null);
     setProgress({ processed: 0, total: 0 });
+    setDuplicateStrategy("upsert");
     onClose();
   };
 
@@ -125,11 +161,11 @@ export function BulkImportModal<T>({
     <Dialog.Root open={isOpen} onOpenChange={resetAndClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 animate-in fade-in" />
-        <Dialog.Content 
+        <Dialog.Content
           className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] w-full max-w-4xl bg-white/90 backdrop-blur-xl border border-white/50 shadow-2xl rounded-2xl z-50 p-6 flex flex-col max-h-[90vh]"
           aria-describedby={undefined}
         >
-          
+
           <div className="flex items-center justify-between mb-4 shrink-0">
             <div>
               <Dialog.Title className="text-xl font-bold text-gray-900">{title}</Dialog.Title>
@@ -167,9 +203,39 @@ export function BulkImportModal<T>({
             )}
 
             {step === "PREVIEW" && (
-              <div className="flex-1 flex flex-col min-h-0">
-                <div className="flex justify-between items-center mb-4 shrink-0">
-                  <div className="flex gap-4 text-sm font-medium">
+              <div className="flex-1 flex flex-col min-h-0 gap-4">
+                {/* Duplicate Strategy Selector */}
+                <div className="shrink-0">
+                  <p className="text-sm font-semibold text-gray-700 mb-2">How should we handle existing SKUs?</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {STRATEGY_OPTIONS.map(opt => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setDuplicateStrategy(opt.value)}
+                        className={`text-left p-3 rounded-xl border-2 transition-all ${
+                          duplicateStrategy === opt.value
+                            ? "border-emerald-500 bg-emerald-50 shadow-sm"
+                            : "border-gray-200 bg-white hover:border-gray-300"
+                        }`}
+                      >
+                        <div className={`flex items-center gap-2 font-semibold text-sm mb-1 ${
+                          duplicateStrategy === opt.value ? "text-emerald-700" : "text-gray-800"
+                        }`}>
+                          <span className={duplicateStrategy === opt.value ? "text-emerald-600" : "text-gray-400"}>
+                            {opt.icon}
+                          </span>
+                          {opt.label}
+                        </div>
+                        <p className="text-xs text-gray-500 leading-snug">{opt.description}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Row Summary & Import Button */}
+                <div className="flex justify-between items-center shrink-0">
+                  <div className="flex gap-3 text-sm font-medium">
                     <span className="text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
                       {validCount} Valid Rows
                     </span>
@@ -183,7 +249,8 @@ export function BulkImportModal<T>({
                     Import {validCount} Records
                   </Button>
                 </div>
-                
+
+                {/* Preview Table */}
                 <div className="flex-1 overflow-auto border border-gray-200 rounded-lg bg-white">
                   <table className="w-full text-sm text-left">
                     <thead className="bg-gray-50 text-gray-700 sticky top-0 border-b border-gray-200 z-10">
@@ -229,8 +296,8 @@ export function BulkImportModal<T>({
                 <h3 className="text-xl font-medium text-gray-900 mb-2">Importing Data...</h3>
                 <p className="text-gray-500 mb-6">Please do not close this window.</p>
                 <div className="w-full max-w-md bg-gray-100 rounded-full h-4 overflow-hidden border border-gray-200">
-                  <div 
-                    className="bg-[#10B981] h-full transition-all duration-300 ease-out" 
+                  <div
+                    className="bg-[#10B981] h-full transition-all duration-300 ease-out"
                     style={{ width: `${progress.total > 0 ? (progress.processed / progress.total) * 100 : 0}%` }}
                   />
                 </div>
@@ -245,9 +312,30 @@ export function BulkImportModal<T>({
                 <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
                   <CheckCircle className="w-8 h-8 text-emerald-600" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Import Complete!</h3>
-                <p className="text-gray-600 mb-6">Successfully imported {importResult.successCount} records.</p>
-                
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Import Complete!</h3>
+
+                {/* Detailed Result Summary */}
+                <div className="flex flex-wrap gap-3 justify-center mb-6">
+                  {importResult.successCount > 0 && (
+                    <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg px-4 py-2 text-sm font-semibold">
+                      <CheckCircle className="w-4 h-4" />
+                      {importResult.successCount} new records imported
+                    </div>
+                  )}
+                  {importResult.updatedCount > 0 && (
+                    <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-800 rounded-lg px-4 py-2 text-sm font-semibold">
+                      <RefreshCw className="w-4 h-4" />
+                      {importResult.updatedCount} existing records updated
+                    </div>
+                  )}
+                  {importResult.skippedCount > 0 && (
+                    <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-4 py-2 text-sm font-semibold">
+                      <SkipForward className="w-4 h-4" />
+                      {importResult.skippedCount} duplicates skipped
+                    </div>
+                  )}
+                </div>
+
                 {importResult.errors.length > 0 && (
                   <div className="w-full max-w-2xl bg-red-50 border border-red-100 rounded-lg p-4 mb-6 max-h-48 overflow-y-auto">
                     <h4 className="font-semibold text-red-800 mb-2">Some errors occurred during batch write:</h4>
@@ -258,7 +346,7 @@ export function BulkImportModal<T>({
                     </ul>
                   </div>
                 )}
-                
+
                 <Button onClick={() => {
                   onSuccess();
                   resetAndClose();
