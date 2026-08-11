@@ -132,7 +132,7 @@ export default function CustomersPage() {
           <p className="text-sm text-gray-500 mt-1">Manage your customers and track receivables.</p>
         </div>
         {!isReadOnly && (
-          <div className="flex flex-row items-center gap-2 shrink-0">
+          <div className="shrink-0 flex items-center gap-3">
             <ExportDropdown onExport={handleExport} />
             <button
               onClick={() => setIsImportModalOpen(true)}
@@ -140,7 +140,10 @@ export default function CustomersPage() {
             >
               <UploadCloud className="h-4 w-4 shrink-0" /> Import
             </button>
-            <Button onClick={handleAddNew} className="h-10 rounded-xl inline-flex items-center gap-2 px-4 shrink-0 whitespace-nowrap">
+            <Button 
+              onClick={handleAddNew} 
+              className="px-4 py-2 h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium shrink-0 whitespace-nowrap inline-flex items-center gap-2 w-auto"
+            >
               <Plus className="h-4 w-4 shrink-0" /> Add Customer
             </Button>
           </div>

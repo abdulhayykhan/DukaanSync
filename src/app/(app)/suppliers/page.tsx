@@ -133,7 +133,7 @@ export default function SuppliersPage() {
           <h1 className="text-2xl font-bold text-gray-900">Suppliers</h1>
           <p className="text-sm text-gray-500 mt-1">Manage wholesale vendors and payables.</p>
         </div>
-        <div className="flex flex-row items-center gap-2 shrink-0">
+        <div className="shrink-0 flex items-center gap-3">
           <ExportDropdown onExport={handleExport} />
           <button
             onClick={() => setIsImportModalOpen(true)}
@@ -141,7 +141,10 @@ export default function SuppliersPage() {
           >
             <UploadCloud className="h-4 w-4 shrink-0" /> Import
           </button>
-          <Button onClick={() => setIsModalOpen(true)} className="h-10 rounded-xl inline-flex items-center gap-2 px-4 shrink-0 whitespace-nowrap">
+          <Button 
+            onClick={() => setIsModalOpen(true)} 
+            className="px-4 py-2 h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium shrink-0 whitespace-nowrap inline-flex items-center gap-2 w-auto"
+          >
             <Plus className="h-4 w-4 shrink-0" /> Add Supplier
           </Button>
         </div>
