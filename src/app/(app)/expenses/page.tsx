@@ -440,8 +440,8 @@ export default function ExpensesPage() {
         sampleData={EXPENSE_SAMPLE}
         expectedColumns={EXPENSE_COLUMNS}
         onValidateRow={handleValidateExpenseRow}
-        onImport={(validRows, _strategy, onProgress) =>
-          ExpenseService.bulkImportExpenses(business.id, activeShop.id, validRows, onProgress)
+        onImport={(validRows, strategy, onProgress) =>
+          ExpenseService.bulkImportExpenses(business.id, activeShop.id, validRows, strategy, onProgress)
         }
         onSuccess={loadExpenses}
       />

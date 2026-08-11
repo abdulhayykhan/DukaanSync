@@ -1,254 +1,110 @@
 [
   {
-    "id": "exp_u557a68er",
-    "shopCode": "BR-02",
-    "date": "2026-08-11T09:28:00.131Z",
-    "category": "Electricity",
-    "description": "K-Electric Bill",
+    "id": "exp_uag4730g6",
+    "shopCode": "BR-03",
+    "date": "2026-08-11T10:28:04.261Z",
+    "category": "utilities",
+    "description": "K-Electric Commercial Bill - MetroMart Superstore (DHA)",
     "paymentMethod": "bank",
-    "amountPKR": 36837
+    "amountPKR": 25000
   },
   {
-    "id": "exp_wku8228jc",
+    "id": "exp_usfja9m7j",
     "shopCode": "BR-02",
-    "date": "2026-08-09T14:03:15.131Z",
-    "category": "Cleaning Supplies",
-    "description": "Cleaning Supplies for MetroMart Express (Clifton)",
-    "paymentMethod": "cash",
-    "amountPKR": 3955
-  },
-  {
-    "id": "exp_8i7lx7sre",
-    "shopCode": "MAIN",
-    "date": "2026-08-09T12:23:20.131Z",
-    "category": "Cleaning Supplies",
-    "description": "Cleaning Supplies for MetroMart Main Branch (Gulshan)",
-    "paymentMethod": "cash",
-    "amountPKR": 4015
-  },
-  {
-    "id": "exp_uc1yaj7te",
-    "shopCode": "MAIN",
-    "date": "2026-08-07T09:51:59.131Z",
-    "category": "Rent",
-    "description": "Monthly Shop Rent",
+    "date": "2026-08-11T03:31:52.261Z",
+    "category": "rent",
+    "description": "Monthly Branch Rent - MetroMart Express (Clifton)",
     "paymentMethod": "bank",
-    "amountPKR": 76652
+    "amountPKR": 50000
   },
   {
-    "id": "exp_iv2n2gyjo",
+    "id": "exp_5crcc6o97",
     "shopCode": "MAIN",
-    "date": "2026-08-07T07:36:12.131Z",
-    "category": "Electricity",
-    "description": "K-Electric Bill",
+    "date": "2026-08-08T06:37:24.257Z",
+    "category": "rent",
+    "description": "Monthly Branch Rent - MetroMart Main Branch (Gulshan)",
     "paymentMethod": "bank",
-    "amountPKR": 35715
+    "amountPKR": 50000
   },
   {
-    "id": "exp_xffdjw893",
-    "shopCode": "BR-02",
-    "date": "2026-08-07T03:59:42.131Z",
-    "category": "Cleaning Supplies",
-    "description": "Cleaning Supplies for MetroMart Express (Clifton)",
-    "paymentMethod": "cash",
-    "amountPKR": 1382
-  },
-  {
-    "id": "exp_6fg1y8d8z",
-    "shopCode": "BR-03",
-    "date": "2026-08-06T15:14:19.131Z",
-    "category": "Rent",
-    "description": "Monthly Shop Rent",
+    "id": "exp_yrtzt6ujy",
+    "shopCode": "MAIN",
+    "date": "2026-08-07T12:37:21.257Z",
+    "category": "salary",
+    "description": "Branch Staff Payroll Support - MetroMart Main Branch (Gulshan)",
     "paymentMethod": "bank",
-    "amountPKR": 104521
+    "amountPKR": 18000
   },
   {
-    "id": "exp_m2v81apve",
-    "shopCode": "MAIN",
-    "date": "2026-08-06T09:11:34.131Z",
-    "category": "Maintenance",
-    "description": "Maintenance for MetroMart Main Branch (Gulshan)",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 13034
-  },
-  {
-    "id": "exp_2md6w47tt",
-    "shopCode": "BR-02",
-    "date": "2026-08-06T06:53:11.131Z",
-    "category": "Rent",
-    "description": "Monthly Shop Rent",
+    "id": "exp_hp56yo17b",
+    "shopCode": "BR-03",
+    "date": "2026-08-07T07:47:20.261Z",
+    "category": "rent",
+    "description": "Monthly Branch Rent - MetroMart Superstore (DHA)",
     "paymentMethod": "bank",
-    "amountPKR": 111053
+    "amountPKR": 50000
   },
   {
-    "id": "exp_n896oaumb",
+    "id": "exp_uxnflj3va",
     "shopCode": "BR-03",
-    "date": "2026-08-05T15:01:41.131Z",
-    "category": "Electricity",
-    "description": "K-Electric Bill",
+    "date": "2026-08-04T12:31:03.261Z",
+    "category": "salary",
+    "description": "Branch Staff Payroll Support - MetroMart Superstore (DHA)",
     "paymentMethod": "bank",
-    "amountPKR": 65768
+    "amountPKR": 18000
   },
   {
-    "id": "exp_yao1g29z2",
+    "id": "exp_txzl5y1qi",
     "shopCode": "MAIN",
-    "date": "2026-08-04T06:31:02.131Z",
-    "category": "Cleaning Supplies",
-    "description": "Cleaning Supplies for MetroMart Main Branch (Gulshan)",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 3231
+    "date": "2026-08-01T03:25:15.257Z",
+    "category": "utilities",
+    "description": "K-Electric Commercial Bill - MetroMart Main Branch (Gulshan)",
+    "paymentMethod": "bank",
+    "amountPKR": 25000
   },
   {
-    "id": "exp_rhl3ha0ln",
+    "id": "exp_ovb4a5e7y",
+    "shopCode": "BR-02",
+    "date": "2026-07-31T08:47:50.261Z",
+    "category": "utilities",
+    "description": "K-Electric Commercial Bill - MetroMart Express (Clifton)",
+    "paymentMethod": "bank",
+    "amountPKR": 25000
+  },
+  {
+    "id": "exp_l5w1c981s",
     "shopCode": "MAIN",
-    "date": "2026-08-02T11:44:59.131Z",
-    "category": "Maintenance",
-    "description": "Maintenance for MetroMart Main Branch (Gulshan)",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 11481
-  },
-  {
-    "id": "exp_pvddjnmdz",
-    "shopCode": "BR-02",
-    "date": "2026-08-01T03:06:08.131Z",
-    "category": "Maintenance",
-    "description": "Maintenance for MetroMart Express (Clifton)",
+    "date": "2026-07-31T07:23:57.261Z",
+    "category": "maintenance",
+    "description": "Store Equipment & AC Maintenance",
     "paymentMethod": "cash",
-    "amountPKR": 10789
+    "amountPKR": 7000
   },
   {
-    "id": "exp_h397j0bm4",
-    "shopCode": "BR-02",
-    "date": "2026-07-30T05:18:19.131Z",
-    "category": "Cleaning Supplies",
-    "description": "Cleaning Supplies for MetroMart Express (Clifton)",
-    "paymentMethod": "cash",
-    "amountPKR": 4113
-  },
-  {
-    "id": "exp_n34aollkc",
+    "id": "exp_lkbol8vkl",
     "shopCode": "BR-03",
-    "date": "2026-07-29T17:35:15.131Z",
-    "category": "Cleaning Supplies",
-    "description": "Cleaning Supplies for MetroMart Superstore (DHA)",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 3174
-  },
-  {
-    "id": "exp_lwp08japw",
-    "shopCode": "BR-03",
-    "date": "2026-07-29T05:54:48.131Z",
-    "category": "Maintenance",
-    "description": "Maintenance for MetroMart Superstore (DHA)",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 12222
-  },
-  {
-    "id": "exp_s4haqb5x6",
-    "shopCode": "BR-03",
-    "date": "2026-07-28T07:00:15.131Z",
-    "category": "Maintenance",
-    "description": "Maintenance for MetroMart Superstore (DHA)",
+    "date": "2026-07-30T13:20:50.261Z",
+    "category": "maintenance",
+    "description": "Store Equipment & AC Maintenance",
     "paymentMethod": "cash",
-    "amountPKR": 9369
+    "amountPKR": 7000
   },
   {
-    "id": "exp_s2hfw8u0x",
-    "shopCode": "BR-03",
-    "date": "2026-07-28T03:10:34.131Z",
-    "category": "Maintenance",
-    "description": "Maintenance for MetroMart Superstore (DHA)",
-    "paymentMethod": "cash",
-    "amountPKR": 3034
-  },
-  {
-    "id": "exp_jfwixdlqy",
+    "id": "exp_al0ktaduj",
     "shopCode": "BR-02",
-    "date": "2026-07-27T15:03:20.131Z",
-    "category": "Maintenance",
-    "description": "Maintenance for MetroMart Express (Clifton)",
-    "paymentMethod": "cash",
-    "amountPKR": 8874
+    "date": "2026-07-30T08:19:33.261Z",
+    "category": "salary",
+    "description": "Branch Staff Payroll Support - MetroMart Express (Clifton)",
+    "paymentMethod": "bank",
+    "amountPKR": 18000
   },
   {
-    "id": "exp_sit21qrqb",
+    "id": "exp_y5id90krv",
     "shopCode": "BR-02",
-    "date": "2026-07-25T17:39:11.131Z",
-    "category": "Cleaning Supplies",
-    "description": "Cleaning Supplies for MetroMart Express (Clifton)",
+    "date": "2026-07-21T07:23:14.261Z",
+    "category": "maintenance",
+    "description": "Store Equipment & AC Maintenance",
     "paymentMethod": "cash",
-    "amountPKR": 1173
-  },
-  {
-    "id": "exp_0fvn24vuu",
-    "shopCode": "BR-02",
-    "date": "2026-07-25T10:07:57.131Z",
-    "category": "Cleaning Supplies",
-    "description": "Cleaning Supplies for MetroMart Express (Clifton)",
-    "paymentMethod": "cash",
-    "amountPKR": 1768
-  },
-  {
-    "id": "exp_0g43w539l",
-    "shopCode": "BR-03",
-    "date": "2026-07-23T17:40:58.131Z",
-    "category": "Cleaning Supplies",
-    "description": "Cleaning Supplies for MetroMart Superstore (DHA)",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 3089
-  },
-  {
-    "id": "exp_ovrj7chgi",
-    "shopCode": "MAIN",
-    "date": "2026-07-21T17:37:40.131Z",
-    "category": "Cleaning Supplies",
-    "description": "Cleaning Supplies for MetroMart Main Branch (Gulshan)",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 3785
-  },
-  {
-    "id": "exp_bcbq7nq97",
-    "shopCode": "BR-02",
-    "date": "2026-07-21T14:27:14.131Z",
-    "category": "Maintenance",
-    "description": "Maintenance for MetroMart Express (Clifton)",
-    "paymentMethod": "cash",
-    "amountPKR": 3994
-  },
-  {
-    "id": "exp_26q7u77uh",
-    "shopCode": "MAIN",
-    "date": "2026-07-21T06:13:58.131Z",
-    "category": "Cleaning Supplies",
-    "description": "Cleaning Supplies for MetroMart Main Branch (Gulshan)",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 4884
-  },
-  {
-    "id": "exp_lvnhy95vh",
-    "shopCode": "BR-02",
-    "date": "2026-07-16T17:49:01.131Z",
-    "category": "Maintenance",
-    "description": "Maintenance for MetroMart Express (Clifton)",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 4589
-  },
-  {
-    "id": "exp_wwo4ac951",
-    "shopCode": "MAIN",
-    "date": "2026-07-13T14:08:13.131Z",
-    "category": "Maintenance",
-    "description": "Maintenance for MetroMart Main Branch (Gulshan)",
-    "paymentMethod": "cash",
-    "amountPKR": 7777
-  },
-  {
-    "id": "exp_n483fsts0",
-    "shopCode": "BR-03",
-    "date": "2026-07-13T09:29:22.131Z",
-    "category": "Maintenance",
-    "description": "Maintenance for MetroMart Superstore (DHA)",
-    "paymentMethod": "cash",
-    "amountPKR": 9417
+    "amountPKR": 7000
   }
 ]

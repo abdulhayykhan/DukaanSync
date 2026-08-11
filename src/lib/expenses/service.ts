@@ -13,7 +13,7 @@ import {
 } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase/client";
 import type { Expense, ExpenseCategory } from "@/types";
-import type { BulkImportResult } from "@/components/ui/BulkImportModal";
+import type { BulkImportResult, DuplicateStrategy } from "@/components/ui/BulkImportModal";
 
 export interface ExpenseImportPayload {
   date: string;
@@ -112,6 +112,7 @@ export class ExpenseService {
     businessId: string,
     shopId: string,
     rows: ExpenseImportPayload[],
+    strategy: DuplicateStrategy = "upsert",
     onProgress?: (processed: number, total: number) => void
   ): Promise<BulkImportResult> {
     if (!db) throw new Error("Firestore not initialized");
@@ -122,6 +123,19 @@ export class ExpenseService {
     const uid = auth?.currentUser?.uid || "system";
     const expensesRef = collection(db, "businesses", businessId, "shops", shopId, "expenses");
     const total = rows.length;
+
+    if (strategy === "overwrite") {
+      try {
+        const existingSnap = await getDocs(expensesRef);
+        if (!existingSnap.empty) {
+          const deleteBatch = writeBatch(db);
+          existingSnap.docs.forEach((d) => deleteBatch.delete(d.ref));
+          await deleteBatch.commit();
+        }
+      } catch (err) {
+        console.error("Error clearing existing expenses during overwrite import:", err);
+      }
+    }
 
     for (let i = 0; i < total; i += CHUNK_SIZE) {
       const chunk = rows.slice(i, i + CHUNK_SIZE);

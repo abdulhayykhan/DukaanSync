@@ -1,82 +1,90 @@
 [
   {
-    "id": "sup_0vnwzxulf",
+    "id": "sup_xxszhqz1v",
     "name": "Unilever Pakistan",
     "phone": "0800-13000",
     "email": "unilever@wholesale.com.pk",
-    "currentBalancePKR": 135967,
+    "initialPayableBalance": 180000,
+    "currentBalancePKR": 180000,
     "isActive": true,
-    "createdAt": "2026-07-10T04:49:50.130Z",
-    "updatedAt": "2026-08-11T13:53:39.130Z"
+    "createdAt": "2026-07-13T15:26:56.256Z",
+    "updatedAt": "2026-08-11T07:16:59.256Z"
   },
   {
-    "id": "sup_9lwpmnj3n",
+    "id": "sup_o61sll40d",
     "name": "Nestlé Wholesale",
     "phone": "0800-00000",
     "email": "nestlé@wholesale.com.pk",
-    "currentBalancePKR": 64843,
+    "initialPayableBalance": 120000,
+    "currentBalancePKR": 120000,
     "isActive": true,
-    "createdAt": "2026-08-11T15:46:59.130Z",
-    "updatedAt": "2026-08-10T04:14:27.130Z"
+    "createdAt": "2026-07-02T16:43:36.256Z",
+    "updatedAt": "2026-08-10T12:28:20.256Z"
   },
   {
-    "id": "sup_ty36lfvt5",
+    "id": "sup_yz98uyax1",
     "name": "Metro Logistics",
     "phone": "0321-1234567",
     "email": "metro@wholesale.com.pk",
-    "currentBalancePKR": 39406,
+    "initialPayableBalance": 35000,
+    "currentBalancePKR": 35000,
     "isActive": true,
-    "createdAt": "2026-06-09T15:52:59.130Z",
-    "updatedAt": "2026-08-10T03:01:41.130Z"
+    "createdAt": "2026-06-17T03:37:50.256Z",
+    "updatedAt": "2026-08-10T16:29:39.256Z"
   },
   {
-    "id": "sup_rbyzlazf4",
+    "id": "sup_8bp0uwpaw",
     "name": "Tech Imports Karachi",
     "phone": "0333-7654321",
     "email": "tech@wholesale.com.pk",
-    "currentBalancePKR": 17031,
+    "initialPayableBalance": 65000,
+    "currentBalancePKR": 65000,
     "isActive": true,
-    "createdAt": "2026-06-11T11:01:27.130Z",
-    "updatedAt": "2026-08-11T14:43:44.130Z"
+    "createdAt": "2026-04-28T04:00:10.256Z",
+    "updatedAt": "2026-08-10T12:36:09.256Z"
   },
   {
-    "id": "sup_x41z8qtsh",
+    "id": "sup_w5qdrgga2",
     "name": "Shan Foods Distributor",
     "phone": "0300-9998887",
     "email": "shan@wholesale.com.pk",
-    "currentBalancePKR": 10352,
+    "initialPayableBalance": 15000,
+    "currentBalancePKR": 15000,
     "isActive": true,
-    "createdAt": "2026-07-17T06:57:17.130Z",
-    "updatedAt": "2026-08-09T17:52:02.130Z"
+    "createdAt": "2026-04-23T13:13:23.256Z",
+    "updatedAt": "2026-08-10T14:46:05.256Z"
   },
   {
-    "id": "sup_y4duzu3ys",
+    "id": "sup_6pe5g5rbc",
     "name": "Reckitt Benckiser Dist.",
     "phone": "0311-2223334",
     "email": "reckitt@wholesale.com.pk",
-    "currentBalancePKR": 21523,
+    "initialPayableBalance": 45000,
+    "currentBalancePKR": 45000,
     "isActive": true,
-    "createdAt": "2026-06-21T16:28:44.130Z",
-    "updatedAt": "2026-08-10T16:08:34.130Z"
+    "createdAt": "2026-06-25T16:31:48.256Z",
+    "updatedAt": "2026-08-10T10:08:37.256Z"
   },
   {
-    "id": "sup_1gw021yf5",
+    "id": "sup_t6y5nqsop",
     "name": "National Foods",
     "phone": "0301-3334445",
     "email": "national@wholesale.com.pk",
-    "currentBalancePKR": 1623,
+    "initialPayableBalance": 0,
+    "currentBalancePKR": 0,
     "isActive": true,
-    "createdAt": "2026-07-26T03:23:40.130Z",
-    "updatedAt": "2026-08-11T04:59:46.130Z"
+    "createdAt": "2026-05-02T06:42:28.256Z",
+    "updatedAt": "2026-08-11T06:21:55.256Z"
   },
   {
-    "id": "sup_ijhnd37yw",
+    "id": "sup_4jb88fbvw",
     "name": "Engro Foods",
     "phone": "0322-4445556",
     "email": "engro@wholesale.com.pk",
-    "currentBalancePKR": 72148,
+    "initialPayableBalance": 50000,
+    "currentBalancePKR": 50000,
     "isActive": true,
-    "createdAt": "2026-06-19T18:34:43.130Z",
-    "updatedAt": "2026-08-09T09:29:41.130Z"
+    "createdAt": "2026-08-02T05:14:10.256Z",
+    "updatedAt": "2026-08-11T16:35:18.256Z"
   }
 ]
