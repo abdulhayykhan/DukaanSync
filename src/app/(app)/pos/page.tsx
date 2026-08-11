@@ -405,7 +405,7 @@ export default function POSTerminalPage() {
                 <span>-{formatCurrency(totals.discountMinor, business?.currency)}</span>
               </div>
             )}
-            <div className="flex justify-between font-bold text-gray-900 dark:text-white text-xl pt-2 border-t border-white/20">
+            <div className="flex justify-between font-bold text-gray-900 text-xl pt-2 border-t border-white/20">
               <span>Total</span>
               <span>{formatCurrency(totals.grandTotalMinor, business?.currency)}</span>
             </div>

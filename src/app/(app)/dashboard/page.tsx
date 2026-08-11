@@ -127,7 +127,7 @@ export default function DashboardPage() {
                 <DollarSign className="w-4 h-4 text-blue-500" />
               </div>
             </div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(data.revenueMinor, business.currency)}</div>
+            <div className="text-2xl font-bold text-gray-900">{formatCurrency(data.revenueMinor, business.currency)}</div>
           </Card3D></motion.div>
 
           {/* Gross Profit */}
@@ -138,7 +138,7 @@ export default function DashboardPage() {
                 <TrendingUp className="w-4 h-4 text-emerald-500" />
               </div>
             </div>
-            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(data.grossProfitMinor, business.currency)}</div>
+            <div className="text-2xl font-bold text-emerald-600">{formatCurrency(data.grossProfitMinor, business.currency)}</div>
           </Card3D></motion.div>
 
           {/* Net Profit */}
@@ -165,7 +165,7 @@ export default function DashboardPage() {
                 <AlertTriangle className="w-4 h-4 text-amber-500" />
               </div>
             </div>
-            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{data.lowStockCount} <span className="text-base font-normal text-amber-600/70 dark:text-amber-400/70">items</span></div>
+            <div className="text-2xl font-bold text-amber-600">{data.lowStockCount} <span className="text-base font-normal text-amber-600/70">items</span></div>
           </Card3D></motion.div>
         </motion.div>
       )}

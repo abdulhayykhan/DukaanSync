@@ -38,7 +38,7 @@ export function BottomNav({ onMenuClick }: BottomNavProps) {
             href={item.href}
             className={cn(
               "relative flex flex-col items-center justify-center w-full h-full gap-1 z-10 transition-colors",
-              isActive ? "text-[#10B981]" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
+              isActive ? "text-[#10B981]" : "text-gray-500 hover:text-gray-900:text-white"
             )}
           >
             {isActive && (

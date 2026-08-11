@@ -16,7 +16,7 @@ export function AmbientBackground() {
     <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
       {/* Orb 1: Emerald */}
       <motion.div
-        className="absolute w-[40vw] h-[40vw] rounded-full bg-emerald-500/30 blur-3xl opacity-30 mix-blend-screen dark:mix-blend-lighten will-change-transform"
+        className="absolute w-[40vw] h-[40vw] rounded-full bg-emerald-500/30 blur-3xl opacity-30 mix-blend-screen will-change-transform"
         animate={{
           x: ["0%", "20%", "-10%", "0%"],
           y: ["0%", "-20%", "10%", "0%"],
@@ -31,7 +31,7 @@ export function AmbientBackground() {
       />
       {/* Orb 2: Sapphire */}
       <motion.div
-        className="absolute w-[35vw] h-[35vw] rounded-full bg-blue-500/30 blur-3xl opacity-30 mix-blend-screen dark:mix-blend-lighten will-change-transform"
+        className="absolute w-[35vw] h-[35vw] rounded-full bg-blue-500/30 blur-3xl opacity-30 mix-blend-screen will-change-transform"
         animate={{
           x: ["0%", "-15%", "15%", "0%"],
           y: ["0%", "10%", "-20%", "0%"],
@@ -46,7 +46,7 @@ export function AmbientBackground() {
       />
       {/* Orb 3: Violet */}
       <motion.div
-        className="absolute w-[30vw] h-[30vw] rounded-full bg-violet-500/30 blur-3xl opacity-30 mix-blend-screen dark:mix-blend-lighten will-change-transform"
+        className="absolute w-[30vw] h-[30vw] rounded-full bg-violet-500/30 blur-3xl opacity-30 mix-blend-screen will-change-transform"
         animate={{
           x: ["0%", "10%", "-20%", "0%"],
           y: ["0%", "25%", "-10%", "0%"],

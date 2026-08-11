@@ -79,7 +79,7 @@ export default function LoginPage() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Sign in to your account</h3>
+        <h3 className="text-xl font-bold text-gray-900">Sign in to your account</h3>
         <p className="text-xs text-gray-500 mt-1">Access your business dashboard and POS terminals</p>
       </div>
 
@@ -95,7 +95,7 @@ export default function LoginPage() {
           type="button"
           onClick={handleGoogleSignIn}
           disabled={isSubmitting || isGoogleLoading}
-          className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-gray-200/80 bg-white/80 dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700/80 text-gray-700 dark:text-gray-200 font-medium text-sm transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-[#10B981] disabled:opacity-50 disabled:cursor-not-allowed glass-card"
+          className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-gray-200/80 bg-white/80 hover:bg-gray-50:bg-gray-700/80 text-gray-700 font-medium text-sm transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-[#10B981] disabled:opacity-50 disabled:cursor-not-allowed glass-card"
         >
           {isGoogleLoading ? (
             <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
@@ -109,10 +109,10 @@ export default function LoginPage() {
       {/* Divider */}
       <div className="relative my-4">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200/80 dark:border-gray-700" />
+          <div className="w-full border-t border-gray-200/80" />
         </div>
         <div className="relative flex justify-center text-xs uppercase tracking-wider">
-          <span className="px-3 bg-white/90 dark:bg-gray-900 text-gray-400 font-medium">
+          <span className="px-3 bg-white/90 text-gray-400 font-medium">
             Or sign in with email
           </span>
         </div>
@@ -120,7 +120,7 @@ export default function LoginPage() {
 
       <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Email address
           </label>
           <Input
@@ -134,7 +134,7 @@ export default function LoginPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Password
           </label>
           <div className="relative">
@@ -174,10 +174,10 @@ export default function LoginPage() {
       <div className="mt-6">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+            <div className="w-full border-t border-gray-200" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white/90 dark:bg-gray-900 text-gray-500">
+            <span className="px-2 bg-white/90 text-gray-500">
               New to DukaanSync?
             </span>
           </div>
@@ -186,7 +186,7 @@ export default function LoginPage() {
         <div className="mt-6">
           <Link
             href="/register"
-            className="w-full inline-flex justify-center rounded-xl border border-gray-200/80 shadow-sm px-4 py-2.5 bg-white/80 dark:bg-gray-800/80 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#10B981]"
+            className="w-full inline-flex justify-center rounded-xl border border-gray-200/80 shadow-sm px-4 py-2.5 bg-white/80 text-sm font-medium text-gray-700 hover:bg-gray-50:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#10B981]"
           >
             Create an account
           </Link>

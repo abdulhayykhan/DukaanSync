@@ -59,7 +59,7 @@ export function Sidebar() {
             <Store className="h-5 w-5 text-white" />
           </div>
           {!isCollapsed && (
-            <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight whitespace-nowrap">
+            <span className="text-xl font-bold text-gray-900 tracking-tight whitespace-nowrap">
               DukaanSync
             </span>
           )}
@@ -81,7 +81,7 @@ export function Sidebar() {
                 "relative flex items-center gap-3 px-2.5 py-2 rounded-md text-sm font-medium transition-colors z-10 group",
                 isActive
                   ? "text-[#10B981]"
-                  : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                  : "text-gray-700 hover:text-gray-900:text-white"
               )}
             >
               {isActive && (
@@ -91,7 +91,7 @@ export function Sidebar() {
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
               )}
-              <Icon className={cn("h-5 w-5 shrink-0 transition-transform group-hover:scale-110", isActive ? "text-[#10B981]" : "text-gray-500 dark:text-gray-400")} />
+              <Icon className={cn("h-5 w-5 shrink-0 transition-transform group-hover:scale-110", isActive ? "text-[#10B981]" : "text-gray-500")} />
               {!isCollapsed && <span className="truncate">{item.name}</span>}
             </Link>
           );

@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #F8FAFC;
+  --foreground: #0F172A;
 }
 
 @theme inline {
@@ -21,13 +21,6 @@
   --radius-lg: 14px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
@@ -37,22 +30,12 @@ body {
 @layer utilities {
   /* Frosted Glass Base */
   .glass-card {
-    background: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.75);
     backdrop-filter: blur(16px) saturate(180%);
     -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    border: 1px solid rgba(226, 232, 240, 0.8);
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08),
                 inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
-  }
-
-  /* Dark Theme Glass Base */
-  .dark .glass-card {
-    background: rgba(15, 23, 42, 0.65);
-    backdrop-filter: blur(20px) saturate(190%);
-    -webkit-backdrop-filter: blur(20px) saturate(190%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
   }
 
   /* Vibrant Accent Glass Highlights */
@@ -67,9 +50,6 @@ body {
   @supports not (backdrop-filter: blur(1px)) {
     .glass-card {
       background: rgba(255, 255, 255, 0.95);
-    }
-    .dark .glass-card {
-      background: rgba(15, 23, 42, 0.95);
     }
     .glass-pill {
       background: rgba(16, 185, 129, 0.3);

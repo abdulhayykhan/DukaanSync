@@ -12,7 +12,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden text-gray-900 dark:text-gray-100">
+    <div className="flex h-screen w-full overflow-hidden text-gray-900">
       <AmbientBackground />
       
       {/* Accessibility Skip Link */}

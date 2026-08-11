@@ -45,11 +45,11 @@ export default function RootPage() {
             />
           </svg>
         </div>
-        <span className="text-3xl font-bold text-gray-900 tracking-tight dark:text-white">
+        <span className="text-3xl font-bold text-gray-900 tracking-tight">
           DukaanSync
         </span>
       </div>
-      <div className="h-2 w-48 bg-gray-200/60 dark:bg-gray-800/60 rounded-full overflow-hidden backdrop-blur-sm z-10 border border-white/10">
+      <div className="h-2 w-48 bg-gray-200/60 rounded-full overflow-hidden backdrop-blur-sm z-10 border border-white/10">
         <div
           className="h-full bg-[#10B981] animate-[slide_1.5s_ease-in-out_infinite]"
           style={{ width: "50%", transformOrigin: "left" }}
