@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ExportDropdown } from "@/components/ui/ExportDropdown";
 import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
+import { buildNormalizedRow, getField } from "@/lib/utils/importNormalize";
 import { BulkImportModal } from "@/components/ui/BulkImportModal";
 import type { Expense, ExpenseCategory } from "@/types";
 import { parseISO, format } from "date-fns";
@@ -179,21 +180,15 @@ export default function ExpensesPage() {
   ];
 
   const handleValidateExpenseRow = (row: Record<string, string | number | boolean | null>) => {
-    const normalizeKey = (k: string) => k.toLowerCase().replace(/[\s_-]/g, "");
-    const normalized: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(row)) normalized[normalizeKey(k)] = v;
-
-    const get = (aliases: string[]) => {
-      for (const a of aliases) if (normalized[a] !== undefined && normalized[a] !== "") return normalized[a];
-      return undefined;
-    };
+    const norm = buildNormalizedRow(row);
+    const get = (aliases: string[]) => getField(norm, aliases);
 
     const mapped = {
-      date: get(["date", "expensedate"]),
-      category: get(["category", "type", "expensecategory"]),
-      description: get(["description", "desc", "memo", "notes"]),
-      amountPKR: get(["amountpkr", "amount", "amountpkr", "cost"]),
-      paymentMethod: get(["paymentmethod", "method", "payment"]),
+      date: get(["date", "expensedate", "transactiondate", "createdat"]),
+      category: get(["category", "type", "expensecategory", "expensetype"]),
+      description: get(["description", "desc", "memo", "notes", "details"]),
+      amountPKR: get(["amountpkr", "amount", "cost", "value", "amountpkr", "totalpkr"]),
+      paymentMethod: get(["paymentmethod", "payment_method", "method", "payment", "paymentmode"]),
     };
 
     const parsed = expenseRowSchema.safeParse(mapped);

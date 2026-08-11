@@ -14,6 +14,7 @@ import { InventoryService } from "@/lib/inventory/service";
 import { Input } from "@/components/ui/Input";
 import { ExportDropdown } from "@/components/ui/ExportDropdown";
 import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
+import { buildNormalizedRow, getField } from "@/lib/utils/importNormalize";
 import { BulkImportModal } from "@/components/ui/BulkImportModal";
 import { format } from "date-fns";
 import type { StockMovement, InventoryItem, StockMovementType } from "@/types";
@@ -120,24 +121,18 @@ export default function StockMovementsPage() {
   ];
 
   const handleValidateMovementRow = (row: Record<string, string | number | boolean | null>) => {
-    const normalizeKey = (k: string) => k.toLowerCase().replace(/[\s_-]/g, "");
-    const normalized: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(row)) normalized[normalizeKey(k)] = v;
-
-    const get = (aliases: string[]) => {
-      for (const a of aliases) if (normalized[a] !== undefined && normalized[a] !== "") return normalized[a];
-      return undefined;
-    };
+    const norm = buildNormalizedRow(row);
+    const get = (aliases: string[]) => getField(norm, aliases);
 
     const mapped = {
-      timestamp: get(["timestamp", "date", "createdat"]),
-      sku: get(["sku", "productsku", "code"]),
-      productName: get(["productname", "name", "product"]),
-      type: get(["type", "movementtype"]),
-      quantityBefore: get(["quantitybefore", "before", "qtybefore"]),
-      quantityChange: get(["quantitychange", "change", "qtychange", "delta"]),
-      quantityAfter: get(["quantityafter", "after", "qtyafter"]),
-      reason: get(["reason", "notes", "description"]),
+      timestamp: get(["timestamp", "date", "createdat", "datetime", "time"]),
+      sku: get(["sku", "productsku", "itemsku", "code", "itemcode", "barcode"]),
+      productName: get(["productname", "name", "product", "item", "itemname"]),
+      type: get(["type", "movementtype", "movement_type", "movetype"]),
+      quantityBefore: get(["quantitybefore", "before", "qtybefore", "stockbefore", "qbefore"]),
+      quantityChange: get(["quantitychange", "change", "qtychange", "delta", "qty", "quantity"]),
+      quantityAfter: get(["quantityafter", "after", "qtyafter", "stockafter", "qafter"]),
+      reason: get(["reason", "notes", "description", "memo", "remarks"]),
     };
 
     const parsed = movementRowSchema.safeParse(mapped);

@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/Input";
 import { ExportDropdown } from "@/components/ui/ExportDropdown";
 import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
 import { BulkImportModal } from "@/components/ui/BulkImportModal";
+import { buildNormalizedRow, getField } from "@/lib/utils/importNormalize";
 import type { Purchase } from "@/types";
 
 export default function PurchasesPage() {
@@ -77,28 +78,22 @@ export default function PurchasesPage() {
   ];
 
   const handleValidatePurchaseRow = (row: Record<string, string | number | boolean | null>) => {
-    const normalizeKey = (k: string) => k.toLowerCase().replace(/[\s_-]/g, "");
-    const normalized: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(row)) normalized[normalizeKey(k)] = v;
-
-    const get = (aliases: string[]) => {
-      for (const a of aliases) if (normalized[a] !== undefined && normalized[a] !== "") return normalized[a];
-      return undefined;
-    };
+    const norm = buildNormalizedRow(row);
+    const get = (aliases: string[]) => getField(norm, aliases);
 
     const mapped = {
-      purchaseNumber: get(["purchasenumber", "ponumber", "invoicenumber"]) || `IMP-${Date.now()}`,
-      supplierName: get(["suppliername", "supplier", "vendor"]),
-      date: get(["date", "purchasedate", "orderdate"]),
-      grandTotalPKR: get(["grandtotalpkr", "grandtotal", "total", "amount"]),
-      paymentStatus: get(["paymentstatus", "status"]),
-      paymentMethod: get(["paymentmethod", "method", "payment"]),
-      notes: get(["notes", "remarks"]),
+      purchaseNumber: get(["purchasenumber", "ponumber", "invoicenumber", "id", "ordernumber"]) || `IMP-${Date.now()}`,
+      supplierName: get(["suppliername", "supplier", "supplierName", "vendor", "vendorname"]),
+      date: get(["date", "purchasedate", "orderdate", "createdat", "timestamp"]),
+      grandTotalPKR: get(["grandtotalpkr", "grandtotal", "grand_total", "total", "amount", "totalpkr"]),
+      paymentStatus: get(["paymentstatus", "payment_status", "status"]),
+      paymentMethod: get(["paymentmethod", "payment_method", "method", "payment"]),
+      notes: get(["notes", "remarks", "memo"]),
     };
 
     const parsed = purchaseRowSchema.safeParse(mapped);
     if (!parsed.success) {
-      return { isValid: false, errors: parsed.error.issues.map(i => `'${i.path.join(".")}: ${i.message}`) };
+      return { isValid: false, errors: parsed.error.issues.map(i => `${i.path.join(".")}: ${i.message}`) };
     }
 
     const d = parsed.data;

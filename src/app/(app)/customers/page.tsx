@@ -13,16 +13,17 @@ import { CustomerModal } from "@/components/customers/CustomerModal";
 import { BulkImportModal } from "@/components/ui/BulkImportModal";
 import { ExportDropdown } from "@/components/ui/ExportDropdown";
 import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
+import { buildNormalizedRow, getField } from "@/lib/utils/importNormalize";
 import { format } from "date-fns";
 import { UploadCloud } from "lucide-react";
 import { toMinorUnit } from "@/lib/utils/currency";
 import type { Customer } from "@/types";
 import { toast } from "sonner";
 
-const IMPORT_COLUMNS = ["Customer Name", "Phone", "Email", "Initial Outstanding Balance"];
+const IMPORT_COLUMNS = ["customerName", "phone", "email", "initialOutstandingBalance"];
 const IMPORT_SAMPLE = [
-  { "Customer Name": "Ahmed Raza", "Phone": "03001234567", "Email": "ahmed@example.com", "Initial Outstanding Balance": 0 },
-  { "Customer Name": "Fatima Ali", "Phone": "03211234567", "Email": "", "Initial Outstanding Balance": 5000 }
+  { customerName: "Ahmed Raza", phone: "03001234567", email: "ahmed@example.com", initialOutstandingBalance: 0 },
+  { customerName: "Fatima Ali", phone: "03211234567", email: "", initialOutstandingBalance: 5000 }
 ];
 
 export default function CustomersPage() {
@@ -73,29 +74,34 @@ export default function CustomersPage() {
   );
 
   const handleValidateCustomerRow = (row: Record<string, string | number | boolean | null>) => {
-    const errors: string[] = [];
-    
-    const name = String(row["Customer Name"] || "").trim();
-    if (!name) errors.push("Customer Name is required");
+    const norm = buildNormalizedRow(row);
 
-    const phone = String(row["Phone"] || "").trim();
-    const email = String(row["Email"] || "").trim();
+    // Flexible alias resolution
+    const name = String(
+      getField(norm, ["customername", "customer_name", "name", "fullname", "client"]) ?? ""
+    ).trim();
+    if (!name) return { isValid: false, errors: ["Customer Name is required"] };
 
-    const balance = parseFloat(String(row["Initial Outstanding Balance"] || "0"));
-    if (isNaN(balance) || balance < 0) errors.push("Invalid Initial Outstanding Balance");
+    const phone = String(
+      getField(norm, ["phone", "phonenumber", "phone_number", "mobile", "contact"]) ?? ""
+    ).trim();
 
-    if (errors.length > 0) {
-      return { isValid: false, errors };
+    const email = String(
+      getField(norm, ["email", "emailaddress", "email_address"]) ?? ""
+    ).trim();
+
+    const rawBalance = getField(norm, [
+      "initialoutstandingbalance", "outstandingbalance", "balance",
+      "receivables", "openingbalance", "creditbalance"
+    ]);
+    const balance = parseFloat(String(rawBalance ?? "0"));
+    if (isNaN(balance) || balance < 0) {
+      return { isValid: false, errors: ["Invalid balance — must be a non-negative number"] };
     }
 
     return {
       isValid: true,
-      data: {
-        name,
-        phone,
-        email,
-        currentBalanceMinor: toMinorUnit(balance)
-      }
+      data: { name, phone, email, currentBalanceMinor: toMinorUnit(balance) }
     };
   };
 
@@ -232,7 +238,7 @@ export default function CustomersPage() {
         sampleData={IMPORT_SAMPLE}
         expectedColumns={IMPORT_COLUMNS}
         onValidateRow={handleValidateCustomerRow}
-        onImport={(validRows, onProgress) => 
+        onImport={(validRows, _strategy, onProgress) =>
           CustomerService.bulkImportCustomers(business!.id, activeShop!.id, validRows, onProgress)
         }
         onSuccess={loadCustomers}

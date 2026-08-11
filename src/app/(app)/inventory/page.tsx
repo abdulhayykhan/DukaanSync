@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ExportDropdown } from "@/components/ui/ExportDropdown";
 import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
+import { buildNormalizedRow, getField } from "@/lib/utils/importNormalize";
 
 import type { InventoryItem } from "@/types";
 import type { InventoryServicePayload } from "@/lib/validation/inventory";
@@ -133,19 +134,9 @@ export default function InventoryPage() {
   });
 
   const handleValidateInventoryRow = (row: Record<string, string | number | boolean | null>) => {
-    // 1. Normalize keys (lowercase, remove spaces, underscores, dashes)
-    const normalizeKey = (k: string) => k.toLowerCase().replace(/[\s_-]/g, "");
-    const normalizedRow: Record<string, any> = {};
-    for (const [k, v] of Object.entries(row)) {
-      normalizedRow[normalizeKey(k)] = v;
-    }
-
-    const getVal = (aliases: string[]) => {
-      for (const alias of aliases) {
-        if (normalizedRow[alias] !== undefined && normalizedRow[alias] !== "") return normalizedRow[alias];
-      }
-      return undefined;
-    };
+    // 1. Normalize keys using shared utility (strips ALL non-alphanumeric chars)
+    const normalizedRow = buildNormalizedRow(row);
+    const getVal = (aliases: string[]) => getField(normalizedRow, aliases);
 
     // 2. Map to expected Zod schema structure
     const mappedData = {

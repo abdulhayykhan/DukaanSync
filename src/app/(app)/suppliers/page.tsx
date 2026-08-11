@@ -13,6 +13,7 @@ import { SupplierModal } from "@/components/suppliers/SupplierModal";
 import { BulkImportModal } from "@/components/ui/BulkImportModal";
 import { ExportDropdown } from "@/components/ui/ExportDropdown";
 import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
+import { buildNormalizedRow, getField } from "@/lib/utils/importNormalize";
 import { format } from "date-fns";
 import { UploadCloud } from "lucide-react";
 import { toMinorUnit } from "@/lib/utils/currency";
@@ -20,10 +21,10 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import type { Supplier } from "@/types";
 
-const IMPORT_COLUMNS = ["Supplier Name", "Phone", "Email", "Initial Payable Balance"];
+const IMPORT_COLUMNS = ["supplierName", "phone", "email", "initialPayableBalance"];
 const IMPORT_SAMPLE = [
-  { "Supplier Name": "Tech Wholesalers", "Phone": "03001234567", "Email": "sales@techwholesale.com", "Initial Payable Balance": 15000 },
-  { "Supplier Name": "General Goods Inc", "Phone": "03211234567", "Email": "", "Initial Payable Balance": 0 }
+  { supplierName: "Tech Wholesalers", phone: "03001234567", email: "sales@techwholesale.com", initialPayableBalance: 15000 },
+  { supplierName: "General Goods Inc", phone: "03211234567", email: "", initialPayableBalance: 0 }
 ];
 
 export default function SuppliersPage() {
@@ -64,29 +65,33 @@ export default function SuppliersPage() {
   );
 
   const handleValidateSupplierRow = (row: Record<string, string | number | boolean | null>) => {
-    const errors: string[] = [];
-    
-    const name = String(row["Supplier Name"] || "").trim();
-    if (!name) errors.push("Supplier Name is required");
+    const norm = buildNormalizedRow(row);
 
-    const phone = String(row["Phone"] || "").trim();
-    const email = String(row["Email"] || "").trim();
+    const name = String(
+      getField(norm, ["suppliername", "supplier_name", "name", "vendor", "vendorname", "company"]) ?? ""
+    ).trim();
+    if (!name) return { isValid: false, errors: ["Supplier Name is required"] };
 
-    const balance = parseFloat(String(row["Initial Payable Balance"] || "0"));
-    if (isNaN(balance) || balance < 0) errors.push("Invalid Initial Payable Balance");
+    const phone = String(
+      getField(norm, ["phone", "phonenumber", "phone_number", "mobile", "contact"]) ?? ""
+    ).trim();
 
-    if (errors.length > 0) {
-      return { isValid: false, errors };
+    const email = String(
+      getField(norm, ["email", "emailaddress", "email_address"]) ?? ""
+    ).trim();
+
+    const rawBalance = getField(norm, [
+      "initialpayablebalance", "payablebalance", "balance",
+      "payables", "openingbalance", "debitbalance"
+    ]);
+    const balance = parseFloat(String(rawBalance ?? "0"));
+    if (isNaN(balance) || balance < 0) {
+      return { isValid: false, errors: ["Invalid balance — must be a non-negative number"] };
     }
 
     return {
       isValid: true,
-      data: {
-        name,
-        phone,
-        email,
-        currentBalanceMinor: toMinorUnit(balance)
-      }
+      data: { name, phone, email, currentBalanceMinor: toMinorUnit(balance) }
     };
   };
 
@@ -235,7 +240,7 @@ export default function SuppliersPage() {
         sampleData={IMPORT_SAMPLE}
         expectedColumns={IMPORT_COLUMNS}
         onValidateRow={handleValidateSupplierRow}
-        onImport={(validRows, onProgress) => 
+        onImport={(validRows, _strategy, onProgress) =>
           SupplierService.bulkImportSuppliers(business!.id, activeShop!.id, validRows, onProgress)
         }
         onSuccess={fetchSuppliers}
