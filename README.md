@@ -12,59 +12,62 @@ A lightweight, multi-tenant POS and inventory analytics platform designed for Pa
 
 ## 💼 Non-Technical Executive Overview
 
-Managing multi-branch retail operations across Pakistan (supermarkets, apparel stores, electronics outlets, and wholesale marts) comes with critical operational friction:
-- **Inventory Leakage & Stock Mismatches:** Tracking stock levels across multiple locations manually leads to phantom inventory, stockouts, and undetected shrinkage.
-- **Manual Paper Ledgers:** Record keeping via paper registers or disconnected spreadsheets results in human error, delayed customer credit receivables, and uncollected supplier payables.
-- **Multi-Branch Visibility Deficit:** Store owners lack real-time visibility into overall chain profitability, branch sales performance, and operational expense drains (such as utility bills, rent, and staff salaries).
-- **Payment Method Rigidity:** Modern Pakistani shoppers use split payment modes (Cash, Bank Transfer, EasyPaisa, JazzCash, and Store Credit). Disconnected POS terminals fail to capture these payments cleanly.
+### Retail Challenges in Pakistan
+Managing retail stores, supermarkets, pharmacies, electronics shops, and wholesale chains across Pakistan presents significant operational friction:
 
-### How DukaanSync Solves This
-**DukaanSync** unifies multi-branch retail management into a single, cloud-native SaaS platform. With a single merchant account, store owners manage their entire chain seamlessly:
-- **Instant Branch Context Switching:** Switch between individual shop branches (`MAIN`, `BR-02`, `BR-03`) or view an aggregated **All Shops (Multi-Branch)** chain dashboard without logging out.
-- **High-Speed Cashier Checkout:** A barcode-scanner-optimized POS terminal with instant keyboard hotkeys (`F2`, `F8`, `F9`) and split-payment support.
-- **Automated Thermal Printing:** Auto-generates clean, professional thermal receipts formatted specifically for standard 80mm thermal receipt printers.
-- **Real-Time Financial Telemetry:** Automated Profit & Loss tracking, receivables/payables accounting, and low-stock alerts powered by integer paisa precision.
+1. **Inventory Leakage & Stock Mismatches:** Tracking inventory across multiple physical branches manually leads to phantom stock, sudden stockouts, undetected theft, and unrecorded inter-branch transfers.
+2. **Manual Paper Ledgers & Khata:** Physical register entries and paper *Khata* notebooks result in frequent calculation errors, uncollected customer credit receivables, and missed supplier payment deadlines.
+3. **Multi-Branch Visibility Deficit:** Store owners and franchise managers lack real-time visibility into overall chain profitability, branch sales performance, and operational expense drains (such as utility bills, rent, and staff salaries).
+4. **Payment Method Rigidity:** Modern Pakistani shoppers utilize diverse split payment channels (Cash, Bank Transfer, EasyPaisa, JazzCash, and Customer Credit). Legacy POS setups fail to capture split payments cleanly.
+
+### DukaanSync Solution Framework
+**DukaanSync** solves these challenges by unifying multi-branch operations into a single, cloud-native SaaS platform:
+
+- **Instant Branch Context Switching:** A merchant logs in once and seamlessly switches between individual branches (`MAIN`, `BR-02`, `BR-03`) or views an aggregated **All Shops (Multi-Branch)** chain view without logging out.
+- **High-Speed Cashier Checkout:** A barcode-scanner-optimized POS terminal equipped with instant keyboard hotkeys (<kbd>F2</kbd>, <kbd>F8</kbd>, <kbd>F9</kbd>) and split-payment processing.
+- **Thermal Receipt Engine:** Auto-generates clean thermal receipts formatted specifically for standard 80mm thermal receipt printers via CSS `@media print`.
+- **Real-Time Telemetry & Profitability:** Integer paisa financial accounting, Profit & Loss tracking, receivables/payables management, and automated low-stock reorder alerts.
 
 ---
 
 ## 🔬 Technical Feature Matrix & Architecture Capabilities
 
 ### ⚡ 1. POS Terminal & High-Speed Checkout Engine
-- **Barcode & SKU Auto-Add:** Scanner input listener automatically matches SKUs and updates cart quantities in real time.
-- **Keyboard Hotkey Navigation:**
-  - <kbd>F2</kbd> — Focus product search bar.
-  - <kbd>F8</kbd> — Clear current cart with modal confirmation.
+- **Barcode & SKU Auto-Add Mechanics:** The product search input actively listens to barcode scanner hardware inputs, automatically resolving SKUs and updating cart item quantities in real time.
+- **Keyboard Shortcut Navigation:**
+  - <kbd>F2</kbd> — Focus product search bar instantly.
+  - <kbd>F8</kbd> — Clear current cart safely with confirmation modal.
   - <kbd>F9</kbd> — Open payment checkout dialog.
-- **Split & Digital Payment Handling:** Supports Cash (with change due calculation), Bank Transfer, EasyPaisa, JazzCash, Mixed Payments, and Customer Credit.
-- **Atomic Stock Deduction:** Runs checkout inside atomic Cloud Firestore transactions (`runTransaction`), preventing race conditions and decrementing inventory atomically while creating historical COGS snapshots.
-- **Print-Ready CSS Thermal Receipts:** Formatted `@media print` layout engineered for 80mm thermal receipt printers.
+- **Split & Digital Payment Processing:** Supports Cash (with change due calculation), Bank Transfer, EasyPaisa, JazzCash, Customer Credit, and Mixed Payments.
+- **Atomic Stock Deduction & COGS Preservation:** Checkout operations execute within atomic Cloud Firestore transactions (`runTransaction`), preventing race conditions, decrementing stock atomically, and snapshotting historical Cost of Goods Sold (COGS) per item.
+- **Thermal Printing CSS Formatting:** Clean CSS `@media print` layout engineered specifically for 80mm thermal receipt printers.
 
 ### 📊 2. Multi-Branch Telemetry & Analytics Engine
-- **Tenant Context Scoping:** Queries are scoped dynamically via `businesses/{businessId}/shops/{shopId}`.
-- **Aggregated Chain Query Handler (`AnalyticsEngine`):** When `shopId === "all"`, `AnalyticsEngine` executes parallel queries (`Promise.all`) across all active branch subcollections, merging revenue, profit, receivables, payables, and chart series in under 500ms.
-- **Recharts Data Trajectories:** Interactive trend charts displaying revenue vs. net profit trajectories across `Today`, `This Week`, `This Month`, and `This Year`.
+- **Tenant Context Scoping:** All database queries are scoped dynamically via `businesses/{businessId}/shops/{shopId}`.
+- **Aggregated Multi-Shop Query Handler (`AnalyticsEngine`):** When `shopId === "all"`, `AnalyticsEngine` executes parallel queries (`Promise.all`) across all active shop subcollections, merging total revenue, gross profit, expenses, net profit, receivables, and payables in under 500ms.
+- **Recharts Visual Analytics:** Interactive trend charts displaying sales vs. net profit trajectories across `Today`, `This Week`, `This Month`, and `This Year` time horizons.
 
 ### 📦 3. Inventory & Immutable Stock Movement Auditing
-- **Catalog Management:** Item SKU management, unit definitions, cost prices, retail selling prices, and reorder levels.
-- **Low Stock Threshold Alerts:** Automatic visual alerts when inventory quantity drops below threshold levels.
-- **Immutable Movement Audit Trail:** Logged append-only stock movement records (`movements/{movementId}`) capturing movement types (`sale`, `purchase`, `adjustment`, `return`), reference IDs, actor UIDs, and timestamps.
+- **Catalog Management:** Item SKU tracking, category definitions, cost prices, retail selling prices, and safety stock reorder levels.
+- **Real-Time Low-Stock Alerts:** Automated visual badges and notifications when inventory quantities fall below threshold levels.
+- **Immutable Movement Audit Logs:** Append-only stock movement logging (`movements/{movementId}`) capturing movement types (`sale`, `purchase`, `adjustment`, `return`), reference document IDs, actor UIDs, and timestamps.
 
 ### 💸 4. Operating Expenses & Financial P&L Engine
-- **Expense Categorization:** Categorized deductions across Rent, Utilities (K-Electric/Gas), Staff Salaries, Transport, Marketing, and Maintenance.
-- **Exact Integer Paisa Accounting:** Eliminates IEEE floating-point rounding errors by storing all financial amounts as integer minor units (paisa).
-- **Strict P&L Formula:**
+- **Categorized Expense Tracking:** Categorized operational deductions across Rent, Utilities (K-Electric/Gas), Staff Salaries, Transport, Marketing, and Maintenance.
+- **Exact Integer Paisa Accounting:** Eliminates IEEE floating-point rounding errors by storing all currency values strictly as integer minor units (paisa).
+- **Formal P&L Formula:**
   $$\text{Net Profit} = (\text{Revenue} - \text{COGS}) - \text{Operating Expenses}$$
 
 ### 📥 5. Bulk Data Migration & CSV Import Engine
-- **Client-Side CSV Parser:** Integrates Papaparse for client-side CSV validation across Inventory, Sales, Expenses, Customers, and Suppliers.
+- **Client-Side CSV Parser:** Papaparse integration for bulk data ingestion across Inventory, Sales, Expenses, Customers, and Suppliers.
 - **Flexible Header Normalization:** Header normalizer maps diverse CSV column variations (e.g., `Customer Name`, `customer_name`, `client`) into canonical lookup keys.
 
 ---
 
-## 🛠️ Technology Stack & Database Architecture
+## 🛠️ Technology Stack & Multi-Tenant Database Architecture
 
-### Frontend Framework & UI Libraries
-- **Framework:** Next.js 16+ (App Router with Turbopack)
+### Frontend Stack & UI Libraries
+- **Framework:** Next.js 16+ (App Router with Turbopack compiler)
 - **Language:** TypeScript 5.0+ (Strict type checking)
 - **Styling:** Tailwind CSS v3 & Glassmorphism Utility Tokens
 - **Icons & Visuals:** Lucide React, Recharts & Framer Motion
@@ -148,20 +151,20 @@ DukaanSync/
 
 ## ⚡ Quick Start & Setup Documentation Reference
 
-### 1. Local Execution Commands
+### 1. Local Terminal Execution Commands
 
 ```bash
-# Clone the repository
+# 1. Clone the repository
 git clone https://github.com/abdulhayykhan/DukaanSync.git
 cd DukaanSync
 
-# Install dependencies
+# 2. Install dependencies
 npm install
 
-# Run local development server
+# 3. Run local development server
 npm run dev
 
-# Verify production build
+# 4. Verify production build
 npm run build
 ```
 
