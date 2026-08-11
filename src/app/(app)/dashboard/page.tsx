@@ -33,10 +33,10 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   const loadTelemetry = useCallback(async () => {
-    if (!business || !activeShop) return;
+    if (!business) return;
     setLoading(true);
     try {
-      const telemetry = await AnalyticsEngine.getDashboardTelemetry(business.id, activeShop.id, period);
+      const telemetry = await AnalyticsEngine.getDashboardTelemetry(business.id, activeShop?.id || "all", period);
       setData(telemetry);
     } catch (err: any) {
       console.error("Failed to load dashboard telemetry data:", err?.code || err, err?.message);

@@ -182,7 +182,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   // ---------------------------------------------------------------------------
   const setActiveShop = useCallback(
     (shopId: string) => {
-      if (availableShops.some((s) => s.id === shopId)) {
+      if (shopId === "all" || availableShops.some((s) => s.id === shopId)) {
         setActiveShopIdState(shopId);
         persistShopId(shopId);
       } else {

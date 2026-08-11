@@ -9,7 +9,7 @@ import { ChevronDown, LogOut, Check, Store } from "lucide-react";
 export function Header() {
   const { userProfile, logout } = useAuth();
   const { business, memberRole } = useBusiness();
-  const { activeShop, availableShops, setActiveShop } = useShop();
+  const { activeShop, activeShopId, availableShops, setActiveShop } = useShop();
 
   return (
     <header className="h-16 glass-card border-b-0 m-4 rounded-2xl flex items-center justify-between px-4 lg:px-8 z-10 shadow-xl">
@@ -26,7 +26,7 @@ export function Header() {
             <button className="flex items-center gap-2 hover:bg-gray-50 px-2 py-1.5 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-[#10B981]">
               <Store className="h-4 w-4 text-gray-500" />
               <span className="text-sm font-medium text-gray-700">
-                {activeShop ? activeShop.name : "Select Shop"}
+                {activeShopId === "all" ? "All Shops (Multi-Branch)" : activeShop ? activeShop.name : "Select Shop"}
               </span>
               <ChevronDown className="h-4 w-4 text-gray-400" />
             </button>
@@ -38,8 +38,20 @@ export function Header() {
               className="min-w-[220px] glass-card rounded-xl shadow-2xl p-1 z-50 animate-in fade-in zoom-in-95 duration-100"
             >
               <DropdownMenu.Label className="px-2 py-1.5 text-xs font-semibold text-gray-500">
-                Switch Shop
+                Switch Shop Context
               </DropdownMenu.Label>
+              <DropdownMenu.Item
+                onClick={() => setActiveShop("all")}
+                className="relative flex items-center px-2 py-2 text-sm text-gray-700 rounded-sm cursor-default hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 outline-none border-b border-gray-100 mb-1"
+              >
+                <div className="flex-1 flex flex-col">
+                  <span className="font-medium text-emerald-700">All Shops (Multi-Branch)</span>
+                  <span className="text-[11px] text-gray-400">Aggregated chain telemetry</span>
+                </div>
+                {activeShopId === "all" && (
+                  <Check className="ml-3 h-4 w-4 text-[#10B981]" />
+                )}
+              </DropdownMenu.Item>
               {availableShops.map((shop) => (
                 <DropdownMenu.Item
                   key={shop.id}
