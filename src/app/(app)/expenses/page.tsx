@@ -219,7 +219,7 @@ export default function ExpensesPage() {
           <h1 className="text-2xl font-bold text-slate-900">Operating Expenses</h1>
           <p className="text-sm text-slate-500 mt-1">Manage and track shop expenses for P&L deductions.</p>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3 shrink-0 min-w-max">
           <ExportDropdown onExport={handleExport} />
           <button
             onClick={() => setIsImportModalOpen(true)}
@@ -228,9 +228,12 @@ export default function ExpensesPage() {
             <UploadCloud className="h-4 w-4 shrink-0" />
             Import
           </button>
-          <Button onClick={() => setIsModalOpen(true)} className="h-10 rounded-xl inline-flex items-center justify-center gap-2 px-4 shrink-0 whitespace-nowrap">
-            <Plus className="w-4 h-4 text-current" /> Log Expense
-          </Button>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl h-10 shrink-0 whitespace-nowrap transition-colors shadow-sm"
+          >
+            <Plus className="w-4 h-4 shrink-0" /> Log Expense
+          </button>
         </div>
       </div>
 

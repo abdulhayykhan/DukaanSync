@@ -227,7 +227,7 @@ export default function InventoryPage() {
           <p className="text-sm text-slate-500 mt-1">Manage product catalog and stock levels for {activeShop?.name || 'All Shops'}.</p>
         </div>
         {!isReadOnly && (
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-3 shrink-0 min-w-max">
             <ExportDropdown onExport={handleExport} />
             <button
               onClick={() => setIsImportModalOpen(true)}
@@ -236,9 +236,12 @@ export default function InventoryPage() {
               <UploadCloud className="h-4 w-4 shrink-0" />
               Import
             </button>
-            <Button onClick={handleOpenCreateModal} className="h-10 inline-flex items-center gap-2 px-4 rounded-xl shrink-0 whitespace-nowrap">
+            <button
+              onClick={handleOpenCreateModal}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl h-10 shrink-0 whitespace-nowrap transition-colors shadow-sm"
+            >
               <Plus className="h-4 w-4 shrink-0" /> Add Product
-            </Button>
+            </button>
           </div>
         )}
       </div>
