@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Search, ShoppingCart, Trash2, Plus, Minus, User, CreditCard, Banknote, HelpCircle } from "lucide-react";
+import { Search, ShoppingCart, Trash2, Plus, Minus, User, CreditCard, Banknote, HelpCircle, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
 import { motion } from "framer-motion";
 import { Card3D } from "@/components/ui/Card3D";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -12,9 +13,11 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { useShop } from "@/contexts/ShopContext";
 import { InventoryService } from "@/lib/inventory/service";
 import { CustomerService } from "@/lib/customers/service";
-import { SaleTransactionService, type SaleTransactionData } from "@/lib/sales/transaction";
+import { SaleTransactionService, type SaleTransactionData, type SaleImportPayload } from "@/lib/sales/transaction";
 import { formatCurrency, toMinorUnit } from "@/lib/utils/currency";
 import { cn } from "@/lib/utils";
+import { buildNormalizedRow, getField } from "@/lib/utils/importNormalize";
+import { BulkImportModal, type DuplicateStrategy } from "@/components/ui/BulkImportModal";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -46,6 +49,7 @@ export default function POSTerminalPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   
   // Checkout Modal State
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -302,6 +306,106 @@ export default function POSTerminalPage() {
     }
   };
 
+  const saleRowSchema = z.object({
+    invoiceNumber: z.string().optional().default(""),
+    customerName: z.string().optional().default("Walk-in Customer"),
+    customerId: z.string().optional().default("walk_in"),
+    subtotalPKR: z.coerce.number().catch(0).default(0),
+    discountPKR: z.coerce.number().catch(0).default(0),
+    taxPKR: z.coerce.number().catch(0).default(0),
+    grandTotalPKR: z.coerce.number().catch(0).default(0),
+    paymentStatus: z.enum(["paid", "unpaid", "pending", "partial"]).catch("paid"),
+    paymentMethod: z.enum(["cash", "card", "bank"]).catch("cash"),
+    cashierName: z.string().optional().default("System"),
+    date: z.string().optional().default(""),
+    items: z.string().optional().default("")
+  });
+
+  const SALES_COLUMNS = ["invoiceNumber", "customerName", "grandTotalPKR", "paymentStatus", "paymentMethod", "date"];
+  const SALES_SAMPLE = [
+    { invoiceNumber: "INV-2608-001", customerName: "Walk-in Customer", grandTotalPKR: 4500, paymentStatus: "paid", paymentMethod: "cash", date: "2026-08-10T12:00:00Z" },
+    { invoiceNumber: "INV-2608-002", customerName: "Tariq Mahmood", grandTotalPKR: 12500, paymentStatus: "unpaid", paymentMethod: "cash", date: "2026-08-11T14:30:00Z" }
+  ];
+
+  const handleValidateSaleRow = (row: Record<string, string | number | boolean | null>) => {
+    const norm = buildNormalizedRow(row);
+    const get = (aliases: string[]) => getField(norm, aliases);
+
+    const mapped = {
+      invoiceNumber: String(get(["invoicenumber", "invoice", "invoiceno", "id", "salenumber"]) ?? ""),
+      customerName: String(get(["customername", "customer", "client", "name"]) ?? "Walk-in Customer"),
+      customerId: String(get(["customerid", "clientid"]) ?? "walk_in"),
+      subtotalPKR: get(["subtotalpkr", "subtotal", "subtotalamount"]),
+      discountPKR: get(["discountpkr", "discount", "discountamount"]),
+      taxPKR: get(["taxpkr", "tax", "taxamount"]),
+      grandTotalPKR: get(["grandtotalpkr", "grandtotal", "total", "amount", "totalpkr"]),
+      paymentStatus: String(get(["paymentstatus", "status", "paymentstate"]) ?? "paid").toLowerCase(),
+      paymentMethod: String(get(["paymentmethod", "method", "mode", "paymenttype"]) ?? "cash").toLowerCase(),
+      cashierName: String(get(["cashiername", "cashier"]) ?? "System"),
+      date: String(get(["date", "timestamp", "createdat", "saledate"]) ?? ""),
+      items: String(get(["items", "lineitems", "products"]) ?? "")
+    };
+
+    const parsed = saleRowSchema.safeParse(mapped);
+    if (!parsed.success) {
+      return { isValid: false, errors: parsed.error.issues.map(i => `${i.path.join(".")}: ${i.message}`) };
+    }
+
+    const d = parsed.data;
+    let parsedItems = [];
+    if (d.items) {
+      try {
+        parsedItems = JSON.parse(d.items);
+      } catch {}
+    }
+
+    const grandTotalMinor = Math.round((Number(d.grandTotalPKR) || 0) * 100);
+    const subtotalMinor = Math.round((Number(d.subtotalPKR) || Number(d.grandTotalPKR) || 0) * 100);
+    const discountMinor = Math.round((Number(d.discountPKR) || 0) * 100);
+    const taxMinor = Math.round((Number(d.taxPKR) || 0) * 100);
+    const dateIso = d.date ? new Date(d.date).toISOString() : new Date().toISOString();
+
+    return {
+      isValid: true,
+      data: {
+        invoiceNumber: d.invoiceNumber,
+        customerName: d.customerName,
+        customerId: d.customerId,
+        items: parsedItems,
+        subtotalMinor,
+        taxMinor,
+        discountMinor,
+        grandTotalMinor,
+        paymentMethod: d.paymentMethod as any,
+        paymentStatus: d.paymentStatus as any,
+        amountPaidMinor: d.paymentStatus === "paid" ? grandTotalMinor : 0,
+        cashierName: d.cashierName,
+        createdAt: dateIso
+      } as SaleImportPayload
+    };
+  };
+
+  const handleImportSales = async (
+    validRows: SaleImportPayload[],
+    strategy: DuplicateStrategy,
+    onProgress: (processed: number, total: number) => void
+  ) => {
+    if (!business || !activeShop) {
+      throw new Error("Active business/shop not selected");
+    }
+    const result = await SaleTransactionService.bulkImportSales(
+      business.id,
+      activeShop.id,
+      member?.uid || "system",
+      validRows,
+      strategy,
+      onProgress
+    );
+
+    await loadData();
+    return result;
+  };
+
   return (
     <div className="h-[calc(100vh-64px)] flex overflow-hidden bg-transparent relative">
       
@@ -329,8 +433,16 @@ export default function POSTerminalPage() {
               <span className="hidden sm:inline-flex px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded border border-gray-200 font-mono">F2</span>
             </div>
           </div>
-          <div className="flex items-center">
-             <ExportDropdown onExport={handleExportSales} label="Export Sales" />
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsImportModalOpen(true)}
+              className="gap-2 rounded-xl h-11 border-slate-200 hover:border-emerald-500 hover:text-emerald-600 font-medium text-sm text-slate-700 bg-white shadow-sm"
+            >
+              <UploadCloud className="w-4 h-4 text-emerald-600" />
+              <span className="hidden sm:inline">Import Sales</span>
+            </Button>
+            <ExportDropdown onExport={handleExportSales} label="Export Sales" />
           </div>
         </div>
 
@@ -577,6 +689,20 @@ export default function POSTerminalPage() {
         onClose={() => { setIsInvoiceOpen(false); setCompletedSale(null); }}
         sale={completedSale}
         business={business}
+      />
+
+      <BulkImportModal<SaleImportPayload>
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        title="Import Sales Transactions"
+        sampleData={SALES_SAMPLE}
+        expectedColumns={SALES_COLUMNS}
+        onValidateRow={handleValidateSaleRow}
+        onImport={handleImportSales}
+        onSuccess={() => {
+          toast.success("Sales transactions imported successfully!");
+          loadData();
+        }}
       />
 
     </div>
