@@ -14,12 +14,12 @@ import type { Supplier, SupplierLedgerEntry } from "@/types";
 
 export class SupplierService {
   /**
-   * Fetches suppliers for a specific business.
+   * Fetches suppliers for a specific shop.
    */
-  static async getSuppliers(businessId: string): Promise<Supplier[]> {
+  static async getSuppliers(businessId: string, shopId: string): Promise<Supplier[]> {
     if (!db) throw new Error("Firestore not initialized");
 
-    const suppliersRef = collection(db, "businesses", businessId, "suppliers");
+    const suppliersRef = collection(db, "businesses", businessId, "shops", shopId, "suppliers");
     const q = query(suppliersRef, where("isActive", "==", true));
     const snapshot = await getDocs(q);
 
@@ -31,9 +31,9 @@ export class SupplierService {
     return suppliers;
   }
 
-  static async getSupplier(businessId: string, supplierId: string): Promise<Supplier | null> {
+  static async getSupplier(businessId: string, shopId: string, supplierId: string): Promise<Supplier | null> {
     if (!db) return null;
-    const ref = doc(db, "businesses", businessId, "suppliers", supplierId);
+    const ref = doc(db, "businesses", businessId, "shops", shopId, "suppliers", supplierId);
     const snap = await getDoc(ref);
     if (!snap.exists()) return null;
     return { id: snap.id, ...snap.data() } as Supplier;
@@ -42,9 +42,9 @@ export class SupplierService {
   /**
    * Fetches ledger entries for a supplier
    */
-  static async getSupplierLedger(businessId: string, supplierId: string): Promise<SupplierLedgerEntry[]> {
+  static async getSupplierLedger(businessId: string, shopId: string, supplierId: string): Promise<SupplierLedgerEntry[]> {
     if (!db) throw new Error("Firestore not initialized");
-    const ledgerRef = collection(db, "businesses", businessId, "suppliers", supplierId, "ledger");
+    const ledgerRef = collection(db, "businesses", businessId, "shops", shopId, "suppliers", supplierId, "ledger");
     const snapshot = await getDocs(ledgerRef); // Ideally order by createdAt desc, but requires indexes
     
     const entries: SupplierLedgerEntry[] = [];
@@ -58,12 +58,13 @@ export class SupplierService {
 
   static async createSupplier(
     businessId: string,
+    shopId: string,
     data: Omit<Supplier, "id" | "currentBalanceMinor" | "isActive" | "createdAt" | "updatedAt">
   ): Promise<string> {
     if (!db) throw new Error("Firestore not initialized");
 
     const batch = writeBatch(db);
-    const newRef = doc(collection(db, "businesses", businessId, "suppliers"));
+    const newRef = doc(collection(db, "businesses", businessId, "shops", shopId, "suppliers"));
     const now = new Date().toISOString();
 
     batch.set(newRef, {
@@ -80,12 +81,13 @@ export class SupplierService {
 
   static async updateSupplier(
     businessId: string,
+    shopId: string,
     supplierId: string,
     updates: Partial<Omit<Supplier, "id" | "currentBalanceMinor" | "createdAt" | "updatedAt">>
   ): Promise<void> {
     if (!db) throw new Error("Firestore not initialized");
     
-    const ref = doc(db, "businesses", businessId, "suppliers", supplierId);
+    const ref = doc(db, "businesses", businessId, "shops", shopId, "suppliers", supplierId);
     await updateDoc(ref, {
       ...updates,
       updatedAt: new Date().toISOString(),
@@ -97,6 +99,7 @@ export class SupplierService {
    */
   static async recordSupplierPayment(
     businessId: string,
+    shopId: string,
     supplierId: string,
     amountMinor: number,
     userId: string,
@@ -104,8 +107,8 @@ export class SupplierService {
   ): Promise<void> {
     if (!db) throw new Error("Firestore not initialized");
 
-    const supplierRef = doc(db, "businesses", businessId, "suppliers", supplierId);
-    const ledgerRef = doc(collection(db, "businesses", businessId, "suppliers", supplierId, "ledger"));
+    const supplierRef = doc(db, "businesses", businessId, "shops", shopId, "suppliers", supplierId);
+    const ledgerRef = doc(collection(db, "businesses", businessId, "shops", shopId, "suppliers", supplierId, "ledger"));
     
     await runTransaction(db, async (transaction) => {
       const supplierDoc = await transaction.get(supplierRef);

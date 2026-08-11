@@ -10,6 +10,7 @@ import { toast } from "sonner";
 
 import { SupplierService } from "@/lib/suppliers/service";
 import { useBusiness } from "@/contexts/BusinessContext";
+import { useShop } from "@/contexts/ShopContext";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import type { Supplier } from "@/types";
@@ -31,6 +32,7 @@ interface SupplierModalProps {
 
 export function SupplierModal({ isOpen, onOpenChange, supplierToEdit, onSuccess }: SupplierModalProps) {
   const { business } = useBusiness();
+  const { activeShop } = useShop();
   const isEditing = !!supplierToEdit;
 
   const {
@@ -61,14 +63,14 @@ export function SupplierModal({ isOpen, onOpenChange, supplierToEdit, onSuccess 
   }, [isOpen, supplierToEdit, reset]);
 
   const onSubmit = async (data: SupplierFormData) => {
-    if (!business) return;
+    if (!business || !activeShop) return;
 
     try {
       if (isEditing && supplierToEdit) {
-        await SupplierService.updateSupplier(business.id, supplierToEdit.id, data);
+        await SupplierService.updateSupplier(business.id, activeShop.id, supplierToEdit.id, data);
         toast.success("Supplier updated successfully");
       } else {
-        await SupplierService.createSupplier(business.id, data);
+        await SupplierService.createSupplier(business.id, activeShop.id, data);
         toast.success("Supplier created successfully");
       }
       

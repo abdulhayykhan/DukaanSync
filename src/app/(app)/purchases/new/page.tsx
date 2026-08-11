@@ -46,7 +46,7 @@ export default function NewPurchasePage() {
     if (!business || !activeShop || isReadOnly) return;
     
     Promise.all([
-      SupplierService.getSuppliers(business.id),
+      SupplierService.getSuppliers(business.id, activeShop.id),
       InventoryService.getInventoryItems(business.id, activeShop.id)
     ]).then(([supData, invData]) => {
       setSuppliers(supData);

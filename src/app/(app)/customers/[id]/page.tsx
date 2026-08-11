@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import * as Dialog from "@radix-ui/react-dialog";
 
 import { useBusiness } from "@/contexts/BusinessContext";
+import { useShop } from "@/contexts/ShopContext";
 import { CustomerService } from "@/lib/customers/service";
 import { formatCurrency, toMinorUnit } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/Button";
@@ -17,6 +18,7 @@ export default function CustomerLedgerPage() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
   const { business, member } = useBusiness();
+  const { activeShop } = useShop();
   
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [entries, setEntries] = useState<CustomerLedgerEntry[]>([]);
@@ -29,12 +31,12 @@ export default function CustomerLedgerPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchLedger = useCallback(async () => {
-    if (!business || !id) return;
+    if (!business || !activeShop || !id) return;
     try {
       setLoading(true);
       const [cusData, ledgerData] = await Promise.all([
-        CustomerService.getCustomer(business.id, id),
-        CustomerService.getCustomerLedger(business.id, id)
+        CustomerService.getCustomer(business.id, activeShop.id, id),
+        CustomerService.getCustomerLedger(business.id, activeShop.id, id)
       ]);
       
       if (!cusData) {
@@ -50,7 +52,7 @@ export default function CustomerLedgerPage() {
     } finally {
       setLoading(false);
     }
-  }, [business, id, router]);
+  }, [business, activeShop, id, router]);
 
   useEffect(() => {
     fetchLedger();
@@ -58,7 +60,7 @@ export default function CustomerLedgerPage() {
 
   const handleRecordPayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!business || !member || !customer) return;
+    if (!business || !activeShop || !member || !customer) return;
     
     const amountMinor = toMinorUnit(paymentAmount);
     if (amountMinor <= 0) {
@@ -72,7 +74,8 @@ export default function CustomerLedgerPage() {
     try {
       setIsSubmitting(true);
       await CustomerService.recordCustomerPayment(
-        business.id, 
+        business.id,
+        activeShop.id,
         customer.id, 
         amountMinor, 
         member.uid, 

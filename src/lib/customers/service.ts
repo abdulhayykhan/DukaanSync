@@ -1,7 +1,6 @@
 import { 
   collection, 
   doc, 
-   
   getDocs,
   getDoc,
   setDoc,
@@ -15,12 +14,12 @@ import type { Customer, CustomerLedgerEntry, AuditLog } from "@/types";
 
 export class CustomerService {
   /**
-   * Fetches all customers for a given business.
+   * Fetches all customers for a given shop.
    */
-  static async getCustomers(businessId: string): Promise<Customer[]> {
+  static async getCustomers(businessId: string, shopId: string): Promise<Customer[]> {
     if (!db) throw new Error("Firestore not initialized");
     const q = query(
-      collection(db, "businesses", businessId, "customers"),
+      collection(db, "businesses", businessId, "shops", shopId, "customers"),
       orderBy("name", "asc")
     );
     const snap = await getDocs(q);
@@ -30,9 +29,9 @@ export class CustomerService {
   /**
    * Fetches a single customer by ID.
    */
-  static async getCustomer(businessId: string, customerId: string): Promise<Customer | null> {
+  static async getCustomer(businessId: string, shopId: string, customerId: string): Promise<Customer | null> {
     if (!db) throw new Error("Firestore not initialized");
-    const snap = await getDoc(doc(db, "businesses", businessId, "customers", customerId));
+    const snap = await getDoc(doc(db, "businesses", businessId, "shops", shopId, "customers", customerId));
     if (!snap.exists()) return null;
     return { id: snap.id, ...snap.data() } as Customer;
   }
@@ -42,10 +41,11 @@ export class CustomerService {
    */
   static async createCustomer(
     businessId: string, 
+    shopId: string,
     data: Omit<Customer, "id" | "currentBalanceMinor" | "isActive" | "createdAt" | "updatedAt">
   ): Promise<string> {
     if (!db) throw new Error("Firestore not initialized");
-    const ref = doc(collection(db, "businesses", businessId, "customers"));
+    const ref = doc(collection(db, "businesses", businessId, "shops", shopId, "customers"));
     const now = new Date().toISOString();
     const newCustomer: Omit<Customer, "id"> = {
       ...data,
@@ -63,11 +63,12 @@ export class CustomerService {
    */
   static async updateCustomer(
     businessId: string,
+    shopId: string,
     customerId: string,
     data: Partial<Pick<Customer, "name" | "phone" | "email" | "isActive">>
   ): Promise<void> {
     if (!db) throw new Error("Firestore not initialized");
-    const ref = doc(db, "businesses", businessId, "customers", customerId);
+    const ref = doc(db, "businesses", businessId, "shops", shopId, "customers", customerId);
     await updateDoc(ref, {
       ...data,
       updatedAt: new Date().toISOString()
@@ -77,10 +78,10 @@ export class CustomerService {
   /**
    * Fetches the ledger history for a customer.
    */
-  static async getCustomerLedger(businessId: string, customerId: string): Promise<CustomerLedgerEntry[]> {
+  static async getCustomerLedger(businessId: string, shopId: string, customerId: string): Promise<CustomerLedgerEntry[]> {
     if (!db) throw new Error("Firestore not initialized");
     const q = query(
-      collection(db, "businesses", businessId, "customers", customerId, "ledger"),
+      collection(db, "businesses", businessId, "shops", shopId, "customers", customerId, "ledger"),
       orderBy("createdAt", "desc")
     );
     const snap = await getDocs(q);
@@ -93,6 +94,7 @@ export class CustomerService {
    */
   static async recordCustomerPayment(
     businessId: string,
+    shopId: string,
     customerId: string,
     amountMinor: number,
     userId: string,
@@ -102,7 +104,7 @@ export class CustomerService {
     const firestore = db;
 
     await runTransaction(firestore, async (transaction) => {
-      const customerRef = doc(firestore, "businesses", businessId, "customers", customerId);
+      const customerRef = doc(firestore, "businesses", businessId, "shops", shopId, "customers", customerId);
       const customerSnap = await transaction.get(customerRef);
       
       if (!customerSnap.exists()) {
@@ -120,7 +122,7 @@ export class CustomerService {
       });
 
       // Insert ledger entry
-      const ledgerRef = doc(collection(firestore, "businesses", businessId, "customers", customerId, "ledger"));
+      const ledgerRef = doc(collection(firestore, "businesses", businessId, "shops", shopId, "customers", customerId, "ledger"));
       const entry: Omit<CustomerLedgerEntry, "id"> = {
         customerId,
         type: "payment",
@@ -135,7 +137,7 @@ export class CustomerService {
       transaction.set(ledgerRef, entry);
       
       // System audit log
-      const auditRef = doc(collection(firestore, "businesses", businessId, "auditLogs"));
+      const auditRef = doc(collection(firestore, "businesses", businessId, "shops", shopId, "auditLogs"));
       const auditLog: Omit<AuditLog, "id"> = {
         action: "customer_payment",
         entityType: "customer",

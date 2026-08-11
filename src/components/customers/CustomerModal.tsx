@@ -5,6 +5,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import { useBusiness } from "@/contexts/BusinessContext";
+import { useShop } from "@/contexts/ShopContext";
 import { CustomerService } from "@/lib/customers/service";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -19,6 +20,7 @@ interface CustomerModalProps {
 
 export function CustomerModal({ isOpen, onClose, onSuccess, customer }: CustomerModalProps) {
   const { business } = useBusiness();
+  const { activeShop } = useShop();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -42,15 +44,15 @@ export function CustomerModal({ isOpen, onClose, onSuccess, customer }: Customer
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!business) return;
+    if (!business || !activeShop) return;
 
     try {
       setIsSubmitting(true);
       if (customer) {
-        await CustomerService.updateCustomer(business.id, customer.id, formData);
+        await CustomerService.updateCustomer(business.id, activeShop.id, customer.id, formData);
         toast.success("Customer updated successfully");
       } else {
-        await CustomerService.createCustomer(business.id, formData);
+        await CustomerService.createCustomer(business.id, activeShop.id, formData);
         toast.success("Customer added successfully");
       }
       onSuccess();

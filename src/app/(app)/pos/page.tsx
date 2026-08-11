@@ -62,7 +62,7 @@ export default function POSTerminalPage() {
     try {
       const [inv, cus] = await Promise.all([
         InventoryService.getInventoryItems(business.id, activeShop.id),
-        CustomerService.getCustomers(business.id)
+        CustomerService.getCustomers(business.id, activeShop.id)
       ]);
       setInventory(inv);
       setCustomers(cus);
@@ -509,7 +509,7 @@ export default function POSTerminalPage() {
       <CustomerModal 
         isOpen={isCustomerModalOpen} 
         onClose={() => setIsCustomerModalOpen(false)} 
-        onSuccess={() => CustomerService.getCustomers(business?.id || "").then(setCustomers)} 
+        onSuccess={() => CustomerService.getCustomers(business?.id || "", activeShop?.id || "").then(setCustomers)} 
       />
 
       <InvoiceModal 

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import * as Dialog from "@radix-ui/react-dialog";
 
 import { useBusiness } from "@/contexts/BusinessContext";
+import { useShop } from "@/contexts/ShopContext";
 import { SupplierService } from "@/lib/suppliers/service";
 import { formatCurrency, toMinorUnit } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/Button";
@@ -17,6 +18,7 @@ export default function SupplierLedgerPage() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
   const { business, member } = useBusiness();
+  const { activeShop } = useShop();
   
   const [supplier, setSupplier] = useState<Supplier | null>(null);
   const [entries, setEntries] = useState<SupplierLedgerEntry[]>([]);
@@ -29,12 +31,12 @@ export default function SupplierLedgerPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchLedger = useCallback(async () => {
-    if (!business || !id) return;
+    if (!business || !activeShop || !id) return;
     try {
       setLoading(true);
       const [supData, ledgerData] = await Promise.all([
-        SupplierService.getSupplier(business.id, id),
-        SupplierService.getSupplierLedger(business.id, id)
+        SupplierService.getSupplier(business.id, activeShop.id, id),
+        SupplierService.getSupplierLedger(business.id, activeShop.id, id)
       ]);
       
       if (!supData) {
@@ -50,7 +52,7 @@ export default function SupplierLedgerPage() {
     } finally {
       setLoading(false);
     }
-  }, [business, id, router]);
+  }, [business, activeShop, id, router]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -59,7 +61,7 @@ export default function SupplierLedgerPage() {
 
   const handleRecordPayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!business || !member || !supplier) return;
+    if (!business || !activeShop || !member || !supplier) return;
     
     const amountMinor = toMinorUnit(paymentAmount);
     if (amountMinor <= 0) {
@@ -73,7 +75,8 @@ export default function SupplierLedgerPage() {
     try {
       setIsSubmitting(true);
       await SupplierService.recordSupplierPayment(
-        business.id, 
+        business.id,
+        activeShop.id,
         supplier.id, 
         amountMinor, 
         member.uid, 

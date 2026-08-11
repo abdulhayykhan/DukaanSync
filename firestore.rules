@@ -115,95 +115,64 @@ service cloud.firestore {
         // Shop Subcollections — All require canAccessShop()
         // =====================================================================
 
-        // Inventory — /businesses/{businessId}/shops/{shopId}/inventory/{itemId}
-        match /inventory/{itemId} {
+        match /inventory/{document=**} {
           allow read: if canAccessShop(businessId, shopId);
-          allow create, update: if canAccessShop(businessId, shopId)
-            && getMember(businessId).role in ['owner', 'manager', 'inventory_manager']
-            && isValidTenantWrite(businessId, shopId);
-          allow delete: if isBusinessOwner(businessId);
+          allow write: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager', 'inventory_manager'];
         }
 
-        // Sales — /businesses/{businessId}/shops/{shopId}/sales/{saleId}
-        match /sales/{saleId} {
+        match /sales/{document=**} {
           allow read: if canAccessShop(businessId, shopId);
-          allow create: if canAccessShop(businessId, shopId)
-            && getMember(businessId).role in ['owner', 'manager', 'cashier']
-            && isValidTenantWrite(businessId, shopId);
-          allow update: if canAccessShop(businessId, shopId)
-            && getMember(businessId).role in ['owner', 'manager']
-            && isValidTenantWrite(businessId, shopId);
-          allow delete: if isBusinessOwner(businessId);
+          allow write: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager', 'cashier'];
         }
 
-        // Purchases — /businesses/{businessId}/shops/{shopId}/purchases/{purchaseId}
-        match /purchases/{purchaseId} {
+        match /purchases/{document=**} {
           allow read: if canAccessShop(businessId, shopId);
-          allow create, update: if canAccessShop(businessId, shopId)
-            && getMember(businessId).role in ['owner', 'manager']
-            && isValidTenantWrite(businessId, shopId);
-          allow delete: if isBusinessOwner(businessId);
+          allow write: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager'];
         }
 
-        // Customers — /businesses/{businessId}/shops/{shopId}/customers/{customerId}
-        match /customers/{customerId} {
+        match /customers/{document=**} {
           allow read: if canAccessShop(businessId, shopId);
-          allow create, update: if canAccessShop(businessId, shopId)
-            && getMember(businessId).role in ['owner', 'manager', 'cashier']
-            && isValidTenantWrite(businessId, shopId);
-          allow delete: if isBusinessOwner(businessId);
+          allow write: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager', 'cashier'];
         }
 
-        // Suppliers — /businesses/{businessId}/shops/{shopId}/suppliers/{supplierId}
-        match /suppliers/{supplierId} {
+        match /suppliers/{document=**} {
           allow read: if canAccessShop(businessId, shopId);
-          allow create, update: if canAccessShop(businessId, shopId)
-            && getMember(businessId).role in ['owner', 'manager']
-            && isValidTenantWrite(businessId, shopId);
-          allow delete: if isBusinessOwner(businessId);
+          allow write: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager'];
         }
 
-        // Expenses — /businesses/{businessId}/shops/{shopId}/expenses/{expenseId}
-        match /expenses/{expenseId} {
+        match /expenses/{document=**} {
           allow read: if canAccessShop(businessId, shopId);
-          allow create, update: if canAccessShop(businessId, shopId)
-            && getMember(businessId).role in ['owner', 'manager']
-            && isValidTenantWrite(businessId, shopId);
-          allow delete: if isBusinessOwner(businessId);
+          allow write: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager'];
         }
 
-        // Stock Movements — /businesses/{businessId}/shops/{shopId}/stockMovements/{movementId}
-        match /stockMovements/{movementId} {
+        match /stockMovements/{document=**} {
           allow read: if canAccessShop(businessId, shopId);
-          allow create: if canAccessShop(businessId, shopId)
-            && getMember(businessId).role in ['owner', 'manager', 'inventory_manager']
-            && isValidTenantWrite(businessId, shopId);
-          allow update, delete: if isBusinessOwner(businessId);
+          allow write: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager', 'inventory_manager'];
         }
 
-        // Customer Ledger — /businesses/{businessId}/shops/{shopId}/customerLedger/{entryId}
-        match /customerLedger/{entryId} {
+        match /customerLedger/{document=**} {
           allow read: if canAccessShop(businessId, shopId);
-          allow create: if canAccessShop(businessId, shopId)
-            && getMember(businessId).role in ['owner', 'manager', 'cashier']
-            && isValidTenantWrite(businessId, shopId);
-          allow update, delete: if isBusinessOwner(businessId);
+          allow write: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager', 'cashier'];
         }
 
-        // Supplier Ledger — /businesses/{businessId}/shops/{shopId}/supplierLedger/{entryId}
-        match /supplierLedger/{entryId} {
+        match /supplierLedger/{document=**} {
           allow read: if canAccessShop(businessId, shopId);
-          allow create: if canAccessShop(businessId, shopId)
-            && getMember(businessId).role in ['owner', 'manager']
-            && isValidTenantWrite(businessId, shopId);
-          allow update, delete: if isBusinessOwner(businessId);
+          allow write: if canAccessShop(businessId, shopId)
+            && getMember(businessId).role in ['owner', 'manager'];
         }
 
-        // Audit Logs — /businesses/{businessId}/shops/{shopId}/auditLogs/{logId}
-        match /auditLogs/{logId} {
+        match /auditLogs/{document=**} {
           allow read: if isBusinessOwner(businessId);
           allow create: if canAccessShop(businessId, shopId) && request.resource.data.actorId == request.auth.uid;
-          allow update, delete: if false; // Strict append-only
+          allow update, delete: if false;
         }
       }
     }

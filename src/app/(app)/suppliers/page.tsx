@@ -6,6 +6,7 @@ import { Plus, Search, ChevronRight, UserCog } from "lucide-react";
 import { toast } from "sonner";
 
 import { useBusiness } from "@/contexts/BusinessContext";
+import { useShop } from "@/contexts/ShopContext";
 import { SupplierService } from "@/lib/suppliers/service";
 import { formatCurrency } from "@/lib/utils/currency";
 import { SupplierModal } from "@/components/suppliers/SupplierModal";
@@ -15,6 +16,7 @@ import type { Supplier } from "@/types";
 
 export default function SuppliersPage() {
   const { business, memberRole } = useBusiness();
+  const { activeShop } = useShop();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -24,17 +26,17 @@ export default function SuppliersPage() {
   const isReadOnly = memberRole === "cashier";
 
   const fetchSuppliers = useCallback(async () => {
-    if (!business) return;
+    if (!business || !activeShop) return;
     setLoading(true);
     try {
-      const data = await SupplierService.getSuppliers(business.id);
+      const data = await SupplierService.getSuppliers(business.id, activeShop.id);
       setSuppliers(data);
     } catch {
       toast.error("Failed to load suppliers");
     } finally {
       setLoading(false);
     }
-  }, [business]);
+  }, [business, activeShop]);
 
   useEffect(() => {
     if (!isReadOnly) {

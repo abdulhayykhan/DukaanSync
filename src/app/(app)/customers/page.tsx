@@ -4,15 +4,19 @@ import { useState, useEffect, useCallback } from "react";
 import { Plus, Search, Users, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useBusiness } from "@/contexts/BusinessContext";
+import { useShop } from "@/contexts/ShopContext";
 import { CustomerService } from "@/lib/customers/service";
 import { formatCurrency } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { CustomerModal } from "@/components/customers/CustomerModal";
 import type { Customer } from "@/types";
+import { toast } from "sonner";
 
 export default function CustomersPage() {
   const { business, memberRole } = useBusiness();
+  const { activeShop } = useShop();
+  
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -23,17 +27,17 @@ export default function CustomersPage() {
   const isReadOnly = memberRole === "cashier";
 
   const loadCustomers = useCallback(async () => {
-    if (!business) return;
+    if (!business || !activeShop) return;
     setLoading(true);
     try {
-      const data = await CustomerService.getCustomers(business.id);
+      const data = await CustomerService.getCustomers(business.id, activeShop.id);
       setCustomers(data);
     } catch (err) {
-      console.error(err);
+      toast.error("Failed to load customers");
     } finally {
       setLoading(false);
     }
-  }, [business]);
+  }, [business, activeShop]);
 
   useEffect(() => {
     loadCustomers();
