@@ -52,6 +52,7 @@ export class PurchaseService {
     const errors: string[] = [];
     const uid = auth?.currentUser?.uid || "system";
     const purchasesRef = collection(db, "businesses", businessId, "shops", shopId, "purchases");
+    const salesRef = collection(db, "businesses", businessId, "shops", shopId, "sales");
     const total = rows.length;
 
     for (let i = 0; i < total; i += CHUNK_SIZE) {
@@ -60,24 +61,55 @@ export class PurchaseService {
       const now = new Date().toISOString();
 
       for (const row of chunk) {
-        const ref = doc(purchasesRef);
-        batch.set(ref, {
-          purchaseNumber: row.purchaseNumber,
-          supplierId: row.supplierName, // stored as name since no ID lookup
-          supplierName: row.supplierName,
-          items: [], // bulk import stores header-only; no line items
-          subtotalMinor: row.grandTotalMinor,
-          discountMinor: 0,
-          grandTotalMinor: row.grandTotalMinor,
-          paymentMethod: row.paymentMethod,
-          paymentStatus: row.paymentStatus,
-          amountPaidMinor: row.paymentStatus === "paid" ? row.grandTotalMinor : 0,
-          notes: row.notes || "",
-          businessId,
-          shopId,
-          createdBy: uid,
-          createdAt: row.date || now,
-        });
+        const sName = (row.supplierName || "").trim();
+        const pNum = (row.purchaseNumber || "").trim();
+        const isSalesRecord =
+          sName === "Walk-in Customer" ||
+          sName.toLowerCase().includes("customer") ||
+          sName.toLowerCase().includes("client") ||
+          pNum.toUpperCase().startsWith("INV");
+
+        if (isSalesRecord) {
+          const ref = doc(salesRef);
+          batch.set(ref, {
+            invoiceNumber: pNum || `INV-${Date.now()}`,
+            customerName: sName || "Walk-in Customer",
+            customerId: "walk_in",
+            items: [],
+            subtotalMinor: row.grandTotalMinor,
+            taxMinor: 0,
+            discountMinor: 0,
+            grandTotalMinor: row.grandTotalMinor,
+            paymentMethod: row.paymentMethod,
+            paymentStatus: row.paymentStatus,
+            amountPaidMinor: row.paymentStatus === "paid" ? row.grandTotalMinor : 0,
+            status: "completed",
+            notes: row.notes || "",
+            businessId,
+            shopId,
+            createdBy: uid,
+            createdAt: row.date || now,
+          });
+        } else {
+          const ref = doc(purchasesRef);
+          batch.set(ref, {
+            purchaseNumber: pNum || `PO-${Date.now()}`,
+            supplierId: sName,
+            supplierName: sName,
+            items: [],
+            subtotalMinor: row.grandTotalMinor,
+            discountMinor: 0,
+            grandTotalMinor: row.grandTotalMinor,
+            paymentMethod: row.paymentMethod,
+            paymentStatus: row.paymentStatus,
+            amountPaidMinor: row.paymentStatus === "paid" ? row.grandTotalMinor : 0,
+            notes: row.notes || "",
+            businessId,
+            shopId,
+            createdBy: uid,
+            createdAt: row.date || now,
+          });
+        }
       }
 
       try {

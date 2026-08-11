@@ -8,6 +8,7 @@ import {
 import { db } from "@/lib/firebase/client";
 import type { DashboardTelemetry, Sale, Expense, Purchase, InventoryItem, Customer, Supplier } from "@/types";
 import { format, parseISO, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, eachDayOfInterval, eachMonthOfInterval, isSameDay, isSameMonth } from "date-fns";
+import { migratePurchasesToSales } from "@/lib/utils/migratePurchasesToSales";
 
 export type TimePeriod = "today" | "week" | "month" | "year";
 
@@ -23,6 +24,9 @@ export class AnalyticsEngine {
     period: TimePeriod
   ): Promise<DashboardTelemetry> {
     if (!db) throw new Error("Firestore not initialized");
+
+    // Automatically run migration for legacy sales records stored in purchases collection
+    await migratePurchasesToSales(businessId).catch((e) => console.error("Migration error:", e));
 
     const now = new Date();
     let startDate: Date;
