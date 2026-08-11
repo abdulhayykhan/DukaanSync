@@ -77,11 +77,11 @@ service cloud.firestore {
       // Only members can read the business document
       allow read: if isBusinessMember(businessId);
 
-      // Only the owner can update business settings
-      allow update: if isBusinessOwner(businessId);
+      // Allow authenticated user to create a business if they are the owner
+      allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
 
-      // Business creation is handled by backend/admin SDK
-      allow create, delete: if false;
+      // Only the owner can update or delete business settings
+      allow update, delete: if isBusinessOwner(businessId);
 
       // -----------------------------------------------------------------------
       // Business Members — /businesses/{businessId}/members/{uid}
@@ -91,8 +91,11 @@ service cloud.firestore {
         allow read: if isAuthenticated()
           && (request.auth.uid == uid || isBusinessOwner(businessId));
 
-        // Only owners can manage members
-        allow write: if isBusinessOwner(businessId);
+        // Allow creating initial member during onboarding batch write (when uid == request.auth.uid) or by owner
+        allow create: if isAuthenticated() && (request.auth.uid == uid || isBusinessOwner(businessId));
+
+        // Only owners can update or delete members
+        allow update, delete: if isBusinessOwner(businessId);
       }
 
       // -----------------------------------------------------------------------
@@ -102,8 +105,11 @@ service cloud.firestore {
         // Members with shop access can read; owners can read all
         allow read: if canAccessShop(businessId, shopId);
 
-        // Only owners can create, update, or delete shops
-        allow write: if isBusinessOwner(businessId);
+        // Allow shop creation during onboarding batch write by authenticated users or business owner
+        allow create: if isAuthenticated();
+
+        // Only owners can update or delete shops
+        allow update, delete: if isBusinessOwner(businessId);
 
         // =====================================================================
         // Shop Subcollections — All require canAccessShop()

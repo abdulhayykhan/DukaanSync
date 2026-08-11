@@ -85,8 +85,11 @@ export default function OnboardingPage() {
       await refreshProfile();
       await refreshBusiness();
       router.push("/dashboard");
-    } catch {
-      setSubmitError("Failed to set up your business. Please try again.");
+    } catch (err: unknown) {
+      console.error("Onboarding setup failed:", err);
+      const message =
+        err instanceof Error ? err.message : "Failed to set up your business. Please try again.";
+      setSubmitError(message);
     }
   };
 
