@@ -48,7 +48,7 @@ export default function BusinessProfilePage() {
       const businessRef = doc(db, "businesses", business.id);
       await updateDoc(businessRef, {
         name: name.trim(),
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       });
       toast.success("Business profile updated successfully");
       // BusinessContext will auto-update via snapshot listener

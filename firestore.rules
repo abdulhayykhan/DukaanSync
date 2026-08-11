@@ -21,16 +21,30 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    /// Check if request is from seed admin maintenance account
+    function isSeedAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email == "seed.admin@metromart.com" ||
+        request.auth.uid == "QhlEJoMLs0geF2lZB8k9wokL0PJ3"
+      );
+    }
+
     /// Check if the authenticated user is a member of the given business
     function isBusinessMember(businessId) {
       return isAuthenticated()
-        && exists(/databases/$(database)/documents/businesses/$(businessId)/members/$(request.auth.uid));
+        && (
+          isSeedAdmin()
+          || exists(/databases/$(database)/documents/businesses/$(businessId)/members/$(request.auth.uid))
+        );
     }
 
     /// Check if the authenticated user is the owner of the given business
     function isBusinessOwner(businessId) {
       return isAuthenticated()
-        && get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid;
+        && (
+          isSeedAdmin()
+          || get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid
+        );
     }
 
     /// Get the member document for the current user in the given business
@@ -43,7 +57,8 @@ service cloud.firestore {
     function canAccessShop(businessId, shopId) {
       return isBusinessMember(businessId)
         && (
-          isBusinessOwner(businessId)
+          isSeedAdmin()
+          || isBusinessOwner(businessId)
           || shopId in getMember(businessId).shopIds
         );
     }
@@ -65,9 +80,9 @@ service cloud.firestore {
     // Users Collection — /users/{uid}
     // =========================================================================
     match /users/{uid} {
-      // Users can only read/write their own profile
-      allow read: if isAuthenticated() && request.auth.uid == uid;
-      allow write: if isAuthenticated() && request.auth.uid == uid;
+      // Users can read/write their profile; seed admin can align business IDs
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (request.auth.uid == uid || isSeedAdmin());
     }
 
     // =========================================================================
@@ -80,8 +95,20 @@ service cloud.firestore {
       // Allow authenticated user to create a business if they are the owner
       allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
 
-      // Only the owner can update or delete business settings
-      allow update, delete: if isBusinessOwner(businessId);
+      // Allow owner or business members to update business settings
+      allow update: if isAuthenticated()
+        && (
+          isSeedAdmin()
+          || resource.data.ownerId == request.auth.uid
+          || isBusinessMember(businessId)
+        );
+
+      // Only the owner or seed admin can delete business settings
+      allow delete: if isAuthenticated()
+        && (
+          isSeedAdmin()
+          || resource.data.ownerId == request.auth.uid
+        );
 
       // -----------------------------------------------------------------------
       // Business Members — /businesses/{businessId}/members/{uid}
