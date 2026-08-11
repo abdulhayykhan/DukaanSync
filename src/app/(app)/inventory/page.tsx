@@ -127,10 +127,10 @@ export default function InventoryPage() {
     name: z.string().min(1, "Product Name is required"),
     category: z.string().optional().default("General"),
     unit: z.enum(["pcs", "kg", "g", "box", "pack", "liter", "other"]).catch("pcs"),
-    costPrice: z.coerce.number().min(0, "Cost Price must be positive").default(0),
-    retailPrice: z.coerce.number().min(0, "Retail Price must be positive").default(0),
-    quantity: z.coerce.number().min(0, "Quantity must be positive").default(0),
-    reorderLevel: z.coerce.number().min(0, "Reorder Level must be positive").default(10),
+    costPrice: z.coerce.number().catch(0).default(0),
+    retailPrice: z.coerce.number().catch(0).default(0),
+    quantity: z.coerce.number().catch(0).default(0),
+    reorderLevel: z.coerce.number().catch(10).default(10),
   });
 
   const handleValidateInventoryRow = (row: Record<string, string | number | boolean | null>) => {
@@ -140,10 +140,10 @@ export default function InventoryPage() {
 
     // 2. Map to expected Zod schema structure
     const mappedData = {
-      sku: getVal(['sku', 'productsku', 'code']),
-      name: getVal(['name', 'productname', 'title', 'item']),
-      category: getVal(['category', 'type']),
-      unit: getVal(['unit', 'uom']),
+      sku: String(getVal(['sku', 'productsku', 'code']) ?? ""),
+      name: String(getVal(['name', 'productname', 'title', 'item']) ?? ""),
+      category: String(getVal(['category', 'type']) ?? ""),
+      unit: String(getVal(['unit', 'uom']) ?? ""),
       costPrice: getVal(['costpricepkr', 'costprice', 'cost', 'costpricepaisa']),
       retailPrice: getVal(['retailpricepkr', 'retailprice', 'price', 'rate', 'retailpricepaisa']),
       quantity: getVal(['quantity', 'initialquantity', 'qty', 'stock']),

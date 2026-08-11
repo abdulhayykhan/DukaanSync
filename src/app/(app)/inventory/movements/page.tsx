@@ -108,9 +108,9 @@ export default function StockMovementsPage() {
     sku: z.string().min(1, "SKU is required"),
     productName: z.string().optional().default(""),
     type: z.enum(["initial", "sale", "purchase", "adjustment", "import_update", "import_addition", "customer_return", "supplier_return"]).catch("adjustment"),
-    quantityBefore: z.coerce.number().default(0),
-    quantityChange: z.coerce.number(),
-    quantityAfter: z.coerce.number().default(0),
+    quantityBefore: z.coerce.number().catch(0).default(0),
+    quantityChange: z.coerce.number().catch(0),
+    quantityAfter: z.coerce.number().catch(0).default(0),
     reason: z.string().optional().default(""),
   });
 
@@ -125,14 +125,14 @@ export default function StockMovementsPage() {
     const get = (aliases: string[]) => getField(norm, aliases);
 
     const mapped = {
-      timestamp: get(["timestamp", "date", "createdat", "datetime", "time"]),
-      sku: get(["sku", "productsku", "itemsku", "code", "itemcode", "barcode"]),
-      productName: get(["productname", "name", "product", "item", "itemname"]),
-      type: get(["type", "movementtype", "movement_type", "movetype"]),
+      timestamp: String(get(["timestamp", "date", "createdat", "datetime", "time"]) ?? ""),
+      sku: String(get(["sku", "productsku", "itemsku", "code", "itemcode", "barcode"]) ?? ""),
+      productName: String(get(["productname", "name", "product", "item", "itemname"]) ?? ""),
+      type: String(get(["type", "movementtype", "movement_type", "movetype"]) ?? ""),
       quantityBefore: get(["quantitybefore", "before", "qtybefore", "stockbefore", "qbefore"]),
       quantityChange: get(["quantitychange", "change", "qtychange", "delta", "qty", "quantity"]),
       quantityAfter: get(["quantityafter", "after", "qtyafter", "stockafter", "qafter"]),
-      reason: get(["reason", "notes", "description", "memo", "remarks"]),
+      reason: String(get(["reason", "notes", "description", "memo", "remarks"]) ?? ""),
     };
 
     const parsed = movementRowSchema.safeParse(mapped);

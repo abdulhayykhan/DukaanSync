@@ -82,13 +82,13 @@ export default function PurchasesPage() {
     const get = (aliases: string[]) => getField(norm, aliases);
 
     const mapped = {
-      purchaseNumber: get(["purchasenumber", "ponumber", "invoicenumber", "id", "ordernumber"]) || `IMP-${Date.now()}`,
-      supplierName: get(["suppliername", "supplier", "supplierName", "vendor", "vendorname"]),
-      date: get(["date", "purchasedate", "orderdate", "createdat", "timestamp"]),
+      purchaseNumber: String(get(["purchasenumber", "ponumber", "invoicenumber", "id", "ordernumber"]) || `IMP-${Date.now()}`),
+      supplierName: String(get(["suppliername", "supplier", "supplierName", "vendor", "vendorname"]) ?? ""),
+      date: String(get(["date", "purchasedate", "orderdate", "createdat", "timestamp"]) ?? ""),
       grandTotalPKR: get(["grandtotalpkr", "grandtotal", "grand_total", "total", "amount", "totalpkr"]),
-      paymentStatus: get(["paymentstatus", "payment_status", "status"]),
-      paymentMethod: get(["paymentmethod", "payment_method", "method", "payment"]),
-      notes: get(["notes", "remarks", "memo"]),
+      paymentStatus: String(get(["paymentstatus", "payment_status", "status"]) ?? ""),
+      paymentMethod: String(get(["paymentmethod", "payment_method", "method", "payment"]) ?? ""),
+      notes: String(get(["notes", "remarks", "memo"]) ?? ""),
     };
 
     const parsed = purchaseRowSchema.safeParse(mapped);

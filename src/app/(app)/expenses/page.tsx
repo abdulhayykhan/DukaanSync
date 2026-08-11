@@ -169,7 +169,7 @@ export default function ExpensesPage() {
     date: z.string().optional().default(""),
     category: z.enum(["rent", "utilities", "salary", "transport", "maintenance", "marketing", "other"]).catch("other"),
     description: z.string().optional().default(""),
-    amountPKR: z.coerce.number().min(0).default(0),
+    amountPKR: z.coerce.number().catch(0).default(0),
     paymentMethod: z.enum(["cash", "bank", "card"]).catch("cash"),
   });
 
@@ -184,11 +184,11 @@ export default function ExpensesPage() {
     const get = (aliases: string[]) => getField(norm, aliases);
 
     const mapped = {
-      date: get(["date", "expensedate", "transactiondate", "createdat"]),
-      category: get(["category", "type", "expensecategory", "expensetype"]),
-      description: get(["description", "desc", "memo", "notes", "details"]),
+      date: String(get(["date", "expensedate", "transactiondate", "createdat"]) ?? ""),
+      category: String(get(["category", "type", "expensecategory", "expensetype"]) ?? ""),
+      description: String(get(["description", "desc", "memo", "notes", "details"]) ?? ""),
       amountPKR: get(["amountpkr", "amount", "cost", "value", "amountpkr", "totalpkr"]),
-      paymentMethod: get(["paymentmethod", "payment_method", "method", "payment", "paymentmode"]),
+      paymentMethod: String(get(["paymentmethod", "payment_method", "method", "payment", "paymentmode"]) ?? ""),
     };
 
     const parsed = expenseRowSchema.safeParse(mapped);
