@@ -3,20 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase/client";
-import { ChevronLeft, Users, ShieldAlert, Mail } from "lucide-react";
+import { ChevronLeft, Users, ShieldAlert, Mail, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 import { useBusiness } from "@/contexts/BusinessContext";
 import { Button } from "@/components/ui/Button";
-
-interface BusinessMember {
-  uid: string;
-  email: string;
-  role: "owner" | "manager" | "cashier" | "inventory_manager";
-  joinedAt?: any;
-}
+import { UserService, type BusinessMember } from "@/lib/users/service";
 
 export default function UsersSettingsPage() {
   const { business, memberRole } = useBusiness();
@@ -24,21 +16,18 @@ export default function UsersSettingsPage() {
   
   const [members, setMembers] = useState<BusinessMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchMembers = useCallback(async () => {
-    if (!db || !business) return;
+    if (!business?.id) return;
     setLoading(true);
+    setError(null);
     try {
-      const membersRef = collection(db, "businesses", business.id, "members");
-      const snapshot = await getDocs(membersRef);
-      const membersData: BusinessMember[] = [];
-      snapshot.forEach(doc => {
-        membersData.push({ uid: doc.id, ...doc.data() } as BusinessMember);
-      });
-      setMembers(membersData);
+      const membersData = await UserService.getTeamMembers(business.id);
+      setMembers(Array.isArray(membersData) ? membersData : []);
     } catch (err: any) {
       console.error("Failed to fetch members:", err?.message || err);
-      // Fallback empty list gracefully if error occurs
+      setError("Unable to load team members right now.");
       setMembers([]);
     } finally {
       setLoading(false);
@@ -74,6 +63,8 @@ export default function UsersSettingsPage() {
     inventory_manager: "bg-orange-100 text-orange-800 border-orange-200",
   };
 
+  const safeMembers = Array.isArray(members) ? members : [];
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto animate-in fade-in zoom-in-95 duration-500">
       <div className="mb-4">
@@ -94,6 +85,18 @@ export default function UsersSettingsPage() {
         </Button>
       </div>
 
+      {error && (
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <ShieldAlert className="w-5 h-5 text-amber-600" />
+            <span className="text-sm font-medium text-amber-800">{error}</span>
+          </div>
+          <Button variant="outline" size="sm" onClick={fetchMembers} className="gap-2 text-xs">
+            <RefreshCw className="w-3.5 h-3.5" /> Retry
+          </Button>
+        </div>
+      )}
+
       <div className="glass-card bg-white/70 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -112,37 +115,44 @@ export default function UsersSettingsPage() {
                     Loading team members...
                   </td>
                 </tr>
-              ) : members.map((member) => (
-                <tr key={member.uid} className="hover:bg-white/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center text-emerald-700 font-bold shadow-sm">
-                        {member.email.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-medium text-gray-900">{member.email}</span>
-                        <span className="text-xs text-gray-400 font-mono">{member.uid}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${roleColors[member.role] || "bg-gray-100 text-gray-800 border-gray-200"}`}>
-                      {member.role.replace("_", " ").toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                      Active
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <Button variant="outline" className="px-3 py-1.5 text-xs h-auto" onClick={() => toast.info("Role editing coming soon!")}>
-                      Edit Role
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-              {!loading && members.length === 0 && (
+              ) : (
+                safeMembers.map((member) => {
+                  const displayEmail = member.email || "Team Member";
+                  const avatarInitial = (displayEmail || member.uid || "U").charAt(0).toUpperCase();
+
+                  return (
+                    <tr key={member.uid} className="hover:bg-white/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center text-emerald-700 font-bold shadow-sm">
+                            {avatarInitial}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="font-medium text-gray-900">{displayEmail}</span>
+                            <span className="text-xs text-gray-400 font-mono">{member.uid}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${roleColors[member.role] || "bg-gray-100 text-gray-800 border-gray-200"}`}>
+                          {(member.role || "cashier").replace("_", " ").toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                          Active
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Button variant="outline" className="px-3 py-1.5 text-xs h-auto" onClick={() => toast.info("Role editing coming soon!")}>
+                          Edit Role
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+              {!loading && safeMembers.length === 0 && (
                 <tr>
                   <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
                     No team members found.
