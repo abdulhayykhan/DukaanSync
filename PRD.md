@@ -12,6 +12,12 @@ DukaanSync is a cloud-native, multi-tenant Point of Sale (POS) and retail manage
 
 The platform allows **one authenticated user account to manage multiple physical shops without logging in separately for each shop**.
 
+The user interface follows a modern **3D Animated Glassmorphism** design aesthetic. This includes:
+- Translucent, frosted glass cards and modals
+- Subtle neon glows and gradients
+- Smooth, micro-animated transitions and hover effects
+- A premium, dark-mode focused or vibrant dual-theme appearance
+
 The fundamental business hierarchy is:
 
 ```text

@@ -51,6 +51,7 @@
 | Routing | App Router | Required |
 | Language | TypeScript | Strict |
 | Styling | Tailwind CSS | v4+ |
+| UI/UX Design | 3D Animated Glassmorphism | Required |
 | Icons | Lucide React | Required |
 | Charts | Recharts | Required |
 | Database | Cloud Firestore | Required |
