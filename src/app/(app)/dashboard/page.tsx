@@ -38,8 +38,19 @@ export default function DashboardPage() {
     try {
       const telemetry = await AnalyticsEngine.getDashboardTelemetry(business.id, activeShop.id, period);
       setData(telemetry);
-    } catch (err) {
-      toast.error("Failed to load telemetry data");
+    } catch (err: any) {
+      console.error("Failed to load dashboard telemetry data:", err?.code || err, err?.message);
+      setData({
+        revenueMinor: 0,
+        grossProfitMinor: 0,
+        netProfitMinor: 0,
+        totalReceivablesMinor: 0,
+        totalPayablesMinor: 0,
+        inventoryValueMinor: 0,
+        lowStockCount: 0,
+        chartData: [],
+        expenseDistribution: []
+      });
     } finally {
       setLoading(false);
     }

@@ -51,8 +51,7 @@ export class AnalyticsEngine {
     const startIso = startDate.toISOString();
     const endIso = endDate.toISOString();
 
-    // 1. Fire parallel queries for exact time bounds
-    // For global metrics (inventory, receivables, payables) we fetch all active docs
+    // 1. Fire parallel queries for exact time bounds with safe error fallbacks
     const [
       salesSnap,
       expensesSnap,
@@ -66,20 +65,35 @@ export class AnalyticsEngine {
         where("createdAt", ">=", startIso),
         where("createdAt", "<=", endIso),
         orderBy("createdAt", "asc")
-      )),
+      )).catch((err) => {
+        console.error("Telemetry query error (sales):", err?.code || err, err?.message);
+        return { docs: [] };
+      }),
       // Expenses for period
       getDocs(query(
         collection(db, "businesses", businessId, "shops", shopId, "expenses"),
         where("date", ">=", startIso),
         where("date", "<=", endIso),
         orderBy("date", "asc")
-      )),
+      )).catch((err) => {
+        console.error("Telemetry query error (expenses):", err?.code || err, err?.message);
+        return { docs: [] };
+      }),
       // All inventory for current valuation & low stock count
-      getDocs(collection(db, "businesses", businessId, "shops", shopId, "inventory")),
-      // All customers for total receivables
-      getDocs(query(collection(db, "businesses", businessId, "customers"), where("currentBalanceMinor", ">", 0))),
-      // All suppliers for total payables
-      getDocs(query(collection(db, "businesses", businessId, "suppliers"), where("currentBalanceMinor", ">", 0)))
+      getDocs(collection(db, "businesses", businessId, "shops", shopId, "inventory")).catch((err) => {
+        console.error("Telemetry query error (inventory):", err?.code || err, err?.message);
+        return { docs: [] };
+      }),
+      // All customers for total receivables under active shop
+      getDocs(query(collection(db, "businesses", businessId, "shops", shopId, "customers"), where("currentBalanceMinor", ">", 0))).catch((err) => {
+        console.error("Telemetry query error (customers):", err?.code || err, err?.message);
+        return { docs: [] };
+      }),
+      // All suppliers for total payables under active shop
+      getDocs(query(collection(db, "businesses", businessId, "shops", shopId, "suppliers"), where("currentBalanceMinor", ">", 0))).catch((err) => {
+        console.error("Telemetry query error (suppliers):", err?.code || err, err?.message);
+        return { docs: [] };
+      })
     ]);
 
     // 2. Parse Results
