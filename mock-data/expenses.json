@@ -1,371 +1,254 @@
 [
   {
-    "id": "exp_syxy4jf2a",
-    "date": "2026-08-11T08:44:05.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 233
-  },
-  {
-    "id": "exp_w3op2lv2m",
-    "date": "2026-08-10T07:18:47.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 449
-  },
-  {
-    "id": "exp_k2zt81oo5",
-    "date": "2026-08-10T06:55:02.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 206
-  },
-  {
-    "id": "exp_qqk2j84rr",
-    "date": "2026-08-09T14:20:02.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "cash",
-    "amountPKR": 444
-  },
-  {
-    "id": "exp_1g3f1vccl",
-    "date": "2026-08-08T17:27:41.149Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "cash",
-    "amountPKR": 203
-  },
-  {
-    "id": "exp_qca2inxln",
-    "date": "2026-08-08T14:43:51.150Z",
+    "id": "exp_u557a68er",
+    "shopCode": "BR-02",
+    "date": "2026-08-11T09:28:00.131Z",
     "category": "Electricity",
-    "description": "Misc expense",
-    "paymentMethod": "cash",
-    "amountPKR": 1680
-  },
-  {
-    "id": "exp_dzpkup9st",
-    "date": "2026-08-07T12:31:28.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "cash",
-    "amountPKR": 235
-  },
-  {
-    "id": "exp_hj2ulybay",
-    "date": "2026-08-06T15:43:04.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 336
-  },
-  {
-    "id": "exp_58a6yurqj",
-    "date": "2026-08-06T11:20:46.150Z",
-    "category": "Office Supplies",
-    "description": "Paper reams and toner refill",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 4181
-  },
-  {
-    "id": "exp_vuvwh0f7b",
-    "date": "2026-08-06T08:07:19.150Z",
-    "category": "Rent",
-    "description": "Misc expense",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 2830
-  },
-  {
-    "id": "exp_30cvvv0jl",
-    "date": "2026-08-06T04:23:40.149Z",
-    "category": "Electricity",
-    "description": "K-Electric Monthly Bill",
+    "description": "K-Electric Bill",
     "paymentMethod": "bank",
-    "amountPKR": 26145,
-    "supplierId": "sup_fd95qae5u"
+    "amountPKR": 36837
   },
   {
-    "id": "exp_4dngcmai4",
-    "date": "2026-08-05T11:34:11.150Z",
+    "id": "exp_wku8228jc",
+    "shopCode": "BR-02",
+    "date": "2026-08-09T14:03:15.131Z",
+    "category": "Cleaning Supplies",
+    "description": "Cleaning Supplies for MetroMart Express (Clifton)",
+    "paymentMethod": "cash",
+    "amountPKR": 3955
+  },
+  {
+    "id": "exp_8i7lx7sre",
+    "shopCode": "MAIN",
+    "date": "2026-08-09T12:23:20.131Z",
+    "category": "Cleaning Supplies",
+    "description": "Cleaning Supplies for MetroMart Main Branch (Gulshan)",
+    "paymentMethod": "cash",
+    "amountPKR": 4015
+  },
+  {
+    "id": "exp_uc1yaj7te",
+    "shopCode": "MAIN",
+    "date": "2026-08-07T09:51:59.131Z",
     "category": "Rent",
-    "description": "Misc expense",
-    "paymentMethod": "cash",
-    "amountPKR": 2015
+    "description": "Monthly Shop Rent",
+    "paymentMethod": "bank",
+    "amountPKR": 76652
   },
   {
-    "id": "exp_mtbaddlx6",
-    "date": "2026-08-05T08:33:10.150Z",
-    "category": "Marketing",
-    "description": "Misc expense",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 1625
-  },
-  {
-    "id": "exp_mvgywi7ev",
-    "date": "2026-08-04T16:03:03.150Z",
-    "category": "Maintenance",
-    "description": "Photocopier repair/maintenance",
-    "paymentMethod": "cash",
-    "amountPKR": 1181
-  },
-  {
-    "id": "exp_5yk5judps",
-    "date": "2026-08-02T17:17:54.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "cash",
-    "amountPKR": 509
-  },
-  {
-    "id": "exp_cs0m60sjh",
-    "date": "2026-08-02T17:17:01.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "cash",
-    "amountPKR": 244
-  },
-  {
-    "id": "exp_y5772tv9y",
-    "date": "2026-08-01T13:09:12.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "cash",
-    "amountPKR": 548
-  },
-  {
-    "id": "exp_dg7mm2thg",
-    "date": "2026-08-01T09:29:19.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 546
-  },
-  {
-    "id": "exp_fmfm1yjyv",
-    "date": "2026-08-01T08:13:46.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "cash",
-    "amountPKR": 484
-  },
-  {
-    "id": "exp_bg8b6hkck",
-    "date": "2026-08-01T03:25:07.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 565
-  },
-  {
-    "id": "exp_f62s5ppd2",
-    "date": "2026-07-29T08:44:17.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 291
-  },
-  {
-    "id": "exp_4xsicy98l",
-    "date": "2026-07-29T06:03:43.150Z",
-    "category": "Marketing",
-    "description": "Misc expense",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 2375
-  },
-  {
-    "id": "exp_w33luzq2i",
-    "date": "2026-07-28T16:27:51.150Z",
-    "category": "Rent",
-    "description": "Misc expense",
-    "paymentMethod": "cash",
-    "amountPKR": 2559
-  },
-  {
-    "id": "exp_ewibu429q",
-    "date": "2026-07-28T05:47:40.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "cash",
-    "amountPKR": 165
-  },
-  {
-    "id": "exp_14jgxmnz6",
-    "date": "2026-07-27T05:27:32.150Z",
-    "category": "Marketing",
-    "description": "Misc expense",
-    "paymentMethod": "cash",
-    "amountPKR": 2346
-  },
-  {
-    "id": "exp_t7ldwdkce",
-    "date": "2026-07-26T15:30:14.150Z",
-    "category": "Marketing",
-    "description": "Misc expense",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 2982
-  },
-  {
-    "id": "exp_hx5yazcpt",
-    "date": "2026-07-25T11:23:51.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 376
-  },
-  {
-    "id": "exp_d54y4270m",
-    "date": "2026-07-24T18:53:51.149Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "cash",
-    "amountPKR": 303
-  },
-  {
-    "id": "exp_qnbn0tvsq",
-    "date": "2026-07-24T04:38:52.150Z",
-    "category": "Maintenance",
-    "description": "Photocopier repair/maintenance",
-    "paymentMethod": "cash",
-    "amountPKR": 4478
-  },
-  {
-    "id": "exp_p83e40zts",
-    "date": "2026-07-23T17:41:52.150Z",
-    "category": "Maintenance",
-    "description": "Photocopier repair/maintenance",
-    "paymentMethod": "cash",
-    "amountPKR": 3215
-  },
-  {
-    "id": "exp_v74zsk4i8",
-    "date": "2026-07-22T17:12:00.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "cash",
-    "amountPKR": 216
-  },
-  {
-    "id": "exp_w8n2c1g2d",
-    "date": "2026-07-22T11:50:01.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 557
-  },
-  {
-    "id": "exp_2ksozm7v7",
-    "date": "2026-07-20T13:52:53.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 282
-  },
-  {
-    "id": "exp_j75ljvlhn",
-    "date": "2026-07-20T07:35:09.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "cash",
-    "amountPKR": 169
-  },
-  {
-    "id": "exp_igze5uyi1",
-    "date": "2026-07-19T12:16:13.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 575
-  },
-  {
-    "id": "exp_ikqpxggox",
-    "date": "2026-07-19T06:33:02.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "cash",
-    "amountPKR": 331
-  },
-  {
-    "id": "exp_g3kftrn4y",
-    "date": "2026-07-18T09:48:31.150Z",
-    "category": "Office Supplies",
-    "description": "Paper reams and toner refill",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 7594
-  },
-  {
-    "id": "exp_2kkbvljit",
-    "date": "2026-07-18T03:52:02.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 176
-  },
-  {
-    "id": "exp_iyidgz4w4",
-    "date": "2026-07-17T09:15:10.150Z",
+    "id": "exp_iv2n2gyjo",
+    "shopCode": "MAIN",
+    "date": "2026-08-07T07:36:12.131Z",
     "category": "Electricity",
-    "description": "Misc expense",
-    "paymentMethod": "cash",
-    "amountPKR": 1836
+    "description": "K-Electric Bill",
+    "paymentMethod": "bank",
+    "amountPKR": 35715
   },
   {
-    "id": "exp_3q11ljt8p",
-    "date": "2026-07-16T10:18:04.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
+    "id": "exp_xffdjw893",
+    "shopCode": "BR-02",
+    "date": "2026-08-07T03:59:42.131Z",
+    "category": "Cleaning Supplies",
+    "description": "Cleaning Supplies for MetroMart Express (Clifton)",
     "paymentMethod": "cash",
-    "amountPKR": 597
+    "amountPKR": 1382
   },
   {
-    "id": "exp_rqb86yg4p",
-    "date": "2026-07-15T11:35:01.150Z",
-    "category": "Marketing",
-    "description": "Misc expense",
-    "paymentMethod": "cash",
-    "amountPKR": 1843
+    "id": "exp_6fg1y8d8z",
+    "shopCode": "BR-03",
+    "date": "2026-08-06T15:14:19.131Z",
+    "category": "Rent",
+    "description": "Monthly Shop Rent",
+    "paymentMethod": "bank",
+    "amountPKR": 104521
   },
   {
-    "id": "exp_g12kry8ai",
-    "date": "2026-07-14T12:35:43.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
-    "paymentMethod": "cash",
-    "amountPKR": 390
-  },
-  {
-    "id": "exp_unbh9k7sc",
-    "date": "2026-07-14T12:34:51.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
+    "id": "exp_m2v81apve",
+    "shopCode": "MAIN",
+    "date": "2026-08-06T09:11:34.131Z",
+    "category": "Maintenance",
+    "description": "Maintenance for MetroMart Main Branch (Gulshan)",
     "paymentMethod": "easypaisa",
-    "amountPKR": 448
+    "amountPKR": 13034
   },
   {
-    "id": "exp_qe918k8ox",
-    "date": "2026-07-13T07:35:58.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
+    "id": "exp_2md6w47tt",
+    "shopCode": "BR-02",
+    "date": "2026-08-06T06:53:11.131Z",
+    "category": "Rent",
+    "description": "Monthly Shop Rent",
+    "paymentMethod": "bank",
+    "amountPKR": 111053
+  },
+  {
+    "id": "exp_n896oaumb",
+    "shopCode": "BR-03",
+    "date": "2026-08-05T15:01:41.131Z",
+    "category": "Electricity",
+    "description": "K-Electric Bill",
+    "paymentMethod": "bank",
+    "amountPKR": 65768
+  },
+  {
+    "id": "exp_yao1g29z2",
+    "shopCode": "MAIN",
+    "date": "2026-08-04T06:31:02.131Z",
+    "category": "Cleaning Supplies",
+    "description": "Cleaning Supplies for MetroMart Main Branch (Gulshan)",
+    "paymentMethod": "easypaisa",
+    "amountPKR": 3231
+  },
+  {
+    "id": "exp_rhl3ha0ln",
+    "shopCode": "MAIN",
+    "date": "2026-08-02T11:44:59.131Z",
+    "category": "Maintenance",
+    "description": "Maintenance for MetroMart Main Branch (Gulshan)",
+    "paymentMethod": "easypaisa",
+    "amountPKR": 11481
+  },
+  {
+    "id": "exp_pvddjnmdz",
+    "shopCode": "BR-02",
+    "date": "2026-08-01T03:06:08.131Z",
+    "category": "Maintenance",
+    "description": "Maintenance for MetroMart Express (Clifton)",
     "paymentMethod": "cash",
-    "amountPKR": 188
+    "amountPKR": 10789
   },
   {
-    "id": "exp_gu02y76ge",
-    "date": "2026-07-12T18:48:21.150Z",
-    "category": "Marketing",
-    "description": "Misc expense",
-    "paymentMethod": "easypaisa",
-    "amountPKR": 746
+    "id": "exp_h397j0bm4",
+    "shopCode": "BR-02",
+    "date": "2026-07-30T05:18:19.131Z",
+    "category": "Cleaning Supplies",
+    "description": "Cleaning Supplies for MetroMart Express (Clifton)",
+    "paymentMethod": "cash",
+    "amountPKR": 4113
   },
   {
-    "id": "exp_bvyatyrf1",
-    "date": "2026-07-12T03:18:11.150Z",
-    "category": "Tea & Snacks",
-    "description": "Staff Tea & Lunch",
+    "id": "exp_n34aollkc",
+    "shopCode": "BR-03",
+    "date": "2026-07-29T17:35:15.131Z",
+    "category": "Cleaning Supplies",
+    "description": "Cleaning Supplies for MetroMart Superstore (DHA)",
     "paymentMethod": "easypaisa",
-    "amountPKR": 470
+    "amountPKR": 3174
+  },
+  {
+    "id": "exp_lwp08japw",
+    "shopCode": "BR-03",
+    "date": "2026-07-29T05:54:48.131Z",
+    "category": "Maintenance",
+    "description": "Maintenance for MetroMart Superstore (DHA)",
+    "paymentMethod": "easypaisa",
+    "amountPKR": 12222
+  },
+  {
+    "id": "exp_s4haqb5x6",
+    "shopCode": "BR-03",
+    "date": "2026-07-28T07:00:15.131Z",
+    "category": "Maintenance",
+    "description": "Maintenance for MetroMart Superstore (DHA)",
+    "paymentMethod": "cash",
+    "amountPKR": 9369
+  },
+  {
+    "id": "exp_s2hfw8u0x",
+    "shopCode": "BR-03",
+    "date": "2026-07-28T03:10:34.131Z",
+    "category": "Maintenance",
+    "description": "Maintenance for MetroMart Superstore (DHA)",
+    "paymentMethod": "cash",
+    "amountPKR": 3034
+  },
+  {
+    "id": "exp_jfwixdlqy",
+    "shopCode": "BR-02",
+    "date": "2026-07-27T15:03:20.131Z",
+    "category": "Maintenance",
+    "description": "Maintenance for MetroMart Express (Clifton)",
+    "paymentMethod": "cash",
+    "amountPKR": 8874
+  },
+  {
+    "id": "exp_sit21qrqb",
+    "shopCode": "BR-02",
+    "date": "2026-07-25T17:39:11.131Z",
+    "category": "Cleaning Supplies",
+    "description": "Cleaning Supplies for MetroMart Express (Clifton)",
+    "paymentMethod": "cash",
+    "amountPKR": 1173
+  },
+  {
+    "id": "exp_0fvn24vuu",
+    "shopCode": "BR-02",
+    "date": "2026-07-25T10:07:57.131Z",
+    "category": "Cleaning Supplies",
+    "description": "Cleaning Supplies for MetroMart Express (Clifton)",
+    "paymentMethod": "cash",
+    "amountPKR": 1768
+  },
+  {
+    "id": "exp_0g43w539l",
+    "shopCode": "BR-03",
+    "date": "2026-07-23T17:40:58.131Z",
+    "category": "Cleaning Supplies",
+    "description": "Cleaning Supplies for MetroMart Superstore (DHA)",
+    "paymentMethod": "easypaisa",
+    "amountPKR": 3089
+  },
+  {
+    "id": "exp_ovrj7chgi",
+    "shopCode": "MAIN",
+    "date": "2026-07-21T17:37:40.131Z",
+    "category": "Cleaning Supplies",
+    "description": "Cleaning Supplies for MetroMart Main Branch (Gulshan)",
+    "paymentMethod": "easypaisa",
+    "amountPKR": 3785
+  },
+  {
+    "id": "exp_bcbq7nq97",
+    "shopCode": "BR-02",
+    "date": "2026-07-21T14:27:14.131Z",
+    "category": "Maintenance",
+    "description": "Maintenance for MetroMart Express (Clifton)",
+    "paymentMethod": "cash",
+    "amountPKR": 3994
+  },
+  {
+    "id": "exp_26q7u77uh",
+    "shopCode": "MAIN",
+    "date": "2026-07-21T06:13:58.131Z",
+    "category": "Cleaning Supplies",
+    "description": "Cleaning Supplies for MetroMart Main Branch (Gulshan)",
+    "paymentMethod": "easypaisa",
+    "amountPKR": 4884
+  },
+  {
+    "id": "exp_lvnhy95vh",
+    "shopCode": "BR-02",
+    "date": "2026-07-16T17:49:01.131Z",
+    "category": "Maintenance",
+    "description": "Maintenance for MetroMart Express (Clifton)",
+    "paymentMethod": "easypaisa",
+    "amountPKR": 4589
+  },
+  {
+    "id": "exp_wwo4ac951",
+    "shopCode": "MAIN",
+    "date": "2026-07-13T14:08:13.131Z",
+    "category": "Maintenance",
+    "description": "Maintenance for MetroMart Main Branch (Gulshan)",
+    "paymentMethod": "cash",
+    "amountPKR": 7777
+  },
+  {
+    "id": "exp_n483fsts0",
+    "shopCode": "BR-03",
+    "date": "2026-07-13T09:29:22.131Z",
+    "category": "Maintenance",
+    "description": "Maintenance for MetroMart Superstore (DHA)",
+    "paymentMethod": "cash",
+    "amountPKR": 9417
   }
 ]

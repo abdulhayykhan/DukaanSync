@@ -5,42 +5,47 @@ const path = require('path');
 const OUT_DIR = path.join(__dirname, '..', 'mock-data');
 const DAYS_AGO = 30;
 
-// Employees
-const EMPLOYEES = [
-  { name: 'Ashar', role: 'Night Operator' },
-  { name: 'Azan', role: 'Night Typist' },
-  { name: 'Omar', role: 'Night Manager / Biometrics Specialist' },
-  { name: 'Ali', role: 'Night Assistant' },
-  { name: 'Hamza', role: 'Day Operator' },
-  { name: 'Saqib', role: 'Day Operator' },
-  { name: 'Abdi', role: 'IT Manager' }
+const SHOPS = [
+  { code: 'MAIN', name: 'MetroMart Main Branch (Gulshan)' },
+  { code: 'BR-02', name: 'MetroMart Express (Clifton)' },
+  { code: 'BR-03', name: 'MetroMart Superstore (DHA)' }
 ];
 
-// Product Catalog (Prices in PKR)
-const CATALOG = [
-  { sku: 'PRINT-BW', name: 'Print Out (Black & White)', category: 'Printing', unit: 'pcs', costPrice: 5, retailPrice: 20 },
-  { sku: 'PRINT-COL', name: 'Print Out (Color)', category: 'Printing', unit: 'pcs', costPrice: 15, retailPrice: 50 },
-  { sku: 'COPY-BW', name: 'Photo Copy (Black)', category: 'Printing', unit: 'pcs', costPrice: 3, retailPrice: 10 },
-  { sku: 'COPY-COL', name: 'Photo Copy (Color)', category: 'Printing', unit: 'pcs', costPrice: 15, retailPrice: 50 },
-  { sku: 'CNIC-COPY', name: 'CNIC Copy (4 / 8 per page)', category: 'Printing', unit: 'pcs', costPrice: 5, retailPrice: 30 },
-  { sku: 'SCAN-1', name: 'Scanning (1-Side)', category: 'Documentation', unit: 'pcs', costPrice: 10, retailPrice: 50 },
-  { sku: 'SCAN-2', name: 'Scanning (2-Side)', category: 'Documentation', unit: 'pcs', costPrice: 15, retailPrice: 100 },
-  { sku: 'PASS-PHOTO', name: 'Passport Size Photos (4 / 8 pack)', category: 'Photography', unit: 'pack', costPrice: 30, retailPrice: 150 },
-  
-  { sku: 'BIO-VERIFY', name: 'Biometrics Verification', category: 'NADRA Services', unit: 'pcs', costPrice: 50, retailPrice: 300 },
-  { sku: 'APP-URDU', name: 'Application Writing / Urdu Typing', category: 'Documentation', unit: 'pcs', costPrice: 20, retailPrice: 150 },
-  { sku: 'AFFIDAVIT', name: 'Affidavit / Sale Agreement / Rent Agreement', category: 'Documentation', unit: 'pcs', costPrice: 100, retailPrice: 500 },
-  { sku: 'CV-NORMAL', name: 'CV Normal Creation', category: 'Documentation', unit: 'pcs', costPrice: 50, retailPrice: 150 },
-  { sku: 'CV-PRO', name: 'CV Professional Creation', category: 'Documentation', unit: 'pcs', costPrice: 100, retailPrice: 500 },
-  { sku: 'ONLINE-FORM', name: 'Online Form Filling (NADRA / Driving License)', category: 'Documentation', unit: 'pcs', costPrice: 20, retailPrice: 250 },
-  
-  { sku: 'PVC-PRINT', name: 'PVC Card Printing', category: 'Cards & Binding', unit: 'pcs', costPrice: 100, retailPrice: 350 },
-  { sku: 'PLASTIC-COAT', name: 'Soft / Hard Plastic Coating', category: 'Cards & Binding', unit: 'pcs', costPrice: 15, retailPrice: 80 },
-  { sku: 'TAPE-BIND', name: 'Tape Binding', category: 'Cards & Binding', unit: 'pcs', costPrice: 20, retailPrice: 100 },
-  { type: 'VARIABLE', sku: 'SPIRAL-BIND', name: 'Spiral Binding', category: 'Cards & Binding', unit: 'pcs', costRange: [30, 200], retailRange: [150, 1500] },
-  
-  { sku: 'BILL-FEE', name: 'K-Electric / SSGC Bill Payment Service Fee', category: 'Utility', unit: 'pcs', costPrice: 0, retailPrice: 30 },
-  { type: 'VARIABLE', sku: 'EASYLOAD', name: 'Mobile Recharge / Easyload', category: 'Utility', unit: 'pcs', marginRange: [0.02, 0.05], retailRange: [100, 2000] }
+const EMPLOYEES = ['Ahmed', 'Ali', 'Fatima', 'Ayesha', 'Usman', 'Zainab', 'Bilal', 'Sana', 'Fahad', 'Kamran', 'Kiran'];
+
+const CATALOG_TEMPLATES = [
+  // Groceries & Packaged Foods
+  { sku: 'GRO-RICE-5KG', name: 'Rice (5kg)', category: 'Groceries & Packaged Foods', unit: 'pack', costPricePKR: 1200, retailPricePKR: 1500 },
+  { sku: 'GRO-OIL-1L', name: 'Cooking Oil (1L)', category: 'Groceries & Packaged Foods', unit: 'pack', costPricePKR: 450, retailPricePKR: 520 },
+  { sku: 'GRO-FLOUR-10KG', name: 'Wheat Flour (10kg)', category: 'Groceries & Packaged Foods', unit: 'pack', costPricePKR: 1400, retailPricePKR: 1600 },
+  { sku: 'GRO-MILK-1L', name: 'Milk Pack (1L)', category: 'Groceries & Packaged Foods', unit: 'pack', costPricePKR: 250, retailPricePKR: 280 },
+  { sku: 'GRO-BISCUIT-FAM', name: 'Biscuits (Family Pack)', category: 'Groceries & Packaged Foods', unit: 'pack', costPricePKR: 100, retailPricePKR: 120 },
+  { sku: 'GRO-TEA-900G', name: 'Tea (900g)', category: 'Groceries & Packaged Foods', unit: 'pack', costPricePKR: 1300, retailPricePKR: 1550 },
+  { sku: 'GRO-SUGAR-1KG', name: 'Sugar (1kg)', category: 'Groceries & Packaged Foods', unit: 'kg', costPricePKR: 140, retailPricePKR: 160 },
+  { sku: 'GRO-LENTIL-1KG', name: 'Daal Chana (1kg)', category: 'Groceries & Packaged Foods', unit: 'kg', costPricePKR: 280, retailPricePKR: 320 },
+
+  // Beverages & Snacks
+  { sku: 'BEV-WATER-1.5L', name: 'Mineral Water (1.5L)', category: 'Beverages & Snacks', unit: 'pcs', costPricePKR: 80, retailPricePKR: 100 },
+  { sku: 'BEV-COLA-1.5L', name: 'Cola Soft Drink (1.5L)', category: 'Beverages & Snacks', unit: 'pcs', costPricePKR: 150, retailPricePKR: 180 },
+  { sku: 'BEV-JUICE-1L', name: 'Mango Juice (1L)', category: 'Beverages & Snacks', unit: 'pcs', costPricePKR: 200, retailPricePKR: 240 },
+  { sku: 'BEV-CHIPS-L', name: 'Potato Chips (Large)', category: 'Beverages & Snacks', unit: 'pack', costPricePKR: 80, retailPricePKR: 100 },
+  { sku: 'BEV-CHOC-BAR', name: 'Chocolate Bar (50g)', category: 'Beverages & Snacks', unit: 'pcs', costPricePKR: 90, retailPricePKR: 120 },
+  { sku: 'BEV-ENERGY-250ML', name: 'Energy Drink (250ml)', category: 'Beverages & Snacks', unit: 'pcs', costPricePKR: 200, retailPricePKR: 250 },
+
+  // Personal Care & Hygiene
+  { sku: 'PER-SOAP', name: 'Hand Soap (100g)', category: 'Personal Care & Hygiene', unit: 'pcs', costPricePKR: 80, retailPricePKR: 110 },
+  { sku: 'PER-SHAMPOO-200ML', name: 'Shampoo (200ml)', category: 'Personal Care & Hygiene', unit: 'pcs', costPricePKR: 350, retailPricePKR: 450 },
+  { sku: 'PER-TOOTHPASTE', name: 'Toothpaste (120g)', category: 'Personal Care & Hygiene', unit: 'pcs', costPricePKR: 180, retailPricePKR: 230 },
+  { sku: 'PER-TISSUE', name: 'Tissue Box (150s)', category: 'Personal Care & Hygiene', unit: 'pcs', costPricePKR: 160, retailPricePKR: 200 },
+  { sku: 'PER-DETERGENT-1KG', name: 'Laundry Detergent (1kg)', category: 'Personal Care & Hygiene', unit: 'pack', costPricePKR: 400, retailPricePKR: 500 },
+  { sku: 'PER-FACEWASH', name: 'Face Wash (100ml)', category: 'Personal Care & Hygiene', unit: 'pcs', costPricePKR: 250, retailPricePKR: 320 },
+
+  // Electronics & Accessories
+  { sku: 'ELE-USB-32GB', name: 'USB Flash Drive 32GB', category: 'Electronics & Accessories', unit: 'pcs', costPricePKR: 800, retailPricePKR: 1200 },
+  { sku: 'ELE-CABLE-C', name: 'Type-C Charging Cable', category: 'Electronics & Accessories', unit: 'pcs', costPricePKR: 300, retailPricePKR: 500 },
+  { sku: 'ELE-EARBUDS', name: 'Wireless Earbuds', category: 'Electronics & Accessories', unit: 'pcs', costPricePKR: 1500, retailPricePKR: 2500 },
+  { sku: 'ELE-POWERBANK', name: 'Power Bank (10000mAh)', category: 'Electronics & Accessories', unit: 'pcs', costPricePKR: 3000, retailPricePKR: 4500 },
+  { sku: 'ELE-CHARGER', name: 'Wall Charger (18W)', category: 'Electronics & Accessories', unit: 'pcs', costPricePKR: 600, retailPricePKR: 1000 }
 ];
 
 const KARACHI_NAMES = ["Ahmed", "Ali", "Fatima", "Hassan", "Ayesha", "Usman", "Zainab", "Bilal", "Sana", "Fahad", "Rabia", "Imran", "Nida", "Tariq", "Hira", "Kamran", "Sadia", "Zeeshan", "Kiran", "Noman", "Farhan", "Salman", "Mehwish", "Waqas"];
@@ -59,31 +64,55 @@ const generateId = (prefix) => `${prefix}_${Math.random().toString(36).substr(2,
 
 // --- Generators ---
 
+let allInventoryItems = [];
+let allStockMovements = [];
+
 function generateInventory() {
-  return CATALOG.map((item, idx) => {
-    let cost = item.costPrice || 0;
-    let retail = item.retailPrice || 0;
-    
-    if (item.type === 'VARIABLE') {
-      retail = item.retailRange[0]; // Set base display price
-      if (item.costRange) cost = item.costRange[0];
-    }
-    
-    return {
-      id: generateId('inv'),
-      sku: item.sku,
-      name: item.name,
-      category: item.category,
-      unit: item.unit,
-      quantity: randomInt(50, 5000), // High quantities for paper/supplies
-      costPricePKR: cost,
-      retailPricePKR: retail,
-      reorderLevel: randomInt(10, 100),
-      isActive: true,
-      createdAt: randomDate(60),
-      updatedAt: randomDate(5)
-    };
+  allInventoryItems = [];
+  allStockMovements = [];
+
+  SHOPS.forEach(shop => {
+    CATALOG_TEMPLATES.forEach(template => {
+      const quantity = randomInt(10, 100);
+      const reorderLevel = randomInt(5, 20);
+      
+      const invId = generateId('inv');
+      const now = randomDate(DAYS_AGO + 10);
+      
+      const item = {
+        id: invId,
+        shopCode: shop.code,
+        sku: template.sku,
+        name: template.name,
+        category: template.category,
+        unit: template.unit,
+        costPricePKR: template.costPricePKR,
+        retailPricePKR: template.retailPricePKR,
+        quantity: quantity,
+        reorderLevel: reorderLevel,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now
+      };
+      
+      allInventoryItems.push(item);
+      
+      // Initial Stock Movement
+      allStockMovements.push({
+        id: generateId('mov'),
+        shopCode: shop.code,
+        itemId: invId,
+        type: 'initial',
+        quantityBefore: 0,
+        quantityChange: quantity,
+        quantityAfter: quantity,
+        reason: 'Initial setup',
+        createdAt: now
+      });
+    });
   });
+  
+  return allInventoryItems;
 }
 
 function generateCustomers(count) {
@@ -91,14 +120,15 @@ function generateCustomers(count) {
   for (let i = 0; i < count; i++) {
     const fName = randomChoice(KARACHI_NAMES);
     const lName = randomChoice(LAST_NAMES);
-    // 30% have outstanding balance
-    const balance = Math.random() < 0.3 ? randomInt(1, 50) * 100 : 0;
+    const balance = Math.random() < 0.4 ? randomInt(1, 50) * 1000 : 0;
+    
     customers.push({
       id: generateId('cust'),
       name: `${fName} ${lName}`,
       phone: `03${randomInt(0, 4)}${randomInt(0, 9)}${randomInt(1000000, 9999999)}`,
-      email: Math.random() < 0.4 ? `${fName.toLowerCase()}.${lName.toLowerCase()}${randomInt(1, 99)}@gmail.com` : "",
+      email: Math.random() < 0.3 ? `${fName.toLowerCase()}.${lName.toLowerCase()}${randomInt(1, 99)}@gmail.com` : "",
       currentBalancePKR: balance,
+      customerType: Math.random() > 0.8 ? 'wholesale' : 'retail',
       isActive: true,
       createdAt: randomDate(90),
       updatedAt: randomDate(10)
@@ -109,18 +139,21 @@ function generateCustomers(count) {
 
 function generateSuppliers() {
   const suppliers = [
-    { name: "Karachi Paper Mart Wholesale", phone: "03001234567", balance: randomInt(5000, 25000) },
-    { name: "Sindh PVC & Plastics Co.", phone: "03211234567", balance: randomInt(0, 10000) },
-    { name: "K-Electric", phone: "118", balance: randomInt(15000, 45000) },
-    { name: "Digital Print Supplies & Toner", phone: "03331234567", balance: randomInt(2000, 8000) },
-    { name: "Tariq Stationers", phone: "03111234567", balance: 0 }
+    { name: "Unilever Pakistan", phone: "0800-13000", balance: randomInt(50000, 250000) },
+    { name: "Nestlé Wholesale", phone: "0800-00000", balance: randomInt(30000, 150000) },
+    { name: "Metro Logistics", phone: "0321-1234567", balance: randomInt(10000, 50000) },
+    { name: "Tech Imports Karachi", phone: "0333-7654321", balance: randomInt(0, 80000) },
+    { name: "Shan Foods Distributor", phone: "0300-9998887", balance: randomInt(5000, 20000) },
+    { name: "Reckitt Benckiser Dist.", phone: "0311-2223334", balance: randomInt(15000, 60000) },
+    { name: "National Foods", phone: "0301-3334445", balance: randomInt(0, 10000) },
+    { name: "Engro Foods", phone: "0322-4445556", balance: randomInt(20000, 90000) }
   ];
   
   return suppliers.map(s => ({
     id: generateId('sup'),
     name: s.name,
     phone: s.phone,
-    email: "",
+    email: `${s.name.split(' ')[0].toLowerCase()}@wholesale.com.pk`,
     currentBalancePKR: s.balance,
     isActive: true,
     createdAt: randomDate(120),
@@ -128,154 +161,120 @@ function generateSuppliers() {
   }));
 }
 
-function generateExpenses(count, suppliers) {
-  const categories = ["Rent", "Electricity", "Internet", "Tea & Snacks", "Maintenance", "Office Supplies", "Marketing"];
+function generateExpenses() {
   const expenses = [];
+  const categories = ["Rent", "Electricity", "Staff Salary", "Cleaning Supplies", "Maintenance"];
   
-  // Predictable recurring expenses
-  expenses.push({
-    id: generateId('exp'),
-    date: randomDate(DAYS_AGO),
-    category: "Electricity",
-    description: "K-Electric Monthly Bill",
-    paymentMethod: "bank",
-    amountPKR: randomInt(18000, 35000),
-    supplierId: suppliers.find(s => s.name === "K-Electric").id
-  });
-  
-  for (let i = 0; i < count; i++) {
-    const isDaily = Math.random() > 0.5;
-    const cat = isDaily ? "Tea & Snacks" : randomChoice(categories);
-    let amount = 0;
-    let desc = "";
-    
-    if (cat === "Tea & Snacks") {
-      amount = randomInt(150, 600);
-      desc = "Staff Tea & Lunch";
-    } else if (cat === "Office Supplies") {
-      amount = randomInt(2000, 8000);
-      desc = "Paper reams and toner refill";
-    } else if (cat === "Maintenance") {
-      amount = randomInt(1000, 5000);
-      desc = "Photocopier repair/maintenance";
-    } else {
-      amount = randomInt(500, 3000);
-      desc = "Misc expense";
-    }
+  SHOPS.forEach(shop => {
+    // Fixed monthly per branch
+    expenses.push({
+      id: generateId('exp'),
+      shopCode: shop.code,
+      date: randomDate(5),
+      category: "Rent",
+      description: "Monthly Shop Rent",
+      paymentMethod: "bank",
+      amountPKR: randomInt(50000, 150000)
+    });
     
     expenses.push({
       id: generateId('exp'),
-      date: randomDate(DAYS_AGO),
-      category: cat,
-      description: desc,
-      paymentMethod: randomChoice(["cash", "cash", "easypaisa"]),
-      amountPKR: amount
+      shopCode: shop.code,
+      date: randomDate(10),
+      category: "Electricity",
+      description: "K-Electric Bill",
+      paymentMethod: "bank",
+      amountPKR: randomInt(20000, 80000)
     });
-  }
+    
+    // Random branch expenses
+    for (let i = 0; i < randomInt(5, 12); i++) {
+      const cat = randomChoice(["Cleaning Supplies", "Maintenance"]);
+      let amount = (cat === "Cleaning Supplies") ? randomInt(1000, 5000) : randomInt(3000, 15000);
+      
+      expenses.push({
+        id: generateId('exp'),
+        shopCode: shop.code,
+        date: randomDate(DAYS_AGO),
+        category: cat,
+        description: `${cat} for ${shop.name}`,
+        paymentMethod: randomChoice(["cash", "cash", "easypaisa"]),
+        amountPKR: amount
+      });
+    }
+  });
   
-  // Sort by date desc
   return expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 
-function generateSales(count, inventoryItems, customers) {
+function generateSales(count, customers) {
   const sales = [];
   for (let i = 0; i < count; i++) {
-    const numItems = randomInt(1, 5);
-    const items = [];
+    const shop = randomChoice(SHOPS);
+    const shopItems = allInventoryItems.filter(item => item.shopCode === shop.code);
+    
+    const numItems = randomInt(1, 6);
+    const cart = [];
     let subtotal = 0;
+    const saleDate = randomDate(DAYS_AGO);
     
     for (let j = 0; j < numItems; j++) {
-      const catalogItem = randomChoice(CATALOG);
-      const invItem = inventoryItems.find(inv => inv.sku === catalogItem.sku);
+      const invItem = randomChoice(shopItems);
+      const qty = randomInt(1, 3);
       
-      let price = invItem.retailPricePKR;
-      let cost = invItem.costPricePKR;
-      
-      if (catalogItem.type === 'VARIABLE') {
-        price = randomInt(catalogItem.retailRange[0], catalogItem.retailRange[1]);
-        if (catalogItem.sku === 'EASYLOAD') {
-          cost = price * (1 - randomChoice(catalogItem.marginRange));
-        } else if (catalogItem.costRange) {
-          cost = randomInt(catalogItem.costRange[0], catalogItem.costRange[1]);
-        }
-      }
-      
-      let qty = 1;
-      if (catalogItem.category === 'Printing') {
-        qty = randomInt(1, 50); // Copies/Prints often bulk
-      } else if (catalogItem.sku === 'PASS-PHOTO') {
-        qty = randomInt(1, 3);
-      }
-      
-      const itemTotal = price * qty;
+      const itemTotal = invItem.retailPricePKR * qty;
       subtotal += itemTotal;
       
-      items.push({
+      cart.push({
         itemId: invItem.id,
         sku: invItem.sku,
         name: invItem.name,
         quantity: qty,
-        unitCostPKR: cost,
-        unitRetailPKR: price,
+        unitCostPKR: invItem.costPricePKR,
+        unitRetailPKR: invItem.retailPricePKR,
         discountPKR: 0,
         totalPKR: itemTotal
       });
+      
+      // Log stock movement for sale
+      allStockMovements.push({
+        id: generateId('mov'),
+        shopCode: shop.code,
+        itemId: invItem.id,
+        type: 'sale',
+        quantityBefore: invItem.quantity,
+        quantityChange: -qty,
+        quantityAfter: invItem.quantity - qty,
+        reason: 'Customer Sale',
+        createdAt: saleDate
+      });
+      invItem.quantity -= qty; // update current stock
     }
     
-    const discount = Math.random() > 0.8 ? randomInt(10, 50) : 0;
+    const discount = Math.random() > 0.85 ? randomInt(50, 200) : 0;
     const grandTotal = Math.max(0, subtotal - discount);
     
-    // Assign customer 30% of the time
-    const cust = Math.random() > 0.7 ? randomChoice(customers) : null;
+    // Assign customer 20% of the time
+    const cust = Math.random() > 0.8 ? randomChoice(customers) : null;
     
     sales.push({
       id: generateId('sale'),
-      invoiceNumber: `INV-${String(i+1001).padStart(5, '0')}`,
+      invoiceNumber: `INV-${shop.code}-${String(i+1001).padStart(5, '0')}`,
+      shopCode: shop.code,
       customerId: cust ? cust.id : null,
       customerName: cust ? cust.name : "Walk-in Customer",
-      items: items,
+      items: cart,
       subtotalPKR: subtotal,
       discountPKR: discount,
       taxPKR: 0,
       grandTotalPKR: grandTotal,
-      paymentMethod: randomChoice(["cash", "cash", "cash", "easypaisa", "jazzcash", "card"]),
-      paymentStatus: "paid",
-      createdAt: randomDate(DAYS_AGO)
+      paymentMethod: randomChoice(["cash", "cash", "cash", "card", "credit"]),
+      cashierName: randomChoice(EMPLOYEES),
+      timestamp: saleDate
     });
   }
   
-  return sales.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-}
-
-function generateWorkLogs(sales) {
-  const logs = [];
-  
-  // Distribute some work logs to employees for random sales (e.g. typing or NADRA services)
-  const serviceSales = sales.filter(s => 
-    s.items.some(i => i.sku.includes('BIO') || i.sku.includes('CV') || i.sku.includes('APP') || i.sku.includes('ONLINE'))
-  );
-  
-  serviceSales.forEach(sale => {
-    // Pick an employee
-    const emp = randomChoice(EMPLOYEES);
-    
-    sale.items.forEach(item => {
-      if (item.sku.includes('BIO') || item.sku.includes('CV') || item.sku.includes('APP') || item.sku.includes('ONLINE')) {
-        logs.push({
-          id: generateId('log'),
-          employeeName: emp.name,
-          employeeRole: emp.role,
-          date: sale.createdAt,
-          taskName: item.name,
-          saleId: sale.id,
-          revenueGeneratedPKR: item.totalPKR,
-          notes: Math.random() > 0.5 ? "Completed successfully" : ""
-        });
-      }
-    });
-  });
-  
-  return logs.sort((a, b) => new Date(b.date) - new Date(a.date));
+  return sales.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 }
 
 function convertToCSV(arr) {
@@ -295,18 +294,18 @@ function convertToCSV(arr) {
 
 // --- Main Execution ---
 function main() {
-  if (!fs.existsSync(OUT_DIR)) {
-    fs.mkdirSync(OUT_DIR, { recursive: true });
+  if (fs.existsSync(OUT_DIR)) {
+    fs.rmSync(OUT_DIR, { recursive: true, force: true });
   }
+  fs.mkdirSync(OUT_DIR, { recursive: true });
 
-  console.log("Starting generation of Naeem Documentation Mock Data...");
+  console.log("Starting generation of MetroMart Retailers Mock Data...");
 
   const inventory = generateInventory();
-  const customers = generateCustomers(25);
+  const customers = generateCustomers(20);
   const suppliers = generateSuppliers();
-  const expenses = generateExpenses(45, suppliers);
-  const sales = generateSales(180, inventory, customers);
-  const workLogs = generateWorkLogs(sales);
+  const expenses = generateExpenses();
+  const sales = generateSales(250, customers);
 
   const datasets = {
     'inventory_items': inventory,
@@ -314,7 +313,7 @@ function main() {
     'suppliers': suppliers,
     'expenses': expenses,
     'sales_transactions': sales,
-    'employee_work_logs': workLogs
+    'stock_movements': allStockMovements
   };
 
   const summary = [];
