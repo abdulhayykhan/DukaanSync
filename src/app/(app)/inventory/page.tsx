@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { FileText, Plus, Search, Edit2, AlertTriangle, Archive, ArchiveRestore, Upload, Filter, FileSpreadsheet } from "lucide-react";
+import { FileText, Plus, Search, Edit2, AlertTriangle, Archive, ArchiveRestore, Upload, Filter, FileSpreadsheet, UploadCloud } from "lucide-react";
 import { formatCurrency, toMinorUnit } from "@/lib/utils/currency";
 import { format } from "date-fns";
 import { z } from "zod";
@@ -73,13 +73,19 @@ export default function InventoryPage() {
 
   // Client-side filtering
   const filteredItems = useMemo(() => {
-    return items.filter((item) => {
-      const matchesSearch = 
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.sku.toLowerCase().includes(searchQuery.toLowerCase());
+    return (items || []).filter((item) => {
+      const name = item?.name || "";
+      const sku = item?.sku || "";
+      const categoryId = item?.categoryId || "";
       
-      const matchesCategory = selectedCategory === "all" || item.categoryId === selectedCategory;
-      const matchesLowStock = !showLowStockOnly || item.quantity <= item.reorderLevel;
+      const matchesSearch = 
+        name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sku.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesCategory = selectedCategory === "all" || categoryId === selectedCategory;
+      const quantity = item?.quantity || 0;
+      const reorderLevel = item?.reorderLevel || 0;
+      const matchesLowStock = !showLowStockOnly || quantity <= reorderLevel;
 
       return matchesSearch && matchesCategory && matchesLowStock;
     });
@@ -198,16 +204,16 @@ export default function InventoryPage() {
   };
 
   const handleExport = (formatType: "csv" | "excel") => {
-    const exportData = filteredItems.map(item => ({
-      "SKU": item.sku,
-      "Product Name": item.name,
-      "Category": getCategoryName(item.categoryId),
-      "Unit": item.unit,
-      "Cost Price (PKR)": (item.costPriceMinor / 100).toFixed(2),
-      "Retail Price (PKR)": (item.retailPriceMinor / 100).toFixed(2),
-      "Current Stock": item.quantity,
-      "Reorder Level": item.reorderLevel,
-      "Status": item.isActive ? "Active" : "Archived"
+    const exportData = (filteredItems || []).map(item => ({
+      "SKU": item?.sku || "",
+      "Product Name": item?.name || "",
+      "Category": getCategoryName(item?.categoryId || ""),
+      "Unit": item?.unit || "",
+      "Cost Price (PKR)": ((item?.costPriceMinor || 0) / 100).toFixed(2),
+      "Retail Price (PKR)": ((item?.retailPriceMinor || 0) / 100).toFixed(2),
+      "Current Stock": item?.quantity || 0,
+      "Reorder Level": item?.reorderLevel || 0,
+      "Status": item?.isActive ? "Active" : "Archived"
     }));
 
     const dateStr = format(new Date(), "yyyy-MM-dd");
@@ -317,29 +323,31 @@ export default function InventoryPage() {
                   </td>
                 </tr>
               ) : (
-                filteredItems.map((item) => {
-                  const isLowStock = item.quantity <= item.reorderLevel;
+                (filteredItems || []).map((item) => {
+                  const quantity = item?.quantity || 0;
+                  const reorderLevel = item?.reorderLevel || 0;
+                  const isLowStock = quantity <= reorderLevel;
                   
                   return (
                     <tr 
-                      key={item.id} 
-                      className={`hover:bg-gray-50 transition-colors ${!item.isActive ? 'opacity-60 bg-gray-50' : ''}`}
+                      key={item?.id || Math.random().toString()} 
+                      className={`hover:bg-gray-50 transition-colors ${!item?.isActive ? 'opacity-60 bg-gray-50' : ''}`}
                     >
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <span className="font-semibold text-gray-900">{item.name}</span>
-                          <span className="text-xs font-mono text-gray-500 mt-0.5">{item.sku}</span>
+                          <span className="font-semibold text-gray-900">{item?.name || "Unknown"}</span>
+                          <span className="text-xs font-mono text-gray-500 mt-0.5">{item?.sku || "N/A"}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-medium">
-                          {getCategoryName(item.categoryId)}
+                          {getCategoryName(item?.categoryId || "")}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <span className={`text-sm font-semibold ${isLowStock ? 'text-amber-600' : 'text-gray-900'}`}>
-                            {item.quantity} {item.unit}
+                            {quantity} {item?.unit || "pcs"}
                           </span>
                           {isLowStock && (
                             <span title="Low Stock" className="flex items-center justify-center bg-amber-100 text-amber-700 rounded-full w-5 h-5">
@@ -351,37 +359,37 @@ export default function InventoryPage() {
                       {!isReadOnly && (
                         <td className="px-6 py-4 text-right">
                           <span className="text-sm font-medium text-gray-600">
-                            {formatCurrency(item.costPriceMinor, business?.currency)}
+                            {formatCurrency(item?.costPriceMinor || 0, business?.currency)}
                           </span>
                         </td>
                       )}
                       <td className="px-6 py-4 text-right">
                         <span className="text-sm font-bold text-gray-900">
-                          {formatCurrency(item.retailPriceMinor, business?.currency)}
+                          {formatCurrency(item?.retailPriceMinor || 0, business?.currency)}
                         </span>
                       </td>
                       {!isReadOnly && (
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <button
-                              onClick={() => handleOpenEditModal(item)}
-                              disabled={isProcessing === item.id}
+                              onClick={() => item && handleOpenEditModal(item)}
+                              disabled={isProcessing === item?.id}
                               className="p-1.5 text-gray-400 hover:text-[#3B82F6] hover:bg-blue-50 rounded-md transition-colors"
                               title="Edit Product"
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => handleToggleStatus(item)}
-                              disabled={isProcessing === item.id}
+                              onClick={() => item && handleToggleStatus(item)}
+                              disabled={isProcessing === item?.id}
                               className={`p-1.5 rounded-md transition-colors ${
-                                item.isActive 
+                                item?.isActive 
                                   ? 'text-gray-400 hover:text-red-500 hover:bg-red-50' 
                                   : 'text-gray-400 hover:text-green-500 hover:bg-green-50'
                               }`}
-                              title={item.isActive ? "Archive Product" : "Restore Product"}
+                              title={item?.isActive ? "Archive Product" : "Restore Product"}
                             >
-                              {item.isActive ? <Archive className="w-4 h-4" /> : <ArchiveRestore className="w-4 h-4" />}
+                              {item?.isActive ? <Archive className="w-4 h-4" /> : <ArchiveRestore className="w-4 h-4" />}
                             </button>
                           </div>
                         </td>
