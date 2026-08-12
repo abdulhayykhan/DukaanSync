@@ -14,7 +14,7 @@ import type { Customer } from "@/types";
 interface CustomerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (newCustomerId?: string) => void;
+  onSuccess: (newCustomer?: Customer) => void;
   customer?: Customer;
 }
 
@@ -55,7 +55,18 @@ export function CustomerModal({ isOpen, onClose, onSuccess, customer }: Customer
       } else {
         const newId = await CustomerService.createCustomer(business.id, activeShop.id, formData);
         toast.success("Customer added successfully");
-        onSuccess(newId);
+        const now = new Date().toISOString();
+        const createdCustomer: Customer = {
+          id: newId,
+          name: formData.name,
+          phone: formData.phone || undefined,
+          email: formData.email || undefined,
+          currentBalanceMinor: 0,
+          isActive: true,
+          createdAt: now,
+          updatedAt: now,
+        };
+        onSuccess(createdCustomer);
       }
       onClose();
     } catch (err: unknown) {

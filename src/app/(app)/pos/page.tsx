@@ -733,12 +733,25 @@ export default function POSTerminalPage() {
       <CustomerModal 
         isOpen={isCustomerModalOpen} 
         onClose={() => setIsCustomerModalOpen(false)} 
-        onSuccess={async (newCustomerId) => {
+        onSuccess={async (newCustomer) => {
           if (!business || !activeShop) return;
-          const cus = await CustomerService.getCustomers(business.id, activeShop.id);
-          setCustomers(cus);
-          if (newCustomerId) {
-            setSelectedCustomerId(newCustomerId);
+          if (newCustomer) {
+            setCustomers(prev => {
+              const exists = prev.some(c => c.id === newCustomer.id);
+              if (exists) return prev;
+              return [...prev, newCustomer].sort((a, b) => a.name.localeCompare(b.name));
+            });
+            setSelectedCustomerId(newCustomer.id);
+            toast.success(`Attached ${newCustomer.name} to active order`);
+          }
+          try {
+            const cus = await CustomerService.getCustomers(business.id, activeShop.id);
+            setCustomers(cus);
+            if (newCustomer) {
+              setSelectedCustomerId(newCustomer.id);
+            }
+          } catch (err) {
+            console.error("Failed to refresh customer list:", err);
           }
         }} 
       />
