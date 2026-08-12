@@ -1,6 +1,7 @@
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   query,
   where,
@@ -9,7 +10,7 @@ import {
 } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase/client";
 import type { InventoryServicePayload } from "@/lib/validation/inventory";
-import type { InventoryItem } from "@/types";
+import type { InventoryItem, StockMovementType } from "@/types";
 import type { DuplicateStrategy, BulkImportResult } from "@/components/ui/BulkImportModal";
 
 export class InventoryService {
@@ -33,6 +34,77 @@ export class InventoryService {
     });
 
     return items;
+  }
+
+  /**
+   * Fetches all inventory items (including inactive/archived) for reference lookup.
+   */
+  static async getAllInventoryItems(
+    businessId: string,
+    shopId: string
+  ): Promise<InventoryItem[]> {
+    if (!db) throw new Error("Firestore not initialized");
+
+    const itemsRef = collection(db, "businesses", businessId, "shops", shopId, "inventory");
+    const snapshot = await getDocs(itemsRef);
+
+    const items: InventoryItem[] = [];
+    snapshot.forEach((doc) => {
+      items.push({ id: doc.id, ...doc.data() } as InventoryItem);
+    });
+
+    return items;
+  }
+
+  /**
+   * Manually adjusts the stock quantity for an inventory item and logs a stock movement audit entry.
+   */
+  static async adjustStock(
+    businessId: string,
+    shopId: string,
+    itemId: string,
+    newQuantity: number,
+    reason: string = "Manual Stock Adjustment",
+    adjustmentType: StockMovementType = "adjustment"
+  ): Promise<void> {
+    if (!db) throw new Error("Firestore not initialized");
+
+    const itemRef = doc(db, "businesses", businessId, "shops", shopId, "inventory", itemId);
+    const itemSnap = await getDoc(itemRef);
+
+    if (!itemSnap.exists()) {
+      throw new Error("Inventory item not found");
+    }
+
+    const currentQty = (itemSnap.data().quantity as number) || 0;
+    const qtyChange = newQuantity - currentQty;
+
+    const batch = writeBatch(db);
+    const now = new Date().toISOString();
+    const uid = auth?.currentUser?.uid || "system";
+
+    // 1. Update inventory item quantity
+    batch.update(itemRef, {
+      quantity: newQuantity,
+      updatedAt: now,
+    });
+
+    // 2. Log stock movement audit entry
+    const movRef = doc(collection(db, "businesses", businessId, "shops", shopId, "stockMovements"));
+    batch.set(movRef, {
+      itemId,
+      businessId,
+      shopId,
+      type: adjustmentType,
+      quantityBefore: currentQty,
+      quantityChange: qtyChange,
+      quantityAfter: newQuantity,
+      reason: reason || "Manual Stock Adjustment",
+      createdBy: uid,
+      createdAt: now,
+    });
+
+    await batch.commit();
   }
 
   /**

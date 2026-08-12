@@ -128,17 +128,19 @@ export class PurchaseTransactionService {
           updatedAt: now,
         });
 
-        // Log stock movement
-        const movementRef = doc(collection(firestore, "businesses", businessId, "shops", shopId, "movements"));
+        // Log stock movement to shop-level stockMovements subcollection
+        const movementRef = doc(collection(firestore, "businesses", businessId, "shops", shopId, "stockMovements"));
         const movementLog: Omit<StockMovement, "id"> = {
           itemId: item.itemId,
+          businessId,
+          shopId,
           type: "purchase",
           quantityBefore: currentQty,
           quantityChange: item.quantity,
           quantityAfter: newQty,
           referenceType: "purchase",
           referenceId: purchaseRef.id,
-          reason: `Purchase ${purchaseNumber}`,
+          reason: `Stock Purchase ${purchaseNumber}`,
           createdBy: userId || "system",
           createdAt: now,
         };

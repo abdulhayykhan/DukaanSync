@@ -69,15 +69,20 @@ export class SaleReversalService {
             updatedAt: now
           });
 
-          // Write Movement
-          const moveRef = doc(collection(firestore, "businesses", businessId, "shops", shopId, "inventory", item.itemId, "movements"));
+          // Log stock movement to shop-level stockMovements subcollection
+          const moveRef = doc(collection(firestore, "businesses", businessId, "shops", shopId, "stockMovements"));
           transaction.set(moveRef, {
+            itemId: item.itemId,
+            businessId,
+            shopId,
             type: "customer_return",
-            quantityMinor: item.quantity,
-            referenceType: "sale_cancellation",
+            quantityBefore: invData.quantity,
+            quantityChange: item.quantity,
+            quantityAfter: invData.quantity + item.quantity,
+            referenceType: "sale",
             referenceId: saleId,
-            balanceAfter: invData.quantity + item.quantity,
-            createdBy: actorId,
+            reason: `Sale Return/Cancellation for Invoice ${saleData.invoiceNumber}`,
+            createdBy: actorId || "system",
             createdAt: now
           });
         }

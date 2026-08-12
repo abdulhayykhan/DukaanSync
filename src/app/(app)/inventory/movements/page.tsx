@@ -36,7 +36,7 @@ export default function StockMovementsPage() {
     try {
       const [movData, invData] = await Promise.all([
         StockMovementService.getRecentMovements(business.id, activeShop.id, 200),
-        InventoryService.getInventoryItems(business.id, activeShop.id)
+        InventoryService.getAllInventoryItems(business.id, activeShop.id)
       ]);
       
       const dict: Record<string, InventoryItem> = {};
@@ -57,24 +57,27 @@ export default function StockMovementsPage() {
 
   const getTypeBadge = (type: string) => {
     switch(type) {
-      case 'opening_stock': return <span className="px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-medium">Opening Stock</span>;
-      case 'purchase': return <span className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-medium">Purchase Received</span>;
-      case 'sale': return <span className="px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-medium">Sale Entry</span>;
-      case 'adjustment': return <span className="px-2 py-1 rounded bg-amber-100 text-amber-700 text-xs font-medium">Manual Adjustment</span>;
-      case 'supplier_return': return <span className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-medium">Return to Supplier</span>;
+      case 'opening_stock':
+      case 'initial': return <span className="px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-medium">Initial / Opening</span>;
+      case 'purchase': return <span className="px-2 py-1 rounded bg-emerald-100 text-emerald-800 text-xs font-medium">Purchase Received</span>;
+      case 'sale': return <span className="px-2 py-1 rounded bg-blue-100 text-blue-800 text-xs font-medium">POS Sale</span>;
+      case 'adjustment': return <span className="px-2 py-1 rounded bg-amber-100 text-amber-800 text-xs font-medium">Manual Adjustment</span>;
+      case 'customer_return': return <span className="px-2 py-1 rounded bg-indigo-100 text-indigo-800 text-xs font-medium">Customer Return</span>;
+      case 'supplier_return': return <span className="px-2 py-1 rounded bg-red-100 text-red-800 text-xs font-medium">Supplier Return</span>;
       default: return <span className="px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-medium">{type.replace("_", " ")}</span>;
     }
   };
 
   const filteredMovements = movements.filter(m => {
     const item = inventoryDict[m.itemId];
-    if (!item) return false;
     if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
     
-    return item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-           item.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           item.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           (m.referenceId && m.referenceId.toLowerCase().includes(searchQuery.toLowerCase()));
+    return (item?.name?.toLowerCase().includes(query)) || 
+           (item?.sku?.toLowerCase().includes(query)) ||
+           (m.itemId?.toLowerCase().includes(query)) ||
+           (m.reason?.toLowerCase().includes(query)) ||
+           (m.referenceId && m.referenceId.toLowerCase().includes(query));
   });
 
   const handleExport = (formatType: "csv" | "excel") => {

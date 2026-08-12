@@ -221,21 +221,23 @@ export class SaleTransactionService {
           updatedAt: now,
         });
 
-        // Log stock movement
-        const movementRef = doc(collection(firestore, "businesses", businessId, "shops", shopId, "movements"));
+        // Log stock movement to shop-level stockMovements subcollection
+        const movementRef = doc(collection(firestore, "businesses", businessId, "shops", shopId, "stockMovements"));
         const movementLog: Omit<StockMovement, "id"> = {
           itemId: item.itemId,
+          businessId,
+          shopId,
           type: "sale",
           quantityBefore: invData.quantity,
-          quantityChange: -item.quantity, // Negative change
+          quantityChange: -item.quantity, // Negative change for sale
           quantityAfter: newQty,
           referenceType: "sale",
           referenceId: saleRef.id,
-          reason: `Sale ${invoiceNumber}`,
-          createdBy: userId,
+          reason: `POS Sale ${invoiceNumber}`,
+          createdBy: userId || "system",
           createdAt: now,
         };
-        transaction.set(movementRef, movementLog);
+        transaction.set(movementRef, sanitizeFirestorePayload(movementLog));
       }
 
       // C. Update Customer Ledger if customer is attached
