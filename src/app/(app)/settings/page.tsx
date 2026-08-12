@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Store, Building2, Users, ArrowRight, ShieldAlert } from "lucide-react";
+import { Store, Building2, Users, ArrowRight, ShieldAlert, CreditCard, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import { useBusiness } from "@/contexts/BusinessContext";
+import { useShop } from "@/contexts/ShopContext";
 import { Button } from "@/components/ui/Button";
 
 export default function SettingsPage() {
   const { memberRole } = useBusiness();
+  const { shops } = useShop();
   const router = useRouter();
 
   // 1. Role Guarding: Cashiers cannot access settings
@@ -84,6 +87,69 @@ export default function SettingsPage() {
             </div>
           </Link>
         ))}
+      </div>
+
+      {/* Plan & Billing Section */}
+      <div className="mt-10 bg-white/80 backdrop-blur-xl rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-amber-50 rounded-xl border border-amber-100 text-amber-600">
+              <CreditCard className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                Plan & Subscription Overview
+                <span className="px-2.5 py-0.5 text-xs font-bold bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200 uppercase tracking-wider">
+                  Active
+                </span>
+              </h2>
+              <p className="text-sm text-gray-500 mt-0.5">
+                Current subscription tier, shop branch limits, and account capabilities.
+              </p>
+            </div>
+          </div>
+          
+          <Button 
+            variant="outline" 
+            onClick={() => toast.info("Billing management portal will be unlocked in the upcoming version release.")}
+            className="w-full md:w-auto font-semibold border-slate-300 text-slate-700 hover:bg-slate-50"
+          >
+            Manage Subscription <Sparkles className="w-4 h-4 ml-2 text-amber-500" />
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-6">
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+            <span className="text-xs font-semibold uppercase text-slate-400">Current Tier</span>
+            <p className="text-lg font-bold text-gray-900 mt-1">Professional Plan</p>
+            <p className="text-xs text-emerald-600 font-medium mt-0.5">Full Features Unlocked</p>
+          </div>
+
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+            <span className="text-xs font-semibold uppercase text-slate-400">Branch Locations</span>
+            <p className="text-lg font-bold text-gray-900 mt-1">
+              {shops?.length || 1} / 5 Branches Active
+            </p>
+            <div className="w-full bg-slate-200 rounded-full h-1.5 mt-2 overflow-hidden">
+              <div 
+                className="bg-emerald-500 h-1.5 rounded-full transition-all" 
+                style={{ width: `${Math.min(100, ((shops?.length || 1) / 5) * 100)}%` }} 
+              />
+            </div>
+          </div>
+
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+            <span className="text-xs font-semibold uppercase text-slate-400">Staff Accounts</span>
+            <p className="text-lg font-bold text-gray-900 mt-1">Unlimited Staff</p>
+            <p className="text-xs text-slate-500 mt-0.5">Cashier & Manager Roles</p>
+          </div>
+
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+            <span className="text-xs font-semibold uppercase text-slate-400">Billing Status</span>
+            <p className="text-lg font-bold text-gray-900 mt-1">Free Trial</p>
+            <p className="text-xs text-amber-600 font-medium mt-0.5">30 Days Remaining</p>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -80,9 +80,18 @@ export default function UsersSettingsPage() {
           </h1>
           <p className="text-lg text-gray-500 mt-2">Manage user access and roles for your business.</p>
         </div>
-        <Button onClick={() => toast.info("User invitation feature coming soon!")} className="w-full sm:w-auto shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 bg-emerald-600 hover:bg-emerald-700">
-          <Mail className="mr-2 h-4 w-4" /> Invite Member
-        </Button>
+        <div className="w-full sm:w-auto">
+          <Button 
+            variant="outline"
+            onClick={() => toast.info("Direct email invites are coming soon in the next update!")} 
+            className="w-full sm:w-auto bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 transition-all font-semibold"
+          >
+            <Mail className="mr-2 h-4 w-4 text-slate-400" /> Invite Member
+            <span className="ml-2 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 rounded-full border border-amber-300">
+              Coming Soon
+            </span>
+          </Button>
+        </div>
       </div>
 
       {error && (
