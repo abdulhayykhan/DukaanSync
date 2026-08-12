@@ -506,21 +506,39 @@ export default function POSTerminalPage() {
       <div className="w-[400px] xl:w-[450px] shrink-0 glass-card shadow-2xl flex flex-col h-full z-10 relative border-l border-white/20">
         
         {/* Customer Selector */}
-        <div className="p-4 border-b border-white/10 shrink-0 bg-white/5 flex gap-2">
-          <div className="relative flex-1">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <select 
-              className="w-full pl-9 pr-3 py-2 glass-card border border-white/20 rounded-xl text-sm focus:ring-2 focus:ring-[#10B981] appearance-none"
-              value={selectedCustomerId}
-              onChange={(e) => setSelectedCustomerId(e.target.value)}
-            >
-              <option value="">Walk-in Customer (Guest)</option>
-              {customers.map(c => <option key={c.id} value={c.id}>{c.name} {c.phone ? `(${c.phone})` : ''}</option>)}
-            </select>
+        <div className="p-4 border-b border-white/10 shrink-0 bg-white/5 space-y-2">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <select 
+                className="w-full pl-9 pr-3 py-2 glass-card border border-white/20 rounded-xl text-sm focus:ring-2 focus:ring-[#10B981] appearance-none"
+                value={selectedCustomerId}
+                onChange={(e) => setSelectedCustomerId(e.target.value)}
+              >
+                <option value="">Walk-in Customer (Guest)</option>
+                {customers.map(c => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} {c.type === "wholesaler" ? "🏷️ [Wholesaler]" : ""} {c.phone ? `(${c.phone})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <Button variant="outline" className="px-3 py-1" onClick={() => setIsCustomerModalOpen(true)}>
+              <Plus className="w-4 h-4" />
+            </Button>
           </div>
-          <Button variant="outline" className="px-3 py-1" onClick={() => setIsCustomerModalOpen(true)}>
-            <Plus className="w-4 h-4" />
-          </Button>
+
+          {/* Wholesaler Customer Classification Badge */}
+          {selectedCustomerId && customers.find(c => c.id === selectedCustomerId)?.type === "wholesaler" && (
+            <div className="flex items-center justify-between text-xs px-3 py-1.5 rounded-lg bg-purple-500/15 border border-purple-500/30 text-purple-900 animate-in fade-in">
+              <span className="font-bold flex items-center gap-1.5">
+                🏷️ Wholesaler Customer
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-purple-600 text-white px-2 py-0.5 rounded-full shadow-sm">
+                Custom / Wholesale Pricing
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Cart Items */}

@@ -201,11 +201,14 @@ export interface Purchase {
 // Customers & Ledgers
 // -----------------------------------------------------------------------------
 
+export type CustomerType = "wholesaler" | "retailer";
+
 export interface Customer {
   id: string;
   name: string;
   phone?: string;
   email?: string;
+  type?: CustomerType;
   location?: string;
   currentBalanceMinor: number;
   isActive: boolean;

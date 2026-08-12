@@ -27,6 +27,7 @@ export function CustomerModal({ isOpen, onClose, onSuccess, customer }: Customer
     phone: "",
     email: "",
     location: "",
+    type: "retailer" as "wholesaler" | "retailer",
   });
 
   useEffect(() => {
@@ -37,10 +38,11 @@ export function CustomerModal({ isOpen, onClose, onSuccess, customer }: Customer
         phone: customer.phone || "",
         email: customer.email || "",
         location: customer.location || "",
+        type: customer.type || "retailer",
       });
     } else if (isOpen) {
        
-      setFormData({ name: "", phone: "", email: "", location: "" });
+      setFormData({ name: "", phone: "", email: "", location: "", type: "retailer" });
     }
   }, [isOpen, customer]);
 
@@ -64,6 +66,7 @@ export function CustomerModal({ isOpen, onClose, onSuccess, customer }: Customer
           phone: formData.phone || undefined,
           email: formData.email || undefined,
           location: formData.location || undefined,
+          type: formData.type,
           currentBalanceMinor: 0,
           isActive: true,
           createdAt: now,
@@ -103,10 +106,24 @@ export function CustomerModal({ isOpen, onClose, onSuccess, customer }: Customer
               </label>
               <Input
                 required
-                placeholder="e.g. Ali Khan"
+                placeholder="e.g. Ahmed Furnishings"
                 value={formData.name}
                 onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Customer Type <span className="text-red-500">*</span>
+              </label>
+              <select
+                className="w-full h-10 px-3 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]"
+                value={formData.type}
+                onChange={e => setFormData(p => ({ ...p, type: e.target.value as any }))}
+              >
+                <option value="retailer">Retailer (Standard Pricing)</option>
+                <option value="wholesaler">Wholesaler (Custom / Bulk Pricing)</option>
+              </select>
             </div>
             
             <div>

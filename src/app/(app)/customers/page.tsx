@@ -172,6 +172,7 @@ export default function CustomersPage() {
             <thead className="sticky top-0 bg-white z-10 border-b border-gray-200">
               <tr className="text-xs uppercase tracking-wider text-gray-500 font-semibold">
                 <th className="px-6 py-4">Customer Details</th>
+                <th className="px-6 py-4">Type</th>
                 <th className="px-6 py-4">Contact</th>
                 <th className="px-6 py-4 text-right">Outstanding Receivables</th>
                 <th className="px-6 py-4 text-center">Actions</th>
@@ -180,11 +181,11 @@ export default function CustomersPage() {
             <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500">Loading customers...</td>
+                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">Loading customers...</td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-16 text-center text-gray-500">No customers found.</td>
+                  <td colSpan={5} className="px-6 py-16 text-center text-gray-500">No customers found.</td>
                 </tr>
               ) : (
                 filtered.map((customer) => (
@@ -199,6 +200,17 @@ export default function CustomersPage() {
                           </span>
                         )}
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {customer.type === "wholesaler" ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-bold border border-purple-200">
+                          Wholesaler <span className="text-[10px] font-normal text-purple-600">(custom pricing)</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200">
+                          Retailer
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-600">{customer.phone || "—"}</div>
