@@ -13,6 +13,7 @@ import {
   Truck,
   Receipt,
   PieChart,
+  FileText,
   Settings,
   Store,
   ChevronLeft,
@@ -25,6 +26,7 @@ import { useState } from "react";
 const NAV_ITEMS = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["owner", "manager", "cashier", "inventory_manager"] },
   { name: "POS Terminal", href: "/pos", icon: MonitorSmartphone, roles: ["owner", "manager", "cashier"] },
+  { name: "Invoices", href: "/invoices", icon: FileText, roles: ["owner", "manager", "cashier"] },
   { name: "Inventory", href: "/inventory", icon: Package, roles: ["owner", "manager", "inventory_manager"] },
   { name: "Stock Movements", href: "/inventory/movements", icon: ArrowRightLeft, roles: ["owner", "manager", "inventory_manager"] },
   { name: "Purchases", href: "/purchases", icon: ShoppingCart, roles: ["owner", "manager"] },
