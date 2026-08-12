@@ -187,6 +187,7 @@ export default function SuppliersPage() {
             <thead className="sticky top-0 bg-gray-50 z-10 border-b border-gray-200 shadow-sm">
               <tr className="text-xs uppercase tracking-wider text-gray-500 font-semibold">
                 <th className="px-6 py-4">Supplier Name</th>
+                <th className="px-6 py-4">Location</th>
                 <th className="px-6 py-4">Contact</th>
                 <th className="px-6 py-4 text-right">Current Balance</th>
                 <th className="px-6 py-4 text-center">Action</th>
@@ -195,19 +196,28 @@ export default function SuppliersPage() {
             <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500">Loading suppliers...</td>
+                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">Loading suppliers...</td>
                 </tr>
               ) : filteredSuppliers.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-16 text-center text-gray-500">No suppliers found.</td>
+                  <td colSpan={5} className="px-6 py-16 text-center text-gray-500">No suppliers found.</td>
                 </tr>
               ) : (
                 filteredSuppliers.map((supplier) => (
                   <tr key={supplier.id} className="hover:bg-gray-50 transition-colors group">
                     <td className="px-6 py-4 font-medium text-gray-900">{supplier.name}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {supplier.location ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 text-slate-800 text-xs font-medium">
+                          📍 {supplier.location}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-xs">—</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">{supplier.phone || "—"}</div>
-                      <div className="text-xs text-gray-500">{supplier.email}</div>
+                      <div className="text-xs text-gray-500">{supplier.email || "—"}</div>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <span className={`text-sm font-bold ${supplier.currentBalanceMinor > 0 ? 'text-red-600' : 'text-gray-900'}`}>

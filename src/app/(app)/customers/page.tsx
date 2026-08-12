@@ -191,7 +191,14 @@ export default function CustomersPage() {
                   <tr key={customer.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <p className="font-medium text-sm text-gray-900">{customer.name}</p>
-                      <p className="text-xs text-gray-400">Added {new Date(customer.createdAt).toLocaleDateString()}</p>
+                      <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                        <span className="text-xs text-gray-400">Added {new Date(customer.createdAt).toLocaleDateString()}</span>
+                        {customer.location && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px] font-medium">
+                            📍 {customer.location}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-600">{customer.phone || "—"}</div>

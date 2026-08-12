@@ -135,6 +135,7 @@ export interface Supplier {
   name: string;
   phone?: string;
   email?: string;
+  location?: string;
   currentBalanceMinor: number;
   isActive: boolean;
   createdAt: string;
@@ -202,6 +203,7 @@ export interface Customer {
   name: string;
   phone?: string;
   email?: string;
+  location?: string;
   currentBalanceMinor: number;
   isActive: boolean;
   createdAt: string;

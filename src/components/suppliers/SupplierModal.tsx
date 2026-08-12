@@ -18,7 +18,8 @@ import type { Supplier } from "@/types";
 const supplierSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   phone: z.string().optional(),
-  email: z.string().email("Invalid email").or(z.literal("")).optional(),
+  email: z.string().optional(),
+  location: z.string().optional(),
 });
 
 type SupplierFormData = z.infer<typeof supplierSchema>;
@@ -51,12 +52,14 @@ export function SupplierModal({ isOpen, onOpenChange, supplierToEdit, onSuccess 
           name: supplierToEdit.name,
           phone: supplierToEdit.phone || "",
           email: supplierToEdit.email || "",
+          location: supplierToEdit.location || "",
         });
       } else {
         reset({
           name: "",
           phone: "",
           email: "",
+          location: "",
         });
       }
     }
@@ -118,7 +121,7 @@ export function SupplierModal({ isOpen, onOpenChange, supplierToEdit, onSuccess 
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone Number
+                Phone Number <span className="text-xs text-gray-400 font-normal">(Optional)</span>
               </label>
               <Input
                 {...register("phone")}
@@ -129,7 +132,18 @@ export function SupplierModal({ isOpen, onOpenChange, supplierToEdit, onSuccess 
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
+                City / Location <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+              </label>
+              <Input
+                {...register("location")}
+                error={errors.location?.message}
+                placeholder="e.g. Lahore, Clifton Branch, Shah Alam"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email Address <span className="text-xs text-gray-400 font-normal">(Optional)</span>
               </label>
               <Input
                 type="email"

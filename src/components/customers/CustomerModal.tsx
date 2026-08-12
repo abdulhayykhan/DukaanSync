@@ -26,6 +26,7 @@ export function CustomerModal({ isOpen, onClose, onSuccess, customer }: Customer
     name: "",
     phone: "",
     email: "",
+    location: "",
   });
 
   useEffect(() => {
@@ -35,10 +36,11 @@ export function CustomerModal({ isOpen, onClose, onSuccess, customer }: Customer
         name: customer.name,
         phone: customer.phone || "",
         email: customer.email || "",
+        location: customer.location || "",
       });
     } else if (isOpen) {
        
-      setFormData({ name: "", phone: "", email: "" });
+      setFormData({ name: "", phone: "", email: "", location: "" });
     }
   }, [isOpen, customer]);
 
@@ -61,6 +63,7 @@ export function CustomerModal({ isOpen, onClose, onSuccess, customer }: Customer
           name: formData.name,
           phone: formData.phone || undefined,
           email: formData.email || undefined,
+          location: formData.location || undefined,
           currentBalanceMinor: 0,
           isActive: true,
           createdAt: now,
@@ -108,7 +111,7 @@ export function CustomerModal({ isOpen, onClose, onSuccess, customer }: Customer
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone Number
+                Phone Number <span className="text-xs text-gray-400 font-normal">(Optional)</span>
               </label>
               <Input
                 type="tel"
@@ -120,7 +123,18 @@ export function CustomerModal({ isOpen, onClose, onSuccess, customer }: Customer
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
+                City / Location <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+              </label>
+              <Input
+                placeholder="e.g. Lahore, Saddar Market"
+                value={formData.location}
+                onChange={e => setFormData(p => ({ ...p, location: e.target.value }))}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email Address <span className="text-xs text-gray-400 font-normal">(Optional)</span>
               </label>
               <Input
                 type="email"
