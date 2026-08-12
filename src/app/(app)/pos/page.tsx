@@ -211,23 +211,23 @@ export default function POSTerminalPage() {
     }
 
     const txData: SaleTransactionData = {
-      customerId: selectedCustomer?.id,
-      customerName: selectedCustomer?.name,
+      customerId: selectedCustomer?.id || "guest",
+      customerName: selectedCustomer?.name || "Walk-in Customer",
       items: cart.map(c => ({
         itemId: c.inventoryItem.id,
-        sku: c.inventoryItem.sku,
-        name: c.inventoryItem.name,
+        sku: c.inventoryItem.sku || "N/A",
+        name: c.inventoryItem.name || "Product",
         quantity: c.quantity,
-        unitPriceMinor: c.inventoryItem.retailPriceMinor,
-        discountMinor: c.discountMinor
+        unitPriceMinor: c.inventoryItem.retailPriceMinor || 0,
+        discountMinor: c.discountMinor || 0
       })),
-      subtotalMinor: totals.subtotalMinor,
-      discountMinor: totals.discountMinor,
-      taxMinor: totals.taxMinor,
-      grandTotalMinor: totals.grandTotalMinor,
-      paymentMethod,
-      paymentStatus,
-      amountPaidMinor
+      subtotalMinor: totals.subtotalMinor || 0,
+      discountMinor: totals.discountMinor || 0,
+      taxMinor: totals.taxMinor || 0,
+      grandTotalMinor: totals.grandTotalMinor || 0,
+      paymentMethod: paymentMethod || "cash",
+      paymentStatus: paymentStatus || "paid",
+      amountPaidMinor: amountPaidMinor || 0
     };
 
     try {
@@ -242,12 +242,11 @@ export default function POSTerminalPage() {
       toast.success("Sale completed successfully");
       
       // Load the new sale to pass to invoice modal
-      // In a real app we might fetch it back from DB or construct it in memory. Let's construct it in memory for speed.
       const generatedSale: Sale = {
         id: saleId,
-        invoiceNumber: "Generated", // We'll rely on the modal to know it's missing if we can't fetch it, or just use what we know
-        customerId: txData.customerId,
-        customerName: txData.customerName,
+        invoiceNumber: "Generated",
+        customerId: txData.customerId || "guest",
+        customerName: txData.customerName || "Walk-in Customer",
         items: txData.items.map(i => ({...i, costPriceMinor: 0, totalMinor: (i.unitPriceMinor * i.quantity) - i.discountMinor})),
         subtotalMinor: txData.subtotalMinor,
         taxMinor: txData.taxMinor,

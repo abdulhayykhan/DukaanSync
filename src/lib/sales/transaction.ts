@@ -146,28 +146,33 @@ export class SaleTransactionService {
       const finalizedSaleItems: SaleItem[] = data.items.map(item => {
         const inv = inventoryData.get(item.itemId)!;
         return {
-          ...item,
-          costPriceMinor: inv.costPriceMinor,
-          totalMinor: (item.unitPriceMinor * item.quantity) - item.discountMinor
+          itemId: item.itemId,
+          sku: item.sku || "N/A",
+          name: item.name || "Product",
+          quantity: Number(item.quantity || 1),
+          unitPriceMinor: Number(item.unitPriceMinor || 0),
+          discountMinor: Number(item.discountMinor || 0),
+          costPriceMinor: Number(inv?.costPriceMinor || 0),
+          totalMinor: Number((item.unitPriceMinor * item.quantity) - item.discountMinor)
         };
       });
 
-      // A. Create Sale Record
+      // A. Create Sale Record with sanitized non-undefined fields
       const saleRecord: Sale = {
         id: saleRef.id,
         invoiceNumber,
-        customerId: data.customerId,
-        customerName: data.customerName,
+        customerId: data.customerId || "guest",
+        customerName: data.customerName || "Walk-in Customer",
         items: finalizedSaleItems,
-        subtotalMinor: data.subtotalMinor,
-        taxMinor: data.taxMinor,
-        discountMinor: data.discountMinor,
-        grandTotalMinor: data.grandTotalMinor,
-        paymentMethod: data.paymentMethod,
-        paymentStatus: data.paymentStatus,
-        amountPaidMinor: data.amountPaidMinor,
+        subtotalMinor: Number(data.subtotalMinor || 0),
+        taxMinor: Number(data.taxMinor || 0),
+        discountMinor: Number(data.discountMinor || 0),
+        grandTotalMinor: Number(data.grandTotalMinor || 0),
+        paymentMethod: data.paymentMethod || "cash",
+        paymentStatus: data.paymentStatus || "paid",
+        amountPaidMinor: Number(data.amountPaidMinor ?? 0),
         status: "completed",
-        createdBy: userId,
+        createdBy: userId || "system",
         createdAt: now,
       };
       transaction.set(saleRef, saleRecord);
