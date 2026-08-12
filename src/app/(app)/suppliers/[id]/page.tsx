@@ -96,9 +96,10 @@ export default function SupplierLedgerPage() {
 
   const getTypeBadge = (type: string) => {
     switch(type) {
-      case 'credit_purchase': return <span className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-medium">Purchase (Credit)</span>;
-      case 'payment': return <span className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-medium">Payment Made</span>;
-      case 'return': return <span className="px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-medium">Goods Returned</span>;
+      case 'credit_purchase': return <span className="px-2 py-1 rounded bg-amber-100 text-amber-800 text-xs font-medium">Purchase (Credit)</span>;
+      case 'purchase': return <span className="px-2 py-1 rounded bg-emerald-100 text-emerald-800 text-xs font-medium">Purchase (Paid)</span>;
+      case 'payment': return <span className="px-2 py-1 rounded bg-blue-100 text-blue-800 text-xs font-medium">Payment Made</span>;
+      case 'return': return <span className="px-2 py-1 rounded bg-purple-100 text-purple-700 text-xs font-medium">Goods Returned</span>;
       default: return <span className="px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-medium">{type}</span>;
     }
   };

@@ -122,18 +122,24 @@ export class SaleTransactionService {
       
       let customerDoc: DocumentSnapshot | null = null;
       let customerRef: DocumentReference | null = null;
-      const isCreditOrPartial = data.paymentStatus !== "paid" && data.amountPaidMinor < data.grandTotalMinor;
+      const hasCustomer = Boolean(data.customerId && data.customerId !== "guest");
+      const amountUnpaid = Math.max(0, data.grandTotalMinor - data.amountPaidMinor);
+      const isCreditOrPartial = data.paymentStatus !== "paid" || amountUnpaid > 0 || data.paymentMethod === "credit";
 
-      if (isCreditOrPartial) {
-        if (!data.customerId) {
-          throw new Error("Credit sales require a valid Customer ID.");
-        }
-        customerRef = doc(firestore, "businesses", businessId, "customers", data.customerId);
+      if (hasCustomer) {
+        customerRef = doc(firestore, "businesses", businessId, "shops", shopId, "customers", data.customerId!);
         customerDoc = await transaction.get(customerRef);
         
         if (!customerDoc.exists()) {
-          throw new Error(`Customer ${data.customerId} not found`);
+          const fallbackRef = doc(firestore, "businesses", businessId, "customers", data.customerId!);
+          const fallbackDoc = await transaction.get(fallbackRef);
+          if (fallbackDoc.exists()) {
+            customerRef = fallbackRef;
+            customerDoc = fallbackDoc;
+          }
         }
+      } else if (isCreditOrPartial) {
+        throw new Error("Credit or partial sales require a valid Customer to be selected.");
       }
       
       // Read all inventory items involved
@@ -232,10 +238,9 @@ export class SaleTransactionService {
         transaction.set(movementRef, movementLog);
       }
 
-      // C. Update Customer Ledger if unpaid/partial
-      if (isCreditOrPartial && customerRef && customerDoc) {
-        const amountUnpaid = data.grandTotalMinor - data.amountPaidMinor;
-        const currentBalance = customerDoc.data()?.currentBalanceMinor as number ?? 0;
+      // C. Update Customer Ledger if customer is attached
+      if (hasCustomer && customerRef && customerDoc && customerDoc.exists()) {
+        const currentBalance = (customerDoc.data()?.currentBalanceMinor as number) ?? 0;
         const newBalance = currentBalance + amountUnpaid; // Customer balance is receivables (how much they owe us)
 
         transaction.update(customerRef, {
@@ -243,19 +248,19 @@ export class SaleTransactionService {
           updatedAt: now,
         });
 
-        const ledgerRef = doc(collection(firestore, "businesses", businessId, "customers", data.customerId!, "ledger"));
+        const ledgerRef = doc(collection(firestore, "businesses", businessId, "shops", shopId, "customers", data.customerId!, "ledger"));
         const ledgerEntry: Omit<CustomerLedgerEntry, "id"> = {
           customerId: data.customerId!,
-          type: "credit_sale",
-          amountMinor: amountUnpaid,
+          type: data.paymentMethod === "credit" ? "credit_sale" : (amountUnpaid > 0 ? "credit_sale" : "sale"),
+          amountMinor: amountUnpaid > 0 ? amountUnpaid : data.grandTotalMinor,
           referenceType: "sale",
           referenceId: saleRef.id,
           balanceBeforeMinor: currentBalance,
           balanceAfterMinor: newBalance,
-          createdBy: userId,
+          createdBy: userId || "system",
           createdAt: now,
         };
-        transaction.set(ledgerRef, ledgerEntry);
+        transaction.set(ledgerRef, sanitizeFirestorePayload(ledgerEntry));
       }
 
       // D. Write general Audit Log

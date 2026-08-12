@@ -51,11 +51,18 @@ export class PurchaseTransactionService {
       // 1. Read all required data first!
       // In Firestore, ALL reads must happen before ANY writes in a transaction.
       
-      const supplierRef = doc(firestore, "businesses", businessId, "suppliers", data.supplierId);
-      const supplierDoc = await transaction.get(supplierRef);
+      let supplierRef = doc(firestore, "businesses", businessId, "shops", shopId, "suppliers", data.supplierId);
+      let supplierDoc = await transaction.get(supplierRef);
       
       if (!supplierDoc.exists()) {
-        throw new Error(`Supplier ${data.supplierId} not found`);
+        const fallbackRef = doc(firestore, "businesses", businessId, "suppliers", data.supplierId);
+        const fallbackDoc = await transaction.get(fallbackRef);
+        if (fallbackDoc.exists()) {
+          supplierRef = fallbackRef;
+          supplierDoc = fallbackDoc;
+        } else {
+          throw new Error(`Supplier ${data.supplierId} not found`);
+        }
       }
       
       // Read all inventory items involved
@@ -136,9 +143,9 @@ export class PurchaseTransactionService {
         transaction.set(movementRef, sanitizeFirestorePayload(movementLog));
       }
 
-      // C. Update Supplier Ledger if unpaid/partial
-      const amountUnpaid = data.grandTotalMinor - data.amountPaidMinor;
-      if (amountUnpaid > 0) {
+      // C. Update Supplier Ledger
+      if (supplierRef && supplierDoc && supplierDoc.exists()) {
+        const amountUnpaid = Math.max(0, data.grandTotalMinor - data.amountPaidMinor);
         const currentBalance = (supplierDoc.data()?.currentBalanceMinor as number) ?? 0;
         const newBalance = currentBalance + amountUnpaid; // Supplier balance is payables (how much we owe)
 
@@ -147,11 +154,11 @@ export class PurchaseTransactionService {
           updatedAt: now,
         });
 
-        const ledgerRef = doc(collection(firestore, "businesses", businessId, "suppliers", data.supplierId, "ledger"));
+        const ledgerRef = doc(collection(firestore, "businesses", businessId, "shops", shopId, "suppliers", data.supplierId, "ledger"));
         const ledgerEntry: Omit<SupplierLedgerEntry, "id"> = {
           supplierId: data.supplierId,
-          type: "credit_purchase",
-          amountMinor: amountUnpaid,
+          type: data.paymentMethod === "credit" ? "credit_purchase" : (amountUnpaid > 0 ? "credit_purchase" : "purchase"),
+          amountMinor: amountUnpaid > 0 ? amountUnpaid : data.grandTotalMinor,
           referenceType: "purchase",
           referenceId: purchaseRef.id,
           balanceBeforeMinor: currentBalance,

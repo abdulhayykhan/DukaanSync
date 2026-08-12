@@ -95,8 +95,9 @@ export default function CustomerLedgerPage() {
 
   const getTypeBadge = (type: string) => {
     switch(type) {
-      case 'credit_sale': return <span className="px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-medium">Sale (Credit)</span>;
-      case 'payment': return <span className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-medium">Payment Received</span>;
+      case 'credit_sale': return <span className="px-2 py-1 rounded bg-amber-100 text-amber-800 text-xs font-medium">Sale (Credit)</span>;
+      case 'sale': return <span className="px-2 py-1 rounded bg-emerald-100 text-emerald-800 text-xs font-medium">Sale (Paid)</span>;
+      case 'payment': return <span className="px-2 py-1 rounded bg-blue-100 text-blue-800 text-xs font-medium">Payment Received</span>;
       case 'refund': return <span className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-medium">Refunded</span>;
       default: return <span className="px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-medium">{type}</span>;
     }
