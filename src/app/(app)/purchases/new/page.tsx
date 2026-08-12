@@ -17,7 +17,7 @@ import type { Supplier, InventoryItem, PaymentMethod } from "@/types";
 
 interface CartItem {
   item: InventoryItem;
-  quantity: number;
+  quantity: string | number;
   unitCostDecimal: string;
   discountDecimal: string;
 }
@@ -76,7 +76,7 @@ export default function NewPurchasePage() {
     const existing = cart.find(c => c.item.id === item.id);
     if (existing) {
       setCart(cart.map(c => 
-        c.item.id === item.id ? { ...c, quantity: c.quantity + 1 } : c
+        c.item.id === item.id ? { ...c, quantity: (Number(c.quantity) || 0) + 1 } : c
       ));
     } else {
       setCart([...cart, { 
@@ -103,12 +103,11 @@ export default function NewPurchasePage() {
     let discountMinor = 0;
 
     cart.forEach(c => {
+      const qty = Math.max(1, Number(c.quantity) || 1);
       const uCostMinor = toMinorUnit(c.unitCostDecimal);
       const rowDiscMinor = toMinorUnit(c.discountDecimal);
       
-      const lineTotal = (uCostMinor * c.quantity) - rowDiscMinor;
-      
-      subtotalMinor += uCostMinor * c.quantity;
+      subtotalMinor += uCostMinor * qty;
       discountMinor += rowDiscMinor;
     });
 
@@ -152,15 +151,20 @@ export default function NewPurchasePage() {
         member.uid,
         {
           supplierId: selectedSupplierId,
-          items: cart.map(c => ({
-            itemId: c.item.id,
-            sku: c.item.sku,
-            name: c.item.name,
-            quantity: Number(c.quantity),
-            unitCostMinor: toMinorUnit(c.unitCostDecimal),
-            discountMinor: toMinorUnit(c.discountDecimal),
-            totalMinor: (toMinorUnit(c.unitCostDecimal) * c.quantity) - toMinorUnit(c.discountDecimal)
-          })),
+          items: cart.map(c => {
+            const qty = Math.max(1, Number(c.quantity) || 1);
+            const uCost = toMinorUnit(c.unitCostDecimal);
+            const disc = toMinorUnit(c.discountDecimal);
+            return {
+              itemId: c.item.id,
+              sku: c.item.sku,
+              name: c.item.name,
+              quantity: qty,
+              unitCostMinor: uCost,
+              discountMinor: disc,
+              totalMinor: (uCost * qty) - disc
+            };
+          }),
           subtotalMinor: totals.subtotalMinor,
           discountMinor: totals.discountMinor,
           grandTotalMinor: totals.grandTotalMinor,
@@ -280,7 +284,8 @@ export default function NewPurchasePage() {
                     </tr>
                   ) : (
                     cart.map((c) => {
-                      const lineTotal = (toMinorUnit(c.unitCostDecimal) * c.quantity) - toMinorUnit(c.discountDecimal);
+                      const qty = Math.max(1, Number(c.quantity) || 1);
+                      const lineTotal = (toMinorUnit(c.unitCostDecimal) * qty) - toMinorUnit(c.discountDecimal);
                       return (
                         <tr key={c.item.id}>
                           <td className="py-4 pr-4">
@@ -291,7 +296,12 @@ export default function NewPurchasePage() {
                             <Input 
                               type="number" min="1" 
                               value={c.quantity}
-                              onChange={(e) => updateCartItem(c.item.id, "quantity", Number(e.target.value) || 1)}
+                              onChange={(e) => updateCartItem(c.item.id, "quantity", e.target.value)}
+                              onBlur={() => {
+                                if (!c.quantity || Number(c.quantity) <= 0) {
+                                  updateCartItem(c.item.id, "quantity", 1);
+                                }
+                              }}
                             />
                           </td>
                           <td className="py-4 px-4">
@@ -299,6 +309,11 @@ export default function NewPurchasePage() {
                               type="number" step="0.01"
                               value={c.unitCostDecimal}
                               onChange={(e) => updateCartItem(c.item.id, "unitCostDecimal", e.target.value)}
+                              onBlur={() => {
+                                if (!c.unitCostDecimal || Number(c.unitCostDecimal) < 0) {
+                                  updateCartItem(c.item.id, "unitCostDecimal", "0");
+                                }
+                              }}
                             />
                           </td>
                           <td className="py-4 px-4">
@@ -306,6 +321,11 @@ export default function NewPurchasePage() {
                               type="number" step="0.01"
                               value={c.discountDecimal}
                               onChange={(e) => updateCartItem(c.item.id, "discountDecimal", e.target.value)}
+                              onBlur={() => {
+                                if (!c.discountDecimal || Number(c.discountDecimal) < 0) {
+                                  updateCartItem(c.item.id, "discountDecimal", "0");
+                                }
+                              }}
                             />
                           </td>
                           <td className="py-4 px-4 text-right font-medium text-gray-900">
