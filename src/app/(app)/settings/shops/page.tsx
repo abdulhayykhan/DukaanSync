@@ -13,8 +13,16 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { useShop } from "@/contexts/ShopContext";
 import { ShopService } from "@/lib/shops/service";
 import { ShopModal } from "@/components/shops/ShopModal";
+import { UpgradeModal } from "@/components/billing/UpgradeModal";
 import { Button } from "@/components/ui/Button";
 import type { Shop } from "@/types";
+
+const PLAN_MAX_SHOPS: Record<string, number> = {
+  trial: 1,
+  basic: 2,
+  pro: 999,
+  enterprise: 999,
+};
 
 export default function ShopsSettingsPage() {
   const router = useRouter();
@@ -24,8 +32,13 @@ export default function ShopsSettingsPage() {
   const [allShops, setAllShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [shopToEdit, setShopToEdit] = useState<Shop | null>(null);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
+
+  const currentPlan = business?.plan || "trial";
+  const maxAllowedShops = PLAN_MAX_SHOPS[currentPlan] || 1;
+  const isLimitReached = allShops.length >= maxAllowedShops;
 
   const fetchAllShops = useCallback(async () => {
     if (!db || !business) return;
@@ -69,6 +82,10 @@ export default function ShopsSettingsPage() {
 
   // 2. Handlers
   const handleOpenCreateModal = () => {
+    if (isLimitReached) {
+      setIsUpgradeModalOpen(true);
+      return;
+    }
     setShopToEdit(null);
     setIsModalOpen(true);
   };
@@ -271,12 +288,20 @@ export default function ShopsSettingsPage() {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Modals */}
       <ShopModal 
         isOpen={isModalOpen}
         onOpenChange={setIsModalOpen}
         shopToEdit={shopToEdit}
         onSuccess={handleSuccess}
+      />
+
+      <UpgradeModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+        currentPlan={currentPlan}
+        currentShopCount={allShops.length}
+        limit={maxAllowedShops}
       />
     </div>
   );

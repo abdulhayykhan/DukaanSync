@@ -111,7 +111,7 @@ export default function SettingsPage() {
           
           <Button 
             variant="outline" 
-            onClick={() => toast.info("Billing management portal will be unlocked in the upcoming version release.")}
+            onClick={() => router.push("/settings/billing")}
             className="w-full md:w-auto font-semibold border-slate-300 text-slate-700 hover:bg-slate-50"
           >
             Manage Subscription <Sparkles className="w-4 h-4 ml-2 text-amber-500" />
