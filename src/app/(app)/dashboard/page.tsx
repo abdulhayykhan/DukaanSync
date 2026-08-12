@@ -300,6 +300,79 @@ export default function DashboardPage() {
         </motion.div>
       )}
 
+      {/* Low Stock Alerts Table */}
+      {data && data.lowStockItems && data.lowStockItems.length > 0 && (
+        <motion.div variants={itemVariants} className="mt-6">
+          <Card3D className="bg-white p-6 rounded-2xl border border-amber-200/80 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center border border-amber-200 shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
+                    Stock Alert Items 
+                    <span className="px-2.5 py-0.5 text-xs font-bold bg-amber-100 text-amber-800 rounded-full border border-amber-200">
+                      {data.lowStockItems.length} Low Stock
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Items that reached or fell below reorder threshold. Use storage location for fast physical retrieval.
+                  </p>
+                </div>
+              </div>
+              <Link 
+                href="/inventory?lowStock=true" 
+                className="text-xs font-semibold text-[#10B981] hover:underline flex items-center gap-1 shrink-0"
+              >
+                View All Low Stock Items <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="text-xs uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-100">
+                    <th className="py-3 px-4">Product Name</th>
+                    <th className="py-3 px-4">SKU</th>
+                    <th className="py-3 px-4">Storage Location</th>
+                    <th className="py-3 px-4 text-right">Current Stock</th>
+                    <th className="py-3 px-4 text-right">Reorder Level</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-sm">
+                  {data.lowStockItems.slice(0, 8).map((item) => (
+                    <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-3 px-4 font-semibold text-slate-900">
+                        {item.name}
+                      </td>
+                      <td className="py-3 px-4 text-xs font-mono text-slate-500">
+                        {item.sku}
+                      </td>
+                      <td className="py-3 px-4">
+                        {item.storageLocation ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 text-slate-800 text-xs font-medium border border-slate-200/60">
+                            📍 {item.storageLocation}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 text-xs italic">Unassigned</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-right font-bold text-amber-600">
+                        {item.quantity} {item.unit}
+                      </td>
+                      <td className="py-3 px-4 text-right font-medium text-slate-500">
+                        {item.reorderLevel} {item.unit}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card3D>
+        </motion.div>
+      )}
+
     </div>
   );
 }
