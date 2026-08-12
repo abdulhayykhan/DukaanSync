@@ -135,6 +135,7 @@ export interface Supplier {
   name: string;
   phone?: string;
   email?: string;
+  city?: string;
   location?: string;
   currentBalanceMinor: number;
   isActive: boolean;
@@ -182,11 +183,12 @@ export interface Purchase {
   subtotalMinor: number;
   discountMinor: number;
   extraCostMinor?: number;
+  extraCostsMinor?: number;
   grandTotalMinor: number;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
   amountPaidMinor: number;
-  status?: "completed" | "cancelled";
+  status: "completed" | "cancelled";
   createdBy: string;
   createdAt: string;
 }

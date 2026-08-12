@@ -207,9 +207,9 @@ export default function SuppliersPage() {
                   <tr key={supplier.id} className="hover:bg-gray-50 transition-colors group">
                     <td className="px-6 py-4 font-medium text-gray-900">{supplier.name}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {supplier.location ? (
+                      {(supplier.city || supplier.location) ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 text-slate-800 text-xs font-medium">
-                          📍 {supplier.location}
+                          📍 {supplier.city || supplier.location}
                         </span>
                       ) : (
                         <span className="text-gray-400 text-xs">—</span>

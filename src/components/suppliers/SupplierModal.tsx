@@ -19,6 +19,7 @@ const supplierSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   phone: z.string().optional(),
   email: z.string().optional(),
+  city: z.string().optional(),
   location: z.string().optional(),
 });
 
@@ -52,13 +53,15 @@ export function SupplierModal({ isOpen, onOpenChange, supplierToEdit, onSuccess 
           name: supplierToEdit.name,
           phone: supplierToEdit.phone || "",
           email: supplierToEdit.email || "",
-          location: supplierToEdit.location || "",
+          city: supplierToEdit.city || supplierToEdit.location || "",
+          location: supplierToEdit.location || supplierToEdit.city || "",
         });
       } else {
         reset({
           name: "",
           phone: "",
           email: "",
+          city: "",
           location: "",
         });
       }
@@ -69,11 +72,16 @@ export function SupplierModal({ isOpen, onOpenChange, supplierToEdit, onSuccess 
     if (!business || !activeShop) return;
 
     try {
+      const payload = {
+        ...data,
+        city: data.city || data.location || "",
+        location: data.location || data.city || "",
+      };
       if (isEditing && supplierToEdit) {
-        await SupplierService.updateSupplier(business.id, activeShop.id, supplierToEdit.id, data);
+        await SupplierService.updateSupplier(business.id, activeShop.id, supplierToEdit.id, payload);
         toast.success("Supplier updated successfully");
       } else {
-        await SupplierService.createSupplier(business.id, activeShop.id, data);
+        await SupplierService.createSupplier(business.id, activeShop.id, payload);
         toast.success("Supplier created successfully");
       }
       
@@ -116,6 +124,17 @@ export function SupplierModal({ isOpen, onOpenChange, supplierToEdit, onSuccess 
                 {...register("name")}
                 error={errors.name?.message}
                 placeholder="e.g. Acme Wholesale"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                City / Region <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+              </label>
+              <Input
+                {...register("city")}
+                error={errors.city?.message}
+                placeholder="e.g. Lahore, Karachi, Clifton Branch"
               />
             </div>
 
