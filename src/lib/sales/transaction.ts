@@ -68,6 +68,29 @@ export interface SaleTransactionData {
   amountPaidMinor: number;
 }
 
+/**
+ * Recursively strips undefined values from an object or replaces them with default fallbacks
+ * to prevent Cloud Firestore transaction.set() runtime exceptions.
+ */
+export function sanitizeFirestorePayload<T extends Record<string, any>>(obj: T): T {
+  const sanitized: any = {};
+  for (const key of Object.keys(obj)) {
+    const val = obj[key];
+    if (val === undefined) {
+      sanitized[key] = null;
+    } else if (val !== null && typeof val === "object" && !Array.isArray(val) && !(val instanceof Date)) {
+      sanitized[key] = sanitizeFirestorePayload(val);
+    } else if (Array.isArray(val)) {
+      sanitized[key] = val.map(item =>
+        item !== null && typeof item === "object" ? sanitizeFirestorePayload(item) : (item === undefined ? null : item)
+      );
+    } else {
+      sanitized[key] = val;
+    }
+  }
+  return sanitized as T;
+}
+
 export class SaleTransactionService {
   /**
    * Executes a completely atomic POS sale transaction.
@@ -161,8 +184,8 @@ export class SaleTransactionService {
       const saleRecord: Sale = {
         id: saleRef.id,
         invoiceNumber,
-        customerId: data.customerId || "guest",
-        customerName: data.customerName || "Walk-in Customer",
+        customerId: data.customerId ?? "guest",
+        customerName: data.customerName ?? "Walk-in Customer",
         items: finalizedSaleItems,
         subtotalMinor: Number(data.subtotalMinor || 0),
         taxMinor: Number(data.taxMinor || 0),
@@ -175,7 +198,9 @@ export class SaleTransactionService {
         createdBy: userId || "system",
         createdAt: now,
       };
-      transaction.set(saleRef, saleRecord);
+
+      const cleanSaleRecord = sanitizeFirestorePayload(saleRecord);
+      transaction.set(saleRef, cleanSaleRecord);
 
       // B. Update Inventory & Log Movements
       for (const item of finalizedSaleItems) {
