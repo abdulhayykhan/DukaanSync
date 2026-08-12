@@ -211,8 +211,8 @@ export default function POSTerminalPage() {
     }
 
     const txData: SaleTransactionData = {
-      customerId: selectedCustomer?.id || "guest",
-      customerName: selectedCustomer?.name || "Walk-in Customer",
+      customerId: selectedCustomer?.id ?? null,
+      customerName: selectedCustomer?.name || "Guest Customer",
       items: cart.map(c => ({
         itemId: c.inventoryItem.id,
         sku: c.inventoryItem.sku || "N/A",
@@ -245,8 +245,8 @@ export default function POSTerminalPage() {
       const generatedSale: Sale = {
         id: saleId,
         invoiceNumber: "Generated",
-        customerId: txData.customerId || "guest",
-        customerName: txData.customerName || "Walk-in Customer",
+        customerId: txData.customerId ?? null,
+        customerName: txData.customerName || "Guest Customer",
         items: txData.items.map(i => ({...i, costPriceMinor: 0, totalMinor: (i.unitPriceMinor * i.quantity) - i.discountMinor})),
         subtotalMinor: txData.subtotalMinor,
         taxMinor: txData.taxMinor,

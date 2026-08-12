@@ -184,8 +184,8 @@ export class SaleTransactionService {
       const saleRecord: Sale = {
         id: saleRef.id,
         invoiceNumber,
-        customerId: data.customerId ?? "guest",
-        customerName: data.customerName ?? "Walk-in Customer",
+        customerId: data.customerId ?? null,
+        customerName: data.customerName || "Guest Customer",
         items: finalizedSaleItems,
         subtotalMinor: Number(data.subtotalMinor || 0),
         taxMinor: Number(data.taxMinor || 0),
