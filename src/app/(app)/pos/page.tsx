@@ -40,6 +40,7 @@ export default function POSTerminalPage() {
   const { activeShop } = useShop();
 
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const customerSelectRef = useRef<HTMLSelectElement>(null);
 
   // Data
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
@@ -203,6 +204,9 @@ export default function POSTerminalPage() {
     const isCredit = paymentMethod === "credit" || amountPaidMinor < totals.grandTotalMinor;
     if (isCredit && !selectedCustomer) {
       toast.error("Credit or partial sales require a Customer to be selected.");
+      setTimeout(() => {
+        customerSelectRef.current?.focus();
+      }, 50);
       return;
     }
 
@@ -615,6 +619,37 @@ export default function POSTerminalPage() {
             <form onSubmit={handleCheckout} className="p-6 overflow-y-auto space-y-6">
               
               <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-semibold text-gray-900">Customer</label>
+                  <button 
+                    type="button" 
+                    onClick={() => setIsCustomerModalOpen(true)}
+                    className="text-xs text-emerald-600 hover:text-emerald-700 font-semibold flex items-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> New Customer
+                  </button>
+                </div>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <select 
+                    ref={customerSelectRef}
+                    id="checkout-customer-select"
+                    className={cn(
+                      "w-full pl-10 pr-4 py-2.5 bg-gray-50 border rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all appearance-none",
+                      (toMinorUnit(amountPaidDecimal) < totals.grandTotalMinor || paymentMethod === "credit") && !selectedCustomerId
+                        ? "border-amber-300 bg-amber-50/50"
+                        : "border-gray-200"
+                    )}
+                    value={selectedCustomerId}
+                    onChange={(e) => setSelectedCustomerId(e.target.value)}
+                  >
+                    <option value="">Walk-in Customer (Guest)</option>
+                    {customers.map(c => <option key={c.id} value={c.id}>{c.name} {c.phone ? `(${c.phone})` : ''}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-3">Select Payment Method</label>
                 <div className="grid grid-cols-3 gap-3">
                   <button type="button" onClick={() => setPaymentMethod("cash")} className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${paymentMethod === "cash" ? "border-[#10B981] bg-green-50 text-[#10B981]" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}>
@@ -661,9 +696,27 @@ export default function POSTerminalPage() {
                   </div>
                 )}
                 
-                {toMinorUnit(amountPaidDecimal) < totals.grandTotalMinor && paymentMethod !== "credit" && (
-                  <div className="mt-3 text-amber-600 text-sm font-semibold bg-amber-50 p-2 rounded-lg border border-amber-100">
-                    Remaining {formatCurrency(totals.grandTotalMinor - toMinorUnit(amountPaidDecimal), business?.currency)} will be added to customer credit. Customer must be selected.
+                {(toMinorUnit(amountPaidDecimal) < totals.grandTotalMinor || paymentMethod === "credit") && (
+                  <div className="mt-3 p-3.5 bg-amber-50 rounded-xl border border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="text-amber-800 text-xs font-medium leading-relaxed flex-1">
+                      <span className="font-bold block text-amber-900 mb-0.5">
+                        {paymentMethod === "credit" ? "Full Credit Sale" : "Partial Payment"}
+                      </span>
+                      Remaining {formatCurrency(Math.max(0, totals.grandTotalMinor - toMinorUnit(amountPaidDecimal)), business?.currency)} will be added to customer credit.
+                    </div>
+                    {!selectedCustomerId && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          customerSelectRef.current?.focus();
+                        }}
+                        className="shrink-0 text-xs bg-white text-amber-900 border-amber-300 hover:bg-amber-100 font-semibold shadow-sm"
+                      >
+                        Select Customer
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
@@ -681,7 +734,14 @@ export default function POSTerminalPage() {
       <CustomerModal 
         isOpen={isCustomerModalOpen} 
         onClose={() => setIsCustomerModalOpen(false)} 
-        onSuccess={() => CustomerService.getCustomers(business?.id || "", activeShop?.id || "").then(setCustomers)} 
+        onSuccess={async (newCustomerId) => {
+          if (!business || !activeShop) return;
+          const cus = await CustomerService.getCustomers(business.id, activeShop.id);
+          setCustomers(cus);
+          if (newCustomerId) {
+            setSelectedCustomerId(newCustomerId);
+          }
+        }} 
       />
 
       <InvoiceModal 

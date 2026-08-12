@@ -14,7 +14,7 @@ import type { Customer } from "@/types";
 interface CustomerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (newCustomerId?: string) => void;
   customer?: Customer;
 }
 
@@ -51,11 +51,12 @@ export function CustomerModal({ isOpen, onClose, onSuccess, customer }: Customer
       if (customer) {
         await CustomerService.updateCustomer(business.id, activeShop.id, customer.id, formData);
         toast.success("Customer updated successfully");
+        onSuccess();
       } else {
-        await CustomerService.createCustomer(business.id, activeShop.id, formData);
+        const newId = await CustomerService.createCustomer(business.id, activeShop.id, formData);
         toast.success("Customer added successfully");
+        onSuccess(newId);
       }
-      onSuccess();
       onClose();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to save customer";
@@ -68,8 +69,8 @@ export function CustomerModal({ isOpen, onClose, onSuccess, customer }: Customer
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 animate-in fade-in" />
-        <Dialog.Content className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] w-full max-w-md glass-card border border-white/20 rounded-xl shadow-xl z-50 p-6 focus:outline-none animate-in zoom-in-95">
+        <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-md z-[70] animate-in fade-in" />
+        <Dialog.Content className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] w-full max-w-md glass-card border border-white/20 rounded-xl shadow-xl z-[70] p-6 focus:outline-none animate-in zoom-in-95">
           <div className="flex justify-between items-center mb-4">
             <Dialog.Title className="text-xl font-bold text-gray-900">
               {customer ? "Edit Customer" : "Add New Customer"}
