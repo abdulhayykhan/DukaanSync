@@ -12,6 +12,7 @@ import { useShop } from "@/contexts/ShopContext";
 import { AnalyticsEngine } from "@/lib/analytics/engine";
 import { ExpenseService } from "@/lib/expenses/service";
 import { SaleTransactionService } from "@/lib/sales/transaction";
+import { InventoryService } from "@/lib/inventory/service";
 import { formatCurrency } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/Button";
 import { ExportDropdown } from "@/components/ui/ExportDropdown";
@@ -28,7 +29,7 @@ export default function ReportsPage() {
   const [dateRange, setDateRange] = useState<DateRange>("this_month");
   
   const [isGenerating, setIsGenerating] = useState(false);
-  const [reportData, setReportData] = useState<any>(null); // Weak typing here since payload differs by report
+  const [reportData, setReportData] = useState<any>(null);
 
   const handleGenerateReport = async () => {
     if (!business || !activeShop) return;
@@ -36,30 +37,55 @@ export default function ReportsPage() {
     setReportData(null);
 
     try {
-      // Resolve exact period boundaries based on range string
       let periodForEngine: "today" | "week" | "month" | "year" = "month";
       if (dateRange === "today") periodForEngine = "today";
       if (dateRange === "this_week") periodForEngine = "week";
       if (dateRange === "this_year") periodForEngine = "year";
-      // We will proxy "last_30_days" as month for simplicity in engine, or build custom
-      // For DukaanSync MVP we use the exact predefined Engine periods
 
-      if (selectedReport === "pnl" || selectedReport === "sales") {
+      if (selectedReport === "pnl") {
         const telemetry = await AnalyticsEngine.getDashboardTelemetry(business.id, activeShop.id, periodForEngine);
-        setReportData({ type: selectedReport, telemetry, range: dateRange });
+        setReportData({ type: "pnl", telemetry, range: dateRange });
+      } 
+      else if (selectedReport === "sales") {
+        const [telemetry, sales] = await Promise.all([
+          AnalyticsEngine.getDashboardTelemetry(business.id, activeShop.id, periodForEngine),
+          SaleTransactionService.getRecentSales(business.id, activeShop.id, 500)
+        ]);
+        setReportData({ type: "sales", telemetry, sales, range: dateRange });
       } 
       else if (selectedReport === "expenses") {
-        const expenses = await ExpenseService.getExpenses(business.id, activeShop.id);
-        // Ideally filter server-side but for MVP client-side is fine
-        setReportData({ type: "expenses", expenses, range: dateRange });
+        const [expenses, telemetry] = await Promise.all([
+          ExpenseService.getExpenses(business.id, activeShop.id),
+          AnalyticsEngine.getDashboardTelemetry(business.id, activeShop.id, periodForEngine)
+        ]);
+        setReportData({ type: "expenses", expenses, telemetry, range: dateRange });
       }
       else if (selectedReport === "inventory") {
-        const telemetry = await AnalyticsEngine.getDashboardTelemetry(business.id, activeShop.id, "today"); // Valuation is always current
-        setReportData({ type: "inventory", telemetry, range: "Current" });
+        const [telemetry, items] = await Promise.all([
+          AnalyticsEngine.getDashboardTelemetry(business.id, activeShop.id, "today"),
+          InventoryService.getInventoryItems(business.id, activeShop.id)
+        ]);
+
+        let totalCostValueMinor = 0;
+        let totalRetailValueMinor = 0;
+        items.forEach(i => {
+          totalCostValueMinor += (i.costPriceMinor || 0) * (i.quantity || 0);
+          totalRetailValueMinor += (i.retailPriceMinor || 0) * (i.quantity || 0);
+        });
+
+        setReportData({ 
+          type: "inventory", 
+          telemetry, 
+          items, 
+          totalCostValueMinor, 
+          totalRetailValueMinor, 
+          range: "Current Stock" 
+        });
       }
 
-      toast.success("Report generated");
-    } catch (err) {
+      toast.success("Report generated successfully");
+    } catch (err: any) {
+      console.error("Failed to generate report:", err);
       toast.error("Failed to generate report");
     } finally {
       setIsGenerating(false);
@@ -74,7 +100,7 @@ export default function ReportsPage() {
     let exportData: any[] = [];
     const filename = `DukaanSync_${selectedReport}_report_${format(new Date(), "yyyyMMdd")}`;
 
-    if (reportData?.type === "pnl" || reportData?.type === "sales") {
+    if (reportData?.type === "pnl") {
       const { telemetry } = reportData;
       exportData = [
         { Metric: "Revenue", Amount: (telemetry.revenueMinor / 100).toFixed(2) },
@@ -83,19 +109,36 @@ export default function ReportsPage() {
         { Metric: "Operating Expenses", Amount: ((telemetry.grossProfitMinor - telemetry.netProfitMinor) / 100).toFixed(2) },
         { Metric: "Net Profit", Amount: (telemetry.netProfitMinor / 100).toFixed(2) },
       ];
+    } else if (reportData?.type === "sales") {
+      exportData = (reportData.sales || []).map((s: any) => ({
+        "Invoice #": s.invoiceNumber,
+        "Customer": s.customerName || "Guest Customer",
+        "Date": format(new Date(s.createdAt), "yyyy-MM-dd HH:mm"),
+        "Payment Method": s.paymentMethod?.toUpperCase(),
+        "Status": s.paymentStatus?.toUpperCase(),
+        "Subtotal": (s.subtotalMinor / 100).toFixed(2),
+        "Discount": (s.discountMinor / 100).toFixed(2),
+        "Grand Total": (s.grandTotalMinor / 100).toFixed(2)
+      }));
     } else if (reportData?.type === "expenses") {
-      exportData = reportData.expenses.map((e: any) => ({
+      exportData = (reportData.expenses || []).map((e: any) => ({
         "Date": format(parseISO(e.date), "yyyy-MM-dd"),
-        "Category": e.category,
+        "Category": e.category?.toUpperCase(),
         "Description": e.description || "",
-        "Payment Method": e.paymentMethod,
+        "Payment Method": e.paymentMethod?.toUpperCase(),
         "Amount": (e.amountMinor / 100).toFixed(2)
       }));
     } else if (reportData?.type === "inventory") {
-      exportData = [
-        { Metric: "Total Inventory Value", Amount: (reportData.telemetry.inventoryValueMinor / 100).toFixed(2) },
-        { Metric: "Low Stock Items", Amount: reportData.telemetry.lowStockCount }
-      ];
+      exportData = (reportData.items || []).map((i: any) => ({
+        "SKU": i.sku,
+        "Product Name": i.name,
+        "Category": i.categoryId || "General",
+        "Stock Quantity": i.quantity,
+        "Unit Cost": (i.costPriceMinor / 100).toFixed(2),
+        "Retail Price": (i.retailPriceMinor / 100).toFixed(2),
+        "Total Cost Value": ((i.costPriceMinor * i.quantity) / 100).toFixed(2),
+        "Total Retail Value": ((i.retailPriceMinor * i.quantity) / 100).toFixed(2)
+      }));
     }
 
     if (exportData.length === 0) {
@@ -157,25 +200,25 @@ export default function ReportsPage() {
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <button 
                 onClick={() => setSelectedReport("pnl")}
-                className={`p-3 rounded-lg border text-sm font-medium transition-all flex flex-col items-center justify-center gap-2 ${selectedReport === "pnl" ? 'bg-purple-50 border-purple-200 text-purple-700' : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                className={`p-3 rounded-lg border text-sm font-medium transition-all flex flex-col items-center justify-center gap-2 ${selectedReport === "pnl" ? 'bg-purple-50 border-purple-200 text-purple-700 font-bold' : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'}`}
               >
                 <Activity className="w-5 h-5" /> P&L Statement
               </button>
               <button 
                 onClick={() => setSelectedReport("sales")}
-                className={`p-3 rounded-lg border text-sm font-medium transition-all flex flex-col items-center justify-center gap-2 ${selectedReport === "sales" ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                className={`p-3 rounded-lg border text-sm font-medium transition-all flex flex-col items-center justify-center gap-2 ${selectedReport === "sales" ? 'bg-blue-50 border-blue-200 text-blue-700 font-bold' : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'}`}
               >
                 <TrendingDown className="w-5 h-5 rotate-180" /> Sales Report
               </button>
               <button 
                 onClick={() => setSelectedReport("expenses")}
-                className={`p-3 rounded-lg border text-sm font-medium transition-all flex flex-col items-center justify-center gap-2 ${selectedReport === "expenses" ? 'bg-red-50 border-red-200 text-red-700' : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                className={`p-3 rounded-lg border text-sm font-medium transition-all flex flex-col items-center justify-center gap-2 ${selectedReport === "expenses" ? 'bg-red-50 border-red-200 text-red-700 font-bold' : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'}`}
               >
                 <TrendingDown className="w-5 h-5" /> Expenses
               </button>
               <button 
                 onClick={() => setSelectedReport("inventory")}
-                className={`p-3 rounded-lg border text-sm font-medium transition-all flex flex-col items-center justify-center gap-2 ${selectedReport === "inventory" ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                className={`p-3 rounded-lg border text-sm font-medium transition-all flex flex-col items-center justify-center gap-2 ${selectedReport === "inventory" ? 'bg-amber-50 border-amber-200 text-amber-700 font-bold' : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'}`}
               >
                 <PackageOpen className="w-5 h-5" /> Inventory Value
               </button>
@@ -235,11 +278,11 @@ export default function ReportsPage() {
               <div className="mt-8 text-lg font-bold text-gray-900 bg-gray-100 py-2 rounded-lg max-w-sm mx-auto uppercase tracking-widest">
                 {selectedReport === "pnl" && "Profit & Loss Statement"}
                 {selectedReport === "sales" && "Sales Summary Report"}
-                {selectedReport === "expenses" && "Expense Report"}
-                {selectedReport === "inventory" && "Inventory Valuation"}
+                {selectedReport === "expenses" && "Expense Summary Report"}
+                {selectedReport === "inventory" && "Inventory Valuation Report"}
               </div>
               <p className="text-sm font-semibold text-gray-500 mt-2">
-                Period: {reportData.range.replace("_", " ").toUpperCase()}
+                Period: {String(reportData.range).replace("_", " ").toUpperCase()}
               </p>
               <p className="text-xs text-gray-400 mt-1">Generated: {format(new Date(), "PPpp")}</p>
             </div>
@@ -247,7 +290,6 @@ export default function ReportsPage() {
             {/* P&L Specific View */}
             {reportData.type === "pnl" && (
               <div className="max-w-2xl mx-auto space-y-6">
-                
                 <div className="space-y-3">
                   <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest border-b pb-1 mb-3">Revenue (Income)</h3>
                   <div className="flex justify-between items-center text-lg">
@@ -269,7 +311,7 @@ export default function ReportsPage() {
                   
                   {reportData.telemetry.expenseDistribution.map((exp: any, i: number) => (
                     <div key={i} className="flex justify-between items-center text-gray-600">
-                      <span>{exp.name}</span>
+                      <span className="capitalize">{exp.name}</span>
                       <span>{formatCurrency(exp.value, business.currency)}</span>
                     </div>
                   ))}
@@ -286,15 +328,184 @@ export default function ReportsPage() {
                     {formatCurrency(reportData.telemetry.netProfitMinor, business.currency)}
                   </span>
                 </div>
-
               </div>
             )}
 
-            {/* Other reports would have their layouts mapped here (omitted for brevity but pattern is identical) */}
-            {reportData.type !== "pnl" && (
-              <div className="text-center text-gray-500 py-16">
-                <FileText className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p>Report layout loaded. See code to expand other specific templates.</p>
+            {/* Sales Summary Report View */}
+            {reportData.type === "sales" && (
+              <div className="space-y-8">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                    <p className="text-xs font-semibold text-blue-700 uppercase">Total Revenue</p>
+                    <p className="text-2xl font-bold text-blue-900 mt-1">{formatCurrency(reportData.telemetry.revenueMinor, business.currency)}</p>
+                  </div>
+                  <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                    <p className="text-xs font-semibold text-emerald-700 uppercase">Gross Profit</p>
+                    <p className="text-2xl font-bold text-emerald-900 mt-1">{formatCurrency(reportData.telemetry.grossProfitMinor, business.currency)}</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <p className="text-xs font-semibold text-gray-500 uppercase">Sales Orders</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">{reportData.sales?.length || 0} Transactions</p>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b-2 border-gray-900 text-xs uppercase font-bold text-gray-900">
+                        <th className="py-3 px-2">Invoice #</th>
+                        <th className="py-3 px-2">Date</th>
+                        <th className="py-3 px-2">Customer</th>
+                        <th className="py-3 px-2">Payment Method</th>
+                        <th className="py-3 px-2 text-right">Grand Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 text-sm">
+                      {reportData.sales?.length === 0 ? (
+                        <tr><td colSpan={5} className="py-8 text-center text-gray-500">No sales transactions found for this period.</td></tr>
+                      ) : (
+                        reportData.sales?.map((sale: any) => (
+                          <tr key={sale.id} className="hover:bg-gray-50">
+                            <td className="py-3 px-2 font-semibold text-gray-900">{sale.invoiceNumber}</td>
+                            <td className="py-3 px-2 text-gray-600">{format(new Date(sale.createdAt), "yyyy-MM-dd HH:mm")}</td>
+                            <td className="py-3 px-2 text-gray-700">{sale.customerName || "Guest Customer"}</td>
+                            <td className="py-3 px-2 uppercase text-xs font-medium text-gray-600">{sale.paymentMethod}</td>
+                            <td className="py-3 px-2 text-right font-bold text-gray-900">{formatCurrency(sale.grandTotalMinor, business.currency)}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t-2 border-gray-900 font-bold text-gray-900">
+                        <td colSpan={4} className="py-3 px-2 uppercase text-right">Total Revenue:</td>
+                        <td className="py-3 px-2 text-right text-lg text-blue-600">{formatCurrency(reportData.telemetry.revenueMinor, business.currency)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Expenses Report View */}
+            {reportData.type === "expenses" && (
+              <div className="space-y-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="bg-red-50 p-4 rounded-xl border border-red-100">
+                    <p className="text-xs font-semibold text-red-700 uppercase">Total Operating Expenses</p>
+                    <p className="text-2xl font-bold text-red-900 mt-1">
+                      {formatCurrency(
+                        (reportData.expenses || []).reduce((acc: number, e: any) => acc + (e.amountMinor || 0), 0),
+                        business.currency
+                      )}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <p className="text-xs font-semibold text-gray-500 uppercase">Expense Records</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">{reportData.expenses?.length || 0} Transactions</p>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b-2 border-gray-900 text-xs uppercase font-bold text-gray-900">
+                        <th className="py-3 px-2">Date</th>
+                        <th className="py-3 px-2">Category</th>
+                        <th className="py-3 px-2">Description</th>
+                        <th className="py-3 px-2">Method</th>
+                        <th className="py-3 px-2 text-right">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 text-sm">
+                      {reportData.expenses?.length === 0 ? (
+                        <tr><td colSpan={5} className="py-8 text-center text-gray-500">No expenses recorded for this period.</td></tr>
+                      ) : (
+                        reportData.expenses?.map((exp: any) => (
+                          <tr key={exp.id} className="hover:bg-gray-50">
+                            <td className="py-3 px-2 text-gray-600">{format(parseISO(exp.date), "yyyy-MM-dd")}</td>
+                            <td className="py-3 px-2 font-semibold text-gray-900 capitalize">{exp.category}</td>
+                            <td className="py-3 px-2 text-gray-600">{exp.description || "—"}</td>
+                            <td className="py-3 px-2 uppercase text-xs font-medium text-gray-600">{exp.paymentMethod}</td>
+                            <td className="py-3 px-2 text-right font-bold text-red-600">{formatCurrency(exp.amountMinor, business.currency)}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t-2 border-gray-900 font-bold text-gray-900">
+                        <td colSpan={4} className="py-3 px-2 uppercase text-right">Total Expenses:</td>
+                        <td className="py-3 px-2 text-right text-lg text-red-600">
+                          {formatCurrency(
+                            (reportData.expenses || []).reduce((acc: number, e: any) => acc + (e.amountMinor || 0), 0),
+                            business.currency
+                          )}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Inventory Valuation Report View */}
+            {reportData.type === "inventory" && (
+              <div className="space-y-8">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-amber-50 p-4 rounded-xl border border-amber-100">
+                    <p className="text-xs font-semibold text-amber-800 uppercase">Total Stock Cost Value</p>
+                    <p className="text-2xl font-bold text-amber-950 mt-1">{formatCurrency(reportData.totalCostValueMinor || 0, business.currency)}</p>
+                  </div>
+                  <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                    <p className="text-xs font-semibold text-emerald-800 uppercase">Potential Retail Value</p>
+                    <p className="text-2xl font-bold text-emerald-950 mt-1">{formatCurrency(reportData.totalRetailValueMinor || 0, business.currency)}</p>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
+                    <p className="text-xs font-semibold text-purple-800 uppercase">Expected Profit Margin</p>
+                    <p className="text-2xl font-bold text-purple-950 mt-1">
+                      {formatCurrency(Math.max(0, (reportData.totalRetailValueMinor || 0) - (reportData.totalCostValueMinor || 0)), business.currency)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b-2 border-gray-900 text-xs uppercase font-bold text-gray-900">
+                        <th className="py-3 px-2">SKU</th>
+                        <th className="py-3 px-2">Product Name</th>
+                        <th className="py-3 px-2 text-right">Qty</th>
+                        <th className="py-3 px-2 text-right">Unit Cost</th>
+                        <th className="py-3 px-2 text-right">Retail Price</th>
+                        <th className="py-3 px-2 text-right">Total Cost Value</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 text-sm">
+                      {reportData.items?.length === 0 ? (
+                        <tr><td colSpan={6} className="py-8 text-center text-gray-500">No inventory products found in stock.</td></tr>
+                      ) : (
+                        reportData.items?.map((item: any) => {
+                          const itemCostTotal = (item.costPriceMinor || 0) * (item.quantity || 0);
+                          return (
+                            <tr key={item.id} className="hover:bg-gray-50">
+                              <td className="py-3 px-2 font-semibold text-gray-900">{item.sku}</td>
+                              <td className="py-3 px-2 text-gray-800 font-medium">{item.name}</td>
+                              <td className="py-3 px-2 text-right font-bold text-gray-900">{item.quantity} {item.unit}</td>
+                              <td className="py-3 px-2 text-right text-gray-600">{formatCurrency(item.costPriceMinor || 0, business.currency)}</td>
+                              <td className="py-3 px-2 text-right text-gray-600">{formatCurrency(item.retailPriceMinor || 0, business.currency)}</td>
+                              <td className="py-3 px-2 text-right font-bold text-gray-900">{formatCurrency(itemCostTotal, business.currency)}</td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t-2 border-gray-900 font-bold text-gray-900">
+                        <td colSpan={5} className="py-3 px-2 uppercase text-right">Total Inventory Cost Value:</td>
+                        <td className="py-3 px-2 text-right text-lg text-amber-700">{formatCurrency(reportData.totalCostValueMinor || 0, business.currency)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
               </div>
             )}
 
