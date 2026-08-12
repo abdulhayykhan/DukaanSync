@@ -696,25 +696,53 @@ export default function POSTerminalPage() {
                 )}
                 
                 {(toMinorUnit(amountPaidDecimal) < totals.grandTotalMinor || paymentMethod === "credit") && (
-                  <div className="mt-3 p-3.5 bg-amber-50 rounded-xl border border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                    <div className="text-amber-800 text-xs font-medium leading-relaxed flex-1">
-                      <span className="font-bold block text-amber-900 mb-0.5">
-                        {paymentMethod === "credit" ? "Full Credit Sale" : "Partial Payment"}
-                      </span>
-                      Remaining {formatCurrency(Math.max(0, totals.grandTotalMinor - toMinorUnit(amountPaidDecimal)), business?.currency)} will be added to customer credit.
+                  <div className={cn(
+                    "mt-4 p-4 rounded-2xl border flex flex-col gap-3 transition-all",
+                    !selectedCustomerId 
+                      ? "bg-amber-500/10 border-amber-400/60 shadow-sm" 
+                      : "bg-amber-50 border-amber-200"
+                  )}>
+                    <div className="flex items-start gap-2.5">
+                      <div className="p-1.5 bg-amber-500/20 text-amber-900 rounded-lg shrink-0 mt-0.5">
+                        <User className="w-4 h-4 text-amber-800" />
+                      </div>
+                      <div className="text-amber-900 text-xs font-medium leading-relaxed flex-1">
+                        <span className="font-bold block text-sm text-amber-950 mb-0.5">
+                          {paymentMethod === "credit" ? "Full Credit Sale" : "Partial Payment Detected"}
+                        </span>
+                        Remaining <span className="font-bold text-amber-950">{formatCurrency(Math.max(0, totals.grandTotalMinor - toMinorUnit(amountPaidDecimal)), business?.currency)}</span> will be posted to customer credit.
+                      </div>
                     </div>
+                    
                     {!selectedCustomerId && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          customerSelectRef.current?.focus();
-                        }}
-                        className="shrink-0 text-xs bg-white text-amber-900 border-amber-300 hover:bg-amber-100 font-semibold shadow-sm"
-                      >
-                        Select Customer
-                      </Button>
+                      <div className="pt-2 border-t border-amber-200/80 flex flex-wrap sm:flex-nowrap gap-2 items-center justify-between">
+                        <span className="text-[11px] font-semibold text-amber-900/80">
+                          ⚠️ Customer selection is required to track credit balance
+                        </span>
+                        <div className="flex gap-2 shrink-0 w-full sm:w-auto">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              customerSelectRef.current?.focus();
+                            }}
+                            className="flex-1 sm:flex-initial text-xs bg-white text-amber-900 border-amber-300 hover:bg-amber-100 font-semibold shadow-sm"
+                          >
+                            Select Customer
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => {
+                              setIsCustomerModalOpen(true);
+                            }}
+                            className="flex-1 sm:flex-initial text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm"
+                          >
+                            + New Customer
+                          </Button>
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}
