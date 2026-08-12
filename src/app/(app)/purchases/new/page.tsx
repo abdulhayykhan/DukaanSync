@@ -196,20 +196,15 @@ export default function NewPurchasePage() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto h-full flex flex-col">
-      <div className="mb-6 flex justify-between items-end">
-        <div>
-          <button 
-            onClick={() => router.back()}
-            className="flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 mb-4 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> Back
-          </button>
-          <h1 className="text-2xl font-bold text-gray-900">Record Stock Purchase</h1>
-          <p className="text-sm text-gray-500 mt-1">Log inventory stock arrivals and update supplier payables balance.</p>
-        </div>
-        <Button onClick={handleSubmit} isLoading={isSubmitting} className="h-11 px-6 shadow-md" disabled={cart.length === 0 || !selectedSupplierId}>
-          <Save className="w-4 h-4 mr-2" /> Complete Transaction
-        </Button>
+      <div className="mb-6">
+        <button 
+          onClick={() => router.back()}
+          className="flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-1" /> Back
+        </button>
+        <h1 className="text-2xl font-bold text-gray-900">Record Stock Purchase</h1>
+        <p className="text-sm text-gray-500 mt-1">Log inventory stock arrivals and update supplier payables balance.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
@@ -417,6 +412,17 @@ export default function NewPurchasePage() {
                   <strong>Note:</strong> A payable balance of {formatCurrency(totals.grandTotalMinor - toMinorUnit(amountPaidDecimal), business?.currency)} will be added to the supplier's ledger.
                 </div>
               )}
+
+              <div className="pt-4 border-t border-gray-200 mt-2">
+                <Button 
+                  onClick={handleSubmit} 
+                  isLoading={isSubmitting} 
+                  disabled={cart.length === 0 || !selectedSupplierId}
+                  className="w-full h-12 text-base font-bold shadow-md bg-[#10B981] hover:bg-[#059669] text-white flex items-center justify-center gap-2"
+                >
+                  <Save className="w-5 h-5" /> Complete Transaction
+                </Button>
+              </div>
             </div>
           </div>
         </div>
