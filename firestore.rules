@@ -131,6 +131,28 @@ service cloud.firestore {
       }
 
       // -----------------------------------------------------------------------
+      // Business-Level Customers — /businesses/{businessId}/customers/{document=**}
+      // -----------------------------------------------------------------------
+      match /customers/{document=**} {
+        allow read, write: if isBusinessMember(businessId);
+      }
+
+      // -----------------------------------------------------------------------
+      // Business-Level Suppliers — /businesses/{businessId}/suppliers/{document=**}
+      // -----------------------------------------------------------------------
+      match /suppliers/{document=**} {
+        allow read, write: if isBusinessMember(businessId);
+      }
+
+      // -----------------------------------------------------------------------
+      // Business-Level Audit Logs — /businesses/{businessId}/auditLogs/{document=**}
+      // -----------------------------------------------------------------------
+      match /auditLogs/{document=**} {
+        allow read, create: if isBusinessMember(businessId);
+        allow update, delete: if false;
+      }
+
+      // -----------------------------------------------------------------------
       // Shops — /businesses/{businessId}/shops/{shopId}
       // -----------------------------------------------------------------------
       match /shops/{shopId} {
@@ -185,6 +207,10 @@ service cloud.firestore {
           allow read: if canAccessShop(businessId, shopId);
           allow write: if canAccessShop(businessId, shopId)
             && getMember(businessId).role in ['owner', 'manager'];
+        }
+
+        match /movements/{document=**} {
+          allow read, create: if canAccessShop(businessId, shopId);
         }
 
         match /stockMovements/{document=**} {

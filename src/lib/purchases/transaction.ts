@@ -12,6 +12,8 @@ import type {
   AuditLog 
 } from "@/types";
 
+import { sanitizeFirestorePayload } from "@/lib/sales/transaction";
+
 export interface PurchaseTransactionData {
   supplierId: string;
   items: PurchaseItem[];
@@ -77,26 +79,36 @@ export class PurchaseTransactionService {
       // 2. Perform all writes
       // -------------------------------------------------------------
 
+      const sanitizedItems: PurchaseItem[] = data.items.map(item => ({
+        itemId: item.itemId,
+        sku: item.sku || "N/A",
+        name: item.name || "Product",
+        quantity: Number(item.quantity || 1),
+        unitCostMinor: Number(item.unitCostMinor || 0),
+        discountMinor: Number(item.discountMinor || 0),
+        totalMinor: Number(item.totalMinor || (item.unitCostMinor * item.quantity - item.discountMinor))
+      }));
+
       // A. Create Purchase Record
       const purchaseRecord: Purchase = {
         id: purchaseRef.id,
         purchaseNumber,
         supplierId: data.supplierId,
-        items: data.items,
-        subtotalMinor: data.subtotalMinor,
-        discountMinor: data.discountMinor,
-        grandTotalMinor: data.grandTotalMinor,
-        paymentMethod: data.paymentMethod,
-        paymentStatus: data.paymentStatus,
-        amountPaidMinor: data.amountPaidMinor,
+        items: sanitizedItems,
+        subtotalMinor: Number(data.subtotalMinor || 0),
+        discountMinor: Number(data.discountMinor || 0),
+        grandTotalMinor: Number(data.grandTotalMinor || 0),
+        paymentMethod: data.paymentMethod || "cash",
+        paymentStatus: data.paymentStatus || "paid",
+        amountPaidMinor: Number(data.amountPaidMinor ?? 0),
         status: "completed",
-        createdBy: userId,
+        createdBy: userId || "system",
         createdAt: now,
       };
-      transaction.set(purchaseRef, purchaseRecord);
+      transaction.set(purchaseRef, sanitizeFirestorePayload(purchaseRecord));
 
       // B. Update Inventory & Log Movements
-      for (const item of data.items) {
+      for (const item of sanitizedItems) {
         const invRef = doc(firestore, "businesses", businessId, "shops", shopId, "inventory", item.itemId);
         const currentQty = inventoryQuantities.get(item.itemId) || 0;
         const newQty = currentQty + item.quantity;
@@ -118,16 +130,16 @@ export class PurchaseTransactionService {
           referenceType: "purchase",
           referenceId: purchaseRef.id,
           reason: `Purchase ${purchaseNumber}`,
-          createdBy: userId,
+          createdBy: userId || "system",
           createdAt: now,
         };
-        transaction.set(movementRef, movementLog);
+        transaction.set(movementRef, sanitizeFirestorePayload(movementLog));
       }
 
       // C. Update Supplier Ledger if unpaid/partial
       const amountUnpaid = data.grandTotalMinor - data.amountPaidMinor;
       if (amountUnpaid > 0) {
-        const currentBalance = supplierDoc.data().currentBalanceMinor as number;
+        const currentBalance = (supplierDoc.data()?.currentBalanceMinor as number) ?? 0;
         const newBalance = currentBalance + amountUnpaid; // Supplier balance is payables (how much we owe)
 
         transaction.update(supplierRef, {
@@ -144,10 +156,10 @@ export class PurchaseTransactionService {
           referenceId: purchaseRef.id,
           balanceBeforeMinor: currentBalance,
           balanceAfterMinor: newBalance,
-          createdBy: userId,
+          createdBy: userId || "system",
           createdAt: now,
         };
-        transaction.set(ledgerRef, ledgerEntry);
+        transaction.set(ledgerRef, sanitizeFirestorePayload(ledgerEntry));
       }
 
       // D. Write general Audit Log
@@ -156,12 +168,12 @@ export class PurchaseTransactionService {
         action: "purchase_created",
         entityType: "purchase",
         entityId: purchaseRef.id,
-        actorId: userId,
+        actorId: userId || "system",
         shopId: shopId,
         metadata: { purchaseNumber, amount: data.grandTotalMinor },
         createdAt: now,
       };
-      transaction.set(auditRef, auditLog);
+      transaction.set(auditRef, sanitizeFirestorePayload(auditLog));
     });
 
     return purchaseRef.id;
