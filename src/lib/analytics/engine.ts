@@ -244,12 +244,22 @@ export class AnalyticsEngine {
     // Process Inventory Valuation & Low Stock
     let inventoryValueMinor = 0;
     let lowStockCount = 0;
+    const lowStockItems: { id: string; name: string; sku: string; quantity: number; unit: string; storageLocation?: string; reorderLevel: number }[] = [];
 
     allInventory.forEach((inv) => {
       inventoryValueMinor += (inv.quantity || 0) * (inv.costPriceMinor || 0);
       const threshold = inv.reorderLevel ?? 10;
       if ((inv.quantity || 0) <= threshold) {
         lowStockCount++;
+        lowStockItems.push({
+          id: inv.id,
+          name: inv.name,
+          sku: inv.sku,
+          quantity: inv.quantity || 0,
+          unit: inv.unit || "pcs",
+          storageLocation: inv.storageLocation || "",
+          reorderLevel: threshold,
+        });
       }
     });
 
@@ -343,7 +353,12 @@ export class AnalyticsEngine {
       totalPayablesMinor,
       inventoryValueMinor,
       lowStockCount,
-      chartData: chartData.map(({ date, revenue, netProfit }) => ({ date, revenue, netProfit })),
+      lowStockItems,
+      chartData: chartData.map((b) => ({
+        date: b.date,
+        revenue: b.revenue,
+        netProfit: b.netProfit,
+      })),
       expenseDistribution,
     };
   }

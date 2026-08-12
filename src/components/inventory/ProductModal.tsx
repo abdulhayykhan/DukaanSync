@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X } from "lucide-react";
+import { X, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { inventoryFormSchema, transformToServicePayload, type InventoryFormData } from "@/lib/validation/inventory";
@@ -40,6 +40,7 @@ export function ProductModal({ isOpen, onOpenChange, itemToEdit, onSuccess }: Pr
   const {
     register,
     handleSubmit,
+    setValue,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<InventoryFormData>({
@@ -58,6 +59,7 @@ export function ProductModal({ isOpen, onOpenChange, itemToEdit, onSuccess }: Pr
           unit: itemToEdit.unit,
           quantity: itemToEdit.quantity,
           reorderLevel: itemToEdit.reorderLevel,
+          storageLocation: itemToEdit.storageLocation || "",
           costPriceDecimal: fromMinorUnit(itemToEdit.costPriceMinor),
           retailPriceDecimal: fromMinorUnit(itemToEdit.retailPriceMinor),
         });
@@ -69,6 +71,7 @@ export function ProductModal({ isOpen, onOpenChange, itemToEdit, onSuccess }: Pr
           unit: "pcs",
           quantity: 0,
           reorderLevel: 5,
+          storageLocation: "",
           costPriceDecimal: 0,
           retailPriceDecimal: 0,
         });
@@ -124,13 +127,28 @@ export function ProductModal({ isOpen, onOpenChange, itemToEdit, onSuccess }: Pr
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  SKU / Barcode <span className="text-red-500">*</span>
-                </label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-sm font-medium text-gray-700">
+                    SKU / Barcode
+                  </label>
+                  {!isEditing && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const randomSku = `PRD-${Math.floor(100000 + Math.random() * 900000)}`;
+                        setValue("sku", randomSku);
+                        toast.info(`Auto-generated SKU: ${randomSku}`);
+                      }}
+                      className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 transition-colors"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" /> Auto-Generate SKU
+                    </button>
+                  )}
+                </div>
                 <Input
                   {...register("sku")}
                   error={errors.sku?.message}
-                  placeholder="e.g. PRD-001"
+                  placeholder="e.g. PRD-001 (or auto-generated)"
                   disabled={isEditing}
                   className={isEditing ? "bg-gray-100" : ""}
                 />
@@ -182,6 +200,17 @@ export function ProductModal({ isOpen, onOpenChange, itemToEdit, onSuccess }: Pr
                 </select>
                 {errors.unit && <p className="mt-1 text-sm text-red-600">{errors.unit.message}</p>}
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Storage Location (Shelf / Room)
+              </label>
+              <Input
+                {...register("storageLocation")}
+                error={errors.storageLocation?.message}
+                placeholder="e.g. Shelf A-3, Room 2, Top Rack"
+              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

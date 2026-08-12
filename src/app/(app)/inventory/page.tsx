@@ -212,6 +212,7 @@ export default function InventoryPage() {
       "SKU": item?.sku || "",
       "Product Name": item?.name || "",
       "Category": getCategoryName(item?.categoryId || ""),
+      "Storage Location": item?.storageLocation || "Unassigned",
       "Unit": item?.unit || "",
       "Cost Price (PKR)": ((item?.costPriceMinor || 0) / 100).toFixed(2),
       "Retail Price (PKR)": ((item?.retailPriceMinor || 0) / 100).toFixed(2),
@@ -309,6 +310,7 @@ export default function InventoryPage() {
               <tr className="text-xs uppercase tracking-wider text-gray-500 font-semibold">
                 <th className="px-6 py-4">SKU / Product</th>
                 <th className="px-6 py-4">Category</th>
+                <th className="px-6 py-4">Storage Location</th>
                 <th className="px-6 py-4">Stock Level</th>
                 {!isReadOnly && <th className="px-6 py-4 text-right">Cost Price</th>}
                 <th className="px-6 py-4 text-right">Retail Price</th>
@@ -318,7 +320,7 @@ export default function InventoryPage() {
             <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                     <div className="flex flex-col items-center justify-center space-y-3">
                       <div className="w-6 h-6 border-2 border-[#10B981] border-t-transparent rounded-full animate-spin"></div>
                       <p>Loading inventory...</p>
@@ -327,7 +329,7 @@ export default function InventoryPage() {
                 </tr>
               ) : filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-16 text-center">
+                  <td colSpan={7} className="px-6 py-16 text-center">
                     <PackageIcon className="mx-auto h-12 w-12 text-gray-300 mb-3" />
                     <p className="text-gray-500 text-lg font-medium">No products found</p>
                     <p className="text-gray-400 text-sm mt-1">Try adjusting your filters or search query.</p>
@@ -354,6 +356,15 @@ export default function InventoryPage() {
                         <span className="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-medium">
                           {getCategoryName(item?.categoryId || "")}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {item?.storageLocation ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 text-slate-800 text-xs font-medium">
+                            📍 {item.storageLocation}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 text-xs">—</span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">

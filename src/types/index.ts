@@ -104,6 +104,7 @@ export interface InventoryItem {
   retailPriceMinor: number;
   wholesalePriceMinor?: number;
   reorderLevel: number;
+  storageLocation?: string;
   isActive: boolean;
   createdAt: string; // Stored as ISO string to simplify service layer for now
   updatedAt: string;
@@ -284,6 +285,15 @@ export interface DashboardTelemetry {
   totalPayablesMinor: number;
   inventoryValueMinor: number;
   lowStockCount: number;
+  lowStockItems?: {
+    id: string;
+    name: string;
+    sku: string;
+    quantity: number;
+    unit: string;
+    storageLocation?: string;
+    reorderLevel: number;
+  }[];
   chartData: {
     date: string;
     revenue: number;
