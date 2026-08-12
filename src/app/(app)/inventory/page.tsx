@@ -19,6 +19,8 @@ import { ExportDropdown } from "@/components/ui/ExportDropdown";
 import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
 import { buildNormalizedRow, getField } from "@/lib/utils/importNormalize";
 
+import { useSearchParams } from "next/navigation";
+
 import type { InventoryItem } from "@/types";
 import type { InventoryServicePayload } from "@/lib/validation/inventory";
 
@@ -37,6 +39,9 @@ const IMPORT_SAMPLE = [
 ];
 
 export default function InventoryPage() {
+  const searchParams = useSearchParams();
+  const lowStockParam = searchParams ? (searchParams.get("lowStock") === "true" || searchParams.get("filter") === "low_stock") : false;
+
   const { business, memberRole } = useBusiness();
   const { activeShop } = useShop();
 
@@ -44,12 +49,19 @@ export default function InventoryPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [showLowStockOnly, setShowLowStockOnly] = useState(false);
+  const [showLowStockOnly, setShowLowStockOnly] = useState(lowStockParam);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<InventoryItem | null>(null);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
+
+  // Sync state if lowStockParam changes
+  useEffect(() => {
+    if (lowStockParam) {
+      setShowLowStockOnly(true);
+    }
+  }, [lowStockParam]);
 
   // Read-only for cashiers
   const isReadOnly = memberRole === "cashier";

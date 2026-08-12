@@ -173,7 +173,7 @@ export default function DashboardPage() {
           </Card3D></motion.div>
 
           {/* Low Stock */}
-          <motion.div variants={itemVariants} className="h-full"><Card3D className="bg-white p-5 rounded-2xl border border-amber-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col group relative overflow-hidden h-full cursor-pointer" onClick={() => window.location.href="/inventory"}>
+          <motion.div variants={itemVariants} className="h-full"><Card3D className="bg-white p-5 rounded-2xl border border-amber-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col group relative overflow-hidden h-full cursor-pointer" onClick={() => window.location.href="/inventory?lowStock=true"}>
             <div className="absolute right-0 top-0 h-full w-1 bg-amber-400"></div>
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Stock Alerts</span>
