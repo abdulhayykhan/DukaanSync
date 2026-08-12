@@ -181,6 +181,7 @@ export interface Purchase {
   items: PurchaseItem[];
   subtotalMinor: number;
   discountMinor: number;
+  extraCostMinor?: number;
   grandTotalMinor: number;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;

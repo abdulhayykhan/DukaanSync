@@ -38,6 +38,7 @@ export default function NewPurchasePage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [amountPaidDecimal, setAmountPaidDecimal] = useState("");
+  const [extraCostDecimal, setExtraCostDecimal] = useState("");
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -61,6 +62,7 @@ export default function NewPurchasePage() {
     setCart([]);
     setSelectedSupplierId("");
     setSearchQuery("");
+    setExtraCostDecimal("");
   }, [activeShop?.id]);
 
   // Inventory Search
@@ -111,12 +113,16 @@ export default function NewPurchasePage() {
       discountMinor += rowDiscMinor;
     });
 
+    const extraCostMinor = toMinorUnit(extraCostDecimal);
+    const grandTotalMinor = subtotalMinor - discountMinor + extraCostMinor;
+
     return {
       subtotalMinor,
       discountMinor,
-      grandTotalMinor: subtotalMinor - discountMinor
+      extraCostMinor,
+      grandTotalMinor
     };
-  }, [cart]);
+  }, [cart, extraCostDecimal]);
 
   // Auto-fill amount paid if fully paid method selected
   useEffect(() => {
@@ -167,6 +173,7 @@ export default function NewPurchasePage() {
           }),
           subtotalMinor: totals.subtotalMinor,
           discountMinor: totals.discountMinor,
+          extraCostMinor: totals.extraCostMinor,
           grandTotalMinor: totals.grandTotalMinor,
           paymentMethod,
           paymentStatus,
@@ -198,103 +205,103 @@ export default function NewPurchasePage() {
             <ArrowLeft className="w-4 h-4 mr-1" /> Back
           </button>
           <h1 className="text-2xl font-bold text-gray-900">Record Stock Purchase</h1>
-          <p className="text-sm text-gray-500 mt-1">Receive inventory and update supplier payables.</p>
+          <p className="text-sm text-gray-500 mt-1">Log inventory stock arrivals and update supplier payables balance.</p>
         </div>
-        <Button onClick={handleSubmit} isLoading={isSubmitting} disabled={cart.length === 0 || !selectedSupplierId}>
+        <Button onClick={handleSubmit} isLoading={isSubmitting} className="h-11 px-6 shadow-md" disabled={cart.length === 0 || !selectedSupplierId}>
           <Save className="w-4 h-4 mr-2" /> Complete Transaction
         </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
         
-        {/* Left Column: Entry Form */}
+        {/* Left Column: Supplier & Items */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-            <h2 className="font-semibold text-gray-900 mb-4">Transaction Details</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Supplier <span className="text-red-500">*</span></label>
-                <select 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#10B981]"
-                  value={selectedSupplierId}
-                  onChange={(e) => setSelectedSupplierId(e.target.value)}
-                >
-                  <option value="">Select Supplier...</option>
-                  {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Search Products to Add</label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input 
-                    placeholder="Search by SKU or Name..." 
-                    className="pl-9"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  {searchQuery && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                      {filteredInventory.length > 0 ? filteredInventory.map(item => (
-                        <div 
-                          key={item.id} 
-                          className="px-4 py-2 hover:bg-gray-50 cursor-pointer flex justify-between items-center"
-                          onClick={() => addToCart(item)}
-                        >
-                          <div>
-                            <p className="font-medium text-sm text-gray-900">{item.name}</p>
-                            <p className="text-xs text-gray-500">{item.sku}</p>
-                          </div>
-                          <Plus className="w-4 h-4 text-[#10B981]" />
-                        </div>
-                      )) : (
-                        <div className="px-4 py-3 text-sm text-gray-500 text-center">No products found</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+          
+          {/* Supplier Selector */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+            <label className="block text-sm font-bold text-gray-900 mb-2">Select Supplier</label>
+            <select
+              className="w-full px-4 h-12 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#10B981] focus:bg-white transition-all"
+              value={selectedSupplierId}
+              onChange={(e) => setSelectedSupplierId(e.target.value)}
+            >
+              <option value="">-- Choose Supplier --</option>
+              {suppliers.map(s => (
+                <option key={s.id} value={s.id}>{s.name} {s.phone ? `(${s.phone})` : ''}</option>
+              ))}
+            </select>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex-1 flex flex-col min-h-[400px]">
-            <div className="p-4 border-b border-gray-200 bg-gray-50">
-              <h2 className="font-semibold text-gray-900 flex items-center">
-                <ShoppingCart className="w-4 h-4 mr-2 text-gray-400" /> Purchase Items
-              </h2>
+          {/* Item Search & Cart */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex-1 flex flex-col min-h-[400px]">
+            <div className="relative mb-6">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="Search products by name or SKU to add..."
+                className="pl-11 h-12 text-sm bg-gray-50 rounded-xl"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+
+              {searchQuery && filteredInventory.length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl border border-gray-200 shadow-xl z-20 max-h-60 overflow-y-auto">
+                  {filteredInventory.map(item => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => addToCart(item)}
+                      className="w-full p-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-none flex justify-between items-center"
+                    >
+                      <div>
+                        <p className="font-semibold text-sm text-gray-900">{item.name}</p>
+                        <p className="text-xs text-gray-400">SKU: {item.sku}</p>
+                      </div>
+                      <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                        <Plus className="w-3.5 h-3.5" /> Add
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            <div className="overflow-x-auto p-4 flex-1">
-              <table className="w-full text-left">
-                <thead className="border-b border-gray-200 text-xs uppercase text-gray-500">
-                  <tr>
-                    <th className="pb-3 pr-4 font-semibold">Product</th>
-                    <th className="pb-3 px-4 font-semibold w-24">Qty</th>
-                    <th className="pb-3 px-4 font-semibold w-32">Unit Cost</th>
-                    <th className="pb-3 px-4 font-semibold w-32">Discount</th>
-                    <th className="pb-3 px-4 font-semibold text-right w-32">Total</th>
-                    <th className="pb-3 pl-4"></th>
+
+            {/* Cart Table */}
+            <div className="overflow-x-auto flex-1">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-200 text-xs font-semibold uppercase text-gray-400">
+                    <th className="py-3 pr-4">Product</th>
+                    <th className="py-3 px-4 w-28">Qty</th>
+                    <th className="py-3 px-4 w-32">Unit Cost ({business?.currency})</th>
+                    <th className="py-3 px-4 w-32">Disc ({business?.currency})</th>
+                    <th className="py-3 px-4 text-right">Total</th>
+                    <th className="py-3 pl-4 text-right w-10"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-100 text-sm">
                   {cart.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-gray-500">
-                        Search and add products to start building the purchase.
+                      <td colSpan={6} className="py-16 text-center text-gray-400">
+                        <ShoppingCart className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                        Search and add products above to build purchase order
                       </td>
                     </tr>
                   ) : (
-                    cart.map((c) => {
+                    cart.map(c => {
                       const qty = Math.max(1, Number(c.quantity) || 1);
-                      const lineTotal = (toMinorUnit(c.unitCostDecimal) * qty) - toMinorUnit(c.discountDecimal);
+                      const uCost = toMinorUnit(c.unitCostDecimal);
+                      const disc = toMinorUnit(c.discountDecimal);
+                      const lineTotal = (uCost * qty) - disc;
+
                       return (
                         <tr key={c.item.id}>
                           <td className="py-4 pr-4">
-                            <p className="font-medium text-sm text-gray-900">{c.item.name}</p>
-                            <p className="text-xs text-gray-500">{c.item.sku}</p>
+                            <p className="font-semibold text-gray-900">{c.item.name}</p>
+                            <p className="text-xs text-gray-400">SKU: {c.item.sku}</p>
                           </td>
                           <td className="py-4 px-4">
                             <Input 
-                              type="number" min="1" 
+                              type="number" min="1"
                               value={c.quantity}
                               onChange={(e) => updateCartItem(c.item.id, "quantity", e.target.value)}
                               onBlur={() => {
@@ -328,7 +335,7 @@ export default function NewPurchasePage() {
                               }}
                             />
                           </td>
-                          <td className="py-4 px-4 text-right font-medium text-gray-900">
+                          <td className="py-4 px-4 text-right font-semibold text-gray-900">
                             {formatCurrency(lineTotal, business?.currency)}
                           </td>
                           <td className="py-4 pl-4 text-right">
@@ -359,6 +366,24 @@ export default function NewPurchasePage() {
               <div className="flex justify-between text-sm text-red-500">
                 <span>Total Discount</span>
                 <span>- {formatCurrency(totals.discountMinor, business?.currency)}</span>
+              </div>
+              <div className="pt-2 border-t border-gray-100">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Extra Cost (Transport / Shipping)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">
+                    {business?.currency || "PKR"}
+                  </span>
+                  <Input 
+                    type="number" 
+                    step="0.01"
+                    className="pl-12 h-9 text-sm bg-white"
+                    placeholder="0.00"
+                    value={extraCostDecimal}
+                    onChange={(e) => setExtraCostDecimal(e.target.value)}
+                  />
+                </div>
               </div>
               <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t border-gray-200 mt-2">
                 <span>Grand Total</span>

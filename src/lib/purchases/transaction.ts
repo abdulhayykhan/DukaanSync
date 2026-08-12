@@ -19,6 +19,7 @@ export interface PurchaseTransactionData {
   items: PurchaseItem[];
   subtotalMinor: number;
   discountMinor: number;
+  extraCostMinor?: number;
   grandTotalMinor: number;
   paymentMethod: Purchase["paymentMethod"];
   paymentStatus: Purchase["paymentStatus"];
@@ -104,6 +105,7 @@ export class PurchaseTransactionService {
         items: sanitizedItems,
         subtotalMinor: Number(data.subtotalMinor || 0),
         discountMinor: Number(data.discountMinor || 0),
+        extraCostMinor: Number(data.extraCostMinor || 0),
         grandTotalMinor: Number(data.grandTotalMinor || 0),
         paymentMethod: data.paymentMethod || "cash",
         paymentStatus: data.paymentStatus || "paid",
@@ -167,6 +169,25 @@ export class PurchaseTransactionService {
           createdAt: now,
         };
         transaction.set(ledgerRef, sanitizeFirestorePayload(ledgerEntry));
+      }
+
+      // D. Create Operational Expense for Transport / Shipping if extraCostMinor > 0
+      if (data.extraCostMinor && data.extraCostMinor > 0) {
+        const expenseRef = doc(collection(firestore, "businesses", businessId, "shops", shopId, "expenses"));
+        const expenseRecord = {
+          id: expenseRef.id,
+          businessId,
+          shopId,
+          category: "transport",
+          description: `Transport & Shipping for PO ${purchaseNumber}`,
+          amountMinor: Number(data.extraCostMinor),
+          paymentMethod: data.paymentMethod === "credit" ? "cash" : data.paymentMethod,
+          date: now.split("T")[0],
+          createdBy: userId || "system",
+          createdAt: now,
+          updatedAt: now,
+        };
+        transaction.set(expenseRef, sanitizeFirestorePayload(expenseRecord));
       }
 
       // D. Write general Audit Log
