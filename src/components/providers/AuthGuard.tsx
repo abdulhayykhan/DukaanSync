@@ -11,6 +11,8 @@ import { LoadingScreen } from "@/components/ui/LoadingScreen";
 const PUBLIC_PATHS = ["/login", "/register", "/forgot-password", "/"];
 // Paths specifically for onboarding
 const ONBOARDING_PATH = "/onboarding";
+// Marketing paths (accessible to everyone, logged in or not)
+const MARKETING_PATHS = ["/home", "/privacy", "/terms", "/refund-policy"];
 
 export function AuthGuard({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
@@ -24,6 +26,10 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
     const isPublicPath = PUBLIC_PATHS.includes(pathname);
     const isOnboardingPath = pathname === ONBOARDING_PATH;
+    const isMarketingPath = MARKETING_PATHS.includes(pathname);
+
+    // Never redirect if on a marketing path
+    if (isMarketingPath) return;
 
     if (!user) {
       // 1. Not logged in + trying to access private page -> Redirect to login
@@ -56,6 +62,10 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   // Prevent flashing protected content before redirect takes effect if we know it shouldn't render
   const isPublicPath = PUBLIC_PATHS.includes(pathname);
   const isOnboardingPath = pathname === ONBOARDING_PATH;
+  const isMarketingPath = MARKETING_PATHS.includes(pathname);
+
+  // Marketing paths always render
+  if (isMarketingPath) return <>{children}</>;
 
   if (!user && !isPublicPath) return null;
   if (user && !business && !isOnboardingPath) return null;

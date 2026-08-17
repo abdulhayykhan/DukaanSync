@@ -78,6 +78,12 @@ export default function LoginPage() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <Link href="/home" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1">
+          &larr; Back to Home
+        </Link>
+      </div>
+
       <div className="text-center">
         <h3 className="text-xl font-bold text-gray-900">Sign in to your account</h3>
         <p className="text-xs text-gray-500 mt-1">Access your business dashboard and POS terminals</p>
