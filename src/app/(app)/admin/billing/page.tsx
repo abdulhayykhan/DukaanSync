@@ -29,7 +29,8 @@ export default function AdminBillingPage() {
     if (!user) return;
     const isSeedAdmin = 
       user.email === "seed.admin@metromart.com" || 
-      user.uid === "QhlEJoMLs0geF2lZB8k9wokL0PJ3";
+      user.uid === "QhlEJoMLs0geF2lZB8k9wokL0PJ3" ||
+      (process.env.NEXT_PUBLIC_SEED_ADMIN_UIDS || "").includes(user.uid);
       
     if (!isSeedAdmin) {
       toast.error("Unauthorized access.");

@@ -25,7 +25,8 @@ service cloud.firestore {
     function isSeedAdmin() {
       return isAuthenticated() && (
         request.auth.token.email == "seed.admin@metromart.com" ||
-        request.auth.uid == "QhlEJoMLs0geF2lZB8k9wokL0PJ3"
+        request.auth.uid == "QhlEJoMLs0geF2lZB8k9wokL0PJ3" ||
+        request.auth.uid == "hDFjLdNMVia5kVeQ8HAgkKcdFnH3"
       );
     }
 
