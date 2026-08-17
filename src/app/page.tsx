@@ -17,7 +17,7 @@ export default function RootPage() {
     if (isLoading) return;
 
     if (!user) {
-      router.replace("/login");
+      router.replace("/home");
     } else if (!business) {
       router.replace("/onboarding");
     } else {
