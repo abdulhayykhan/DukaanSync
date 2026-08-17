@@ -67,8 +67,8 @@ export default function AdminBusinessesPage() {
   }
 
   return (
-    <div className="p-0">
-      <div className="overflow-x-auto">
+    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+      <div className="overflow-x-auto pb-2">
         <table className="w-full text-sm text-left">
           <thead className="bg-slate-50 border-b border-gray-200 text-xs uppercase font-bold text-slate-500">
             <tr>
