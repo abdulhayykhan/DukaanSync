@@ -1,5 +1,6 @@
 "use server";
 
+import "@/lib/firebase/admin";
 import { getAuth } from "firebase-admin/auth";
 import { UserProfile } from "@/types";
 
