@@ -7,6 +7,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { updateProfile } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { registerSchema, type RegisterFormData } from "@/lib/validation/auth";
@@ -55,6 +57,19 @@ export default function RegisterPage() {
       const user = await registerAuth(data.email, data.password);
       if (user) {
         await updateProfile(user, { displayName: data.name });
+        
+        // Create user document in Firestore
+        if (db) {
+          const now = new Date().toISOString();
+          await setDoc(doc(db, "users", user.uid), {
+            uid: user.uid,
+            email: user.email || data.email,
+            displayName: data.name,
+            businessId: null,
+            createdAt: now,
+            updatedAt: now,
+          });
+        }
       }
       router.push("/onboarding");
     } catch {
