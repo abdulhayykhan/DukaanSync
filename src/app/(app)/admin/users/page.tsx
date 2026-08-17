@@ -6,15 +6,13 @@ import { useEffect, useState } from "react";
 import { UserProfile } from "@/types";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Users as UsersIcon, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Users as UsersIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { repairUsersAction } from "./actions";
+import { getAllUsersAction } from "./actions";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -22,20 +20,18 @@ export default function AdminUsersPage() {
   }, []);
 
   const fetchUsers = async () => {
-    if (!db) return;
+    if (!user) return;
     try {
-      const snap = await getDocs(collection(db, "users"));
-      const items: UserProfile[] = [];
-      snap.forEach((d) => items.push({ uid: d.id, ...d.data() } as UserProfile));
-      
-      // Sort by creation date descending
-      items.sort((a, b) => {
-        const dateA = a.createdAt ? ((a.createdAt as any).seconds ? (a.createdAt as any).seconds * 1000 : new Date(a.createdAt as string).getTime()) : 0;
-        const dateB = b.createdAt ? ((b.createdAt as any).seconds ? (b.createdAt as any).seconds * 1000 : new Date(b.createdAt as string).getTime()) : 0;
-        return dateB - dateA;
-      });
-
-      setUsers(items);
+      const res = await getAllUsersAction(user.uid);
+      if (res.success && res.users) {
+        // Sort by creation date descending
+        const items = res.users.sort((a, b) => {
+          const dateA = new Date(a.createdAt as string).getTime();
+          const dateB = new Date(b.createdAt as string).getTime();
+          return dateB - dateA;
+        });
+        setUsers(items);
+      }
     } catch (error: any) {
       console.error("Failed to fetch users:", error);
       toast.error(error.message || "Failed to load users");
@@ -48,35 +44,8 @@ export default function AdminUsersPage() {
     return <div className="p-8 text-center text-gray-500 animate-pulse">Loading users...</div>;
   }
 
-  const handleSyncData = async () => {
-    if (!user) return;
-    setSyncing(true);
-    try {
-      const res = await repairUsersAction(user.uid);
-      if (res.success) {
-        toast.success(`Successfully synchronized ${res.count} user(s).`);
-        fetchUsers();
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Failed to sync user data");
-    } finally {
-      setSyncing(false);
-    }
-  };
-
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button 
-          variant="outline" 
-          onClick={handleSyncData} 
-          disabled={syncing}
-          className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200"
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
-          {syncing ? 'Syncing Data...' : 'Sync Missing User Data'}
-        </Button>
-      </div>
       <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
         <div className="overflow-x-auto pb-4">
           <div className="inline-block min-w-full align-middle">
