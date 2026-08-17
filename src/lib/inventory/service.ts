@@ -14,6 +14,7 @@ import { db, auth } from "@/lib/firebase/client";
 import type { InventoryServicePayload } from "@/lib/validation/inventory";
 import type { InventoryItem, StockMovementType, DuplicateStrategy } from "@/types";
 import type { BulkImportResult } from "@/components/ui/BulkImportModal";
+import { mergeCostsIntoInventory } from "./costs";
 
 export class InventoryService {
   /**
@@ -35,24 +36,7 @@ export class InventoryService {
       items.push({ id: doc.id, ...doc.data() } as InventoryItem);
     });
 
-    // Optionally fetch costs if privileged (will fail if not owner/manager, so catch and ignore)
-    try {
-      const costQ = query(collectionGroup(db, "cost"), where("shopId", "==", shopId), where("businessId", "==", businessId));
-      const costSnap = await getDocs(costQ);
-      const costs = new Map();
-      costSnap.forEach(d => costs.set(d.data().itemId, d.data().costPriceMinor));
-      items.forEach(item => {
-        if (costs.has(item.id)) {
-          item.costPriceMinor = costs.get(item.id);
-        }
-      });
-    } catch (e: any) {
-      if (e?.code === 'permission-denied') {
-        // Cashier or permissions error, silently ignore
-      } else {
-        console.error("Failed to fetch cost data for inventory items:", e);
-      }
-    }
+    await mergeCostsIntoInventory(items, businessId, shopId);
 
     return items;
   }
@@ -74,23 +58,7 @@ export class InventoryService {
       items.push({ id: doc.id, ...doc.data() } as InventoryItem);
     });
 
-    try {
-      const costQ = query(collectionGroup(db, "cost"), where("shopId", "==", shopId), where("businessId", "==", businessId));
-      const costSnap = await getDocs(costQ);
-      const costs = new Map();
-      costSnap.forEach(d => costs.set(d.data().itemId, d.data().costPriceMinor));
-      items.forEach(item => {
-        if (costs.has(item.id)) {
-          item.costPriceMinor = costs.get(item.id);
-        }
-      });
-    } catch (e: any) {
-      if (e?.code === 'permission-denied') {
-        // Cashier or permissions error, silently ignore
-      } else {
-        console.error("Failed to fetch cost data for all inventory items:", e);
-      }
-    }
+    await mergeCostsIntoInventory(items, businessId, shopId);
 
     return items;
   }

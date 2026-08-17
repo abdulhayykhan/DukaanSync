@@ -9,6 +9,7 @@ import { db } from "@/lib/firebase/client";
 import type { DashboardTelemetry, Sale, Expense, Purchase, InventoryItem, Customer, Supplier } from "@/types";
 import { format, parseISO, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, eachDayOfInterval, eachMonthOfInterval, isSameDay, isSameMonth } from "date-fns";
 import { migratePurchasesToSales } from "@/lib/utils/migratePurchasesToSales";
+import { mergeCostsIntoInventory } from "@/lib/inventory/costs";
 
 export type TimePeriod = "today" | "week" | "month" | "year";
 
@@ -23,10 +24,15 @@ export class AnalyticsEngine {
     shopId: string, 
     period: TimePeriod
   ): Promise<DashboardTelemetry> {
-    if (!db) throw new Error("Firestore not initialized");
+    const firestore = db;
+    if (!firestore) throw new Error("Firestore not initialized");
 
-    // Automatically run migration for legacy sales records stored in purchases collection
-    await migratePurchasesToSales(businessId).catch((e) => console.error("Migration error:", e));
+    // Only run migration once per browser session to avoid Firestore quota exhaustion
+    const migrationKey = `dukaansync_migration_done_${businessId}`;
+    if (typeof window !== "undefined" && !sessionStorage.getItem(migrationKey)) {
+      await migratePurchasesToSales(businessId).catch((e) => console.error("Migration error:", e));
+      sessionStorage.setItem(migrationKey, "1");
+    }
 
     const now = new Date();
     let startDate: Date;
@@ -61,19 +67,13 @@ export class AnalyticsEngine {
 
     if (isMultiShop) {
       try {
-        const shopsSnap = await getDocs(collection(db, "businesses", businessId, "shops"));
+        const shopsSnap = await getDocs(collection(firestore, "businesses", businessId, "shops"));
         targetShopIds = shopsSnap.docs.map(d => d.id);
       } catch (e) {
         console.error("Error fetching shops for multi-shop aggregation:", e);
       }
       
-      // Ensure fallback candidate shop IDs are included if not present
-      const fallbackCandidates = ["shop_main", "shop_br02", "shop_br03", "MAIN", "BR-02", "BR-03", "Wb7ATjxgAzTKV84YnSP3", "KESnAyCvHIDVA8h4onjR", "y7DtbMHN4ZKhxhM9mq6H"];
-      fallbackCandidates.forEach(id => {
-        if (!targetShopIds.includes(id)) {
-          targetShopIds.push(id);
-        }
-      });
+
     } else {
       targetShopIds = [shopId];
     }
@@ -83,7 +83,7 @@ export class AnalyticsEngine {
       let salesDocs: Sale[] = [];
       try {
         const salesSnap = await getDocs(query(
-          collection(db, "businesses", businessId, "shops", sId, "sales"),
+          collection(firestore, "businesses", businessId, "shops", sId, "sales"),
           where("createdAt", ">=", startIso),
           where("createdAt", "<=", endIso),
           orderBy("createdAt", "asc")
@@ -91,7 +91,7 @@ export class AnalyticsEngine {
         salesDocs = salesSnap.docs.map(d => ({ id: d.id, ...d.data() }) as Sale);
       } catch (err) {
         try {
-          const salesSnap = await getDocs(collection(db, "businesses", businessId, "shops", sId, "sales"));
+          const salesSnap = await getDocs(collection(firestore, "businesses", businessId, "shops", sId, "sales"));
           salesDocs = salesSnap.docs
             .map(d => ({ id: d.id, ...d.data() }) as Sale)
             .filter(s => s.createdAt && s.createdAt >= startIso && s.createdAt <= endIso);
@@ -103,7 +103,7 @@ export class AnalyticsEngine {
       let expensesDocs: Expense[] = [];
       try {
         const expensesSnap = await getDocs(query(
-          collection(db, "businesses", businessId, "shops", sId, "expenses"),
+          collection(firestore, "businesses", businessId, "shops", sId, "expenses"),
           where("date", ">=", startIso),
           where("date", "<=", endIso),
           orderBy("date", "asc")
@@ -111,7 +111,7 @@ export class AnalyticsEngine {
         expensesDocs = expensesSnap.docs.map(d => ({ id: d.id, ...d.data() }) as Expense);
       } catch (err) {
         try {
-          const expensesSnap = await getDocs(collection(db, "businesses", businessId, "shops", sId, "expenses"));
+          const expensesSnap = await getDocs(collection(firestore, "businesses", businessId, "shops", sId, "expenses"));
           expensesDocs = expensesSnap.docs
             .map(d => ({ id: d.id, ...d.data() }) as Expense)
             .filter(exp => exp.date && exp.date >= startIso && exp.date <= endIso);
@@ -121,29 +121,32 @@ export class AnalyticsEngine {
       }
 
       const [purchasesSnap, inventorySnap, customersSnap, suppliersSnap] = await Promise.all([
-        getDocs(collection(db, "businesses", businessId, "shops", sId, "purchases")).catch((err) => {
+        getDocs(collection(firestore, "businesses", businessId, "shops", sId, "purchases")).catch((err) => {
           console.error(`Telemetry query error - purchases (${sId}):`, err?.code || err, err?.message);
           return { docs: [] };
         }),
-        getDocs(collection(db, "businesses", businessId, "shops", sId, "inventory")).catch((err) => {
+        getDocs(collection(firestore, "businesses", businessId, "shops", sId, "inventory")).catch((err) => {
           console.error(`Telemetry query error - inventory (${sId}):`, err?.code || err, err?.message);
           return { docs: [] };
         }),
-        getDocs(collection(db, "businesses", businessId, "shops", sId, "customers")).catch((err) => {
+        getDocs(collection(firestore, "businesses", businessId, "shops", sId, "customers")).catch((err) => {
           console.error(`Telemetry query error - customers (${sId}):`, err?.code || err, err?.message);
           return { docs: [] };
         }),
-        getDocs(collection(db, "businesses", businessId, "shops", sId, "suppliers")).catch((err) => {
+        getDocs(collection(firestore, "businesses", businessId, "shops", sId, "suppliers")).catch((err) => {
           console.error(`Telemetry query error - suppliers (${sId}):`, err?.code || err, err?.message);
           return { docs: [] };
         }),
       ]);
 
+      const inventory = inventorySnap.docs.map(d => ({ id: d.id, ...d.data() }) as InventoryItem);
+      await mergeCostsIntoInventory(inventory, businessId, sId);
+
       return {
         sales: salesDocs,
         purchases: purchasesSnap.docs.map(d => ({ id: d.id, ...d.data() }) as Purchase),
         expenses: expensesDocs,
-        inventory: inventorySnap.docs.map(d => ({ id: d.id, ...d.data() }) as InventoryItem),
+        inventory,
         customers: customersSnap.docs.map(d => ({ id: d.id, ...d.data() }) as Customer),
         suppliers: suppliersSnap.docs.map(d => ({ id: d.id, ...d.data() }) as Supplier),
       };
@@ -191,13 +194,7 @@ export class AnalyticsEngine {
         totalCogsMinor += Math.round(rev * 0.7);
       }
 
-      // Receivables from unpaid or partially paid customer sales
-      if (sale.paymentStatus === "unpaid") {
-        totalReceivablesMinor += rev;
-      } else if (sale.paymentStatus === "partial") {
-        const paid = sale.amountPaidMinor || 0;
-        totalReceivablesMinor += Math.max(0, rev - paid);
-      }
+
     });
 
     const grossProfitMinor = revenueMinor - totalCogsMinor;
@@ -215,18 +212,7 @@ export class AnalyticsEngine {
 
     const netProfitMinor = grossProfitMinor - operatingExpensesMinor;
 
-    // Process Purchases (Payables for unpaid/partially paid purchase orders)
-    allPurchases.forEach((purchase) => {
-      if (purchase.status === "cancelled") return;
 
-      const total = purchase.grandTotalMinor || 0;
-      if (purchase.paymentStatus === "unpaid") {
-        totalPayablesMinor += total;
-      } else if (purchase.paymentStatus === "partial") {
-        const paid = purchase.amountPaidMinor || 0;
-        totalPayablesMinor += Math.max(0, total - paid);
-      }
-    });
 
     // Process Customers & Suppliers Ledger Balances
     allCustomers.forEach((cust) => {
