@@ -99,7 +99,7 @@ export default function ExpensesPage() {
       
       // We parse the local date string into a full ISO timestamp
       // Assuming the user is inputting for today, or past days at roughly midnight local time
-      const dateIso = new Date(formData.date).toISOString();
+      const dateIso = `${formData.date}T12:00:00.000Z`;
 
       await ExpenseService.createExpense(business.id, activeShop.id, {
         category: formData.category,

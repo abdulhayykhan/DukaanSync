@@ -37,6 +37,8 @@ interface ShopContextValue {
   activeShop: Shop | null;
   /** All shops accessible by the current user */
   availableShops: Shop[];
+  /** Alias for availableShops */
+  shops: Shop[];
   /** True while shops are loading */
   loading: boolean;
   /** Switch the active shop */
@@ -226,6 +228,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
       activeShopId,
       activeShop,
       availableShops,
+      shops: availableShops,
       loading: businessLoading || loading,
       setActiveShop,
       refreshShops: fetchShops,

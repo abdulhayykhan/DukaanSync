@@ -42,5 +42,7 @@ yarn-error.log*
 next-env.d.ts
 
 # scripts and temporary tools
-scripts/
+/scripts/
 
+# claude
+/.claude/

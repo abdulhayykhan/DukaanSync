@@ -24,7 +24,7 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { useState } from "react";
 
 const NAV_ITEMS = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["owner", "manager", "cashier", "inventory_manager"] },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["owner", "manager", "inventory_manager"] },
   { name: "POS Terminal", href: "/pos", icon: MonitorSmartphone, roles: ["owner", "manager", "cashier"] },
   { name: "Invoices", href: "/invoices", icon: FileText, roles: ["owner", "manager", "cashier"] },
   { name: "Inventory", href: "/inventory", icon: Package, roles: ["owner", "manager", "inventory_manager"] },

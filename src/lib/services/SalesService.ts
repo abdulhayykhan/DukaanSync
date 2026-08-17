@@ -9,7 +9,7 @@ export class SalesService {
     shopId: string,
     userId: string,
     data: SaleTransactionData
-  ): Promise<string> {
+  ): Promise<{ saleId: string; invoiceNumber: string }> {
     return SaleTransactionService.executeSaleTransaction(businessId, shopId, userId, data);
   }
 
@@ -18,7 +18,7 @@ export class SalesService {
     shopId: string,
     userId: string,
     data: SaleTransactionData
-  ): Promise<string> {
+  ): Promise<{ saleId: string; invoiceNumber: string }> {
     return SaleTransactionService.executeSaleTransaction(businessId, shopId, userId, data);
   }
 

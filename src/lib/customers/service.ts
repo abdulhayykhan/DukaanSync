@@ -11,7 +11,8 @@ import {
   writeBatch
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
-import type { Customer, CustomerLedgerEntry, AuditLog } from "@/types";
+import type { Customer, CustomerLedgerEntry, AuditLog, DuplicateStrategy } from "@/types";
+import type { BulkImportResult } from "@/components/ui/BulkImportModal";
 
 export class CustomerService {
   /**
@@ -138,7 +139,7 @@ export class CustomerService {
       transaction.set(ledgerRef, entry);
       
       // System audit log
-      const auditRef = doc(collection(firestore, "businesses", businessId, "shops", shopId, "auditLogs"));
+      const auditRef = doc(collection(firestore, "businesses", businessId, "auditLogs"));
       const auditLog: Omit<AuditLog, "id"> = {
         action: "customer_payment",
         entityType: "customer",
@@ -161,7 +162,7 @@ export class CustomerService {
     customers: { name: string; phone?: string; email?: string; currentBalanceMinor: number }[],
     strategy: DuplicateStrategy = "upsert",
     onProgress?: (processed: number, total: number) => void
-  ): Promise<{ successCount: number; errors: string[] }> {
+  ): Promise<BulkImportResult> {
     if (!db) throw new Error("Firestore not initialized");
 
     const CHUNK_SIZE = 250;
@@ -174,9 +175,12 @@ export class CustomerService {
       try {
         const existingSnap = await getDocs(customersRef);
         if (!existingSnap.empty) {
-          const deleteBatch = writeBatch(db);
-          existingSnap.docs.forEach((d) => deleteBatch.delete(d.ref));
-          await deleteBatch.commit();
+          const DEL_CHUNK = 450;
+          for (let d = 0; d < existingSnap.docs.length; d += DEL_CHUNK) {
+            const delBatch = writeBatch(db);
+            existingSnap.docs.slice(d, d + DEL_CHUNK).forEach((doc) => delBatch.delete(doc.ref));
+            await delBatch.commit();
+          }
         }
       } catch (err) {
         console.error("Error clearing existing customers during overwrite import:", err);
@@ -229,6 +233,6 @@ export class CustomerService {
       }
     }
 
-    return { successCount, errors };
+    return { successCount, updatedCount: 0, skippedCount: 0, errors };
   }
 }

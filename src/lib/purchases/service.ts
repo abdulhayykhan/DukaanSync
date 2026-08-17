@@ -1,6 +1,6 @@
 import { collection, query, orderBy, getDocs, limit, doc, writeBatch } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase/client";
-import type { Purchase, PaymentStatus, PaymentMethod } from "@/types";
+import type { Purchase, PaymentStatus, PaymentMethod, DuplicateStrategy } from "@/types";
 import type { BulkImportResult } from "@/components/ui/BulkImportModal";
 
 export interface PurchaseImportPayload {

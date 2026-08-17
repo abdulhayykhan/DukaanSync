@@ -143,6 +143,7 @@ export default function InventoryPage() {
     retailPrice: z.coerce.number().catch(0).default(0),
     quantity: z.coerce.number().catch(0).default(0),
     reorderLevel: z.coerce.number().catch(10).default(10),
+    storageLocation: z.string().optional().default(""),
   });
 
   const handleValidateInventoryRow = (row: Record<string, string | number | boolean | null>) => {
@@ -159,7 +160,8 @@ export default function InventoryPage() {
       costPrice: getVal(['costpricepkr', 'costprice', 'cost', 'costpricepaisa']),
       retailPrice: getVal(['retailpricepkr', 'retailprice', 'price', 'rate', 'retailpricepaisa']),
       quantity: getVal(['quantity', 'initialquantity', 'qty', 'stock']),
-      reorderLevel: getVal(['reorderlevel', 'minstock', 'alertlevel'])
+      reorderLevel: getVal(['reorderlevel', 'minstock', 'alertlevel']),
+      storageLocation: String(getVal(['storagelocation', 'location', 'shelf']) ?? ""),
     };
 
     // 3. Validate with Zod
@@ -170,10 +172,10 @@ export default function InventoryPage() {
     row["Product Name"] = mappedData.name || "";
     row["Category"] = mappedData.category || "General";
     row["Unit"] = mappedData.unit || "pcs";
-    row["Cost Price"] = mappedData.costPrice || "0";
-    row["Retail Price"] = mappedData.retailPrice || "0";
-    row["Initial Quantity"] = mappedData.quantity || "0";
-    row["Reorder Level"] = mappedData.reorderLevel || "10";
+    row["Cost Price"] = String(mappedData.costPrice ?? "0");
+    row["Retail Price"] = String(mappedData.retailPrice ?? "0");
+    row["Initial Quantity"] = String(mappedData.quantity ?? "0");
+    row["Reorder Level"] = String(mappedData.reorderLevel ?? "10");
 
     if (!parsed.success) {
       return { 
@@ -201,6 +203,7 @@ export default function InventoryPage() {
         unit: data.unit,
         quantity: data.quantity,
         reorderLevel: data.reorderLevel,
+        storageLocation: data.storageLocation || "",
         costPriceMinor: toMinorUnit(data.costPrice),
         retailPriceMinor: toMinorUnit(data.retailPrice)
       }

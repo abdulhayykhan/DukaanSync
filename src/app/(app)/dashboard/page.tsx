@@ -25,8 +25,14 @@ const itemVariants = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, 
 const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#6B7280'];
 
 export default function DashboardPage() {
-  const { business } = useBusiness();
+  const { business, memberRole } = useBusiness();
   const { activeShop, activeShopId } = useShop();
+
+  useEffect(() => {
+    if (memberRole === "cashier") {
+      window.location.href = "/pos";
+    }
+  }, [memberRole]);
 
   const [period, setPeriod] = useState<TimePeriod>("month");
   const [data, setData] = useState<DashboardTelemetry | null>(null);

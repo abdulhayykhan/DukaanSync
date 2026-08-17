@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { useBusiness } from "@/contexts/BusinessContext";
 
 const MOBILE_NAV_ITEMS = [
-  { name: "Dash", href: "/dashboard", icon: LayoutDashboard, roles: ["owner", "manager", "cashier", "inventory_manager"] },
+  { name: "Dash", href: "/dashboard", icon: LayoutDashboard, roles: ["owner", "manager", "inventory_manager"] },
   { name: "POS", href: "/pos", icon: MonitorSmartphone, roles: ["owner", "manager", "cashier"] },
   { name: "Inv", href: "/inventory", icon: Package, roles: ["owner", "manager", "inventory_manager"] },
   { name: "Cust", href: "/customers", icon: Users, roles: ["owner", "manager", "cashier"] },

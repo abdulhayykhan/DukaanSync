@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
 import type { BulkImportResult, DuplicateStrategy } from "@/components/ui/BulkImportModal";
+import { auth } from "@/lib/firebase/client";
 import type { 
   Sale, 
   SaleItem, 
@@ -22,6 +23,7 @@ import type {
   PaymentMethod,
   PaymentStatus
 } from "@/types";
+import { toMinorUnit } from "@/lib/utils/currency";
 
 export interface SaleImportPayload {
   invoiceNumber?: string;
@@ -49,7 +51,7 @@ export interface SaleImportPayload {
 }
 
 export interface SaleTransactionData {
-  customerId?: string;
+  customerId?: string | null;
   customerName?: string;
   items: {
     itemId: string;
@@ -102,184 +104,25 @@ export class SaleTransactionService {
     shopId: string,
     userId: string,
     data: SaleTransactionData
-  ): Promise<string> {
-    if (!db) throw new Error("Firestore not initialized");
-    const firestore = db;
+  ): Promise<{ saleId: string; invoiceNumber: string }> {
+    const token = await auth?.currentUser?.getIdToken();
+    if (!token) throw new Error("User is not authenticated");
 
-    const saleRef = doc(collection(firestore, "businesses", businessId, "shops", shopId, "sales"));
-    
-    // Generate a secure pseudo-random invoice number
-    // Format: INV-YYMM-XXXX
-    const dateStr = new Date().toISOString().slice(2, 7).replace("-", ""); // e.g., 2608
-    const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
-    const invoiceNumber = `INV-${dateStr}-${randomSuffix}`;
-    const now = new Date().toISOString();
-
-    await runTransaction(firestore, async (transaction) => {
-      // -------------------------------------------------------------
-      // 1. Read all required data first
-      // -------------------------------------------------------------
-      
-      let customerDoc: DocumentSnapshot | null = null;
-      let customerRef: DocumentReference | null = null;
-      const hasCustomer = Boolean(data.customerId && data.customerId !== "guest");
-      const amountUnpaid = Math.max(0, data.grandTotalMinor - data.amountPaidMinor);
-      const isCreditOrPartial = data.paymentStatus !== "paid" || amountUnpaid > 0 || data.paymentMethod === "credit";
-
-      if (hasCustomer) {
-        customerRef = doc(firestore, "businesses", businessId, "shops", shopId, "customers", data.customerId!);
-        customerDoc = await transaction.get(customerRef);
-        
-        if (!customerDoc.exists()) {
-          const fallbackRef = doc(firestore, "businesses", businessId, "customers", data.customerId!);
-          const fallbackDoc = await transaction.get(fallbackRef);
-          if (fallbackDoc.exists()) {
-            customerRef = fallbackRef;
-            customerDoc = fallbackDoc;
-          }
-        }
-      } else if (isCreditOrPartial) {
-        throw new Error("Credit or partial sales require a valid Customer to be selected.");
-      }
-      
-      // Read all inventory items involved
-      const inventoryRefs = data.items.map(item => 
-        doc(firestore, "businesses", businessId, "shops", shopId, "inventory", item.itemId)
-      );
-      
-      const inventoryDocs = await Promise.all(
-        inventoryRefs.map(ref => transaction.get(ref))
-      );
-      
-      const inventoryData = new Map<string, { quantity: number, costPriceMinor: number }>();
-      inventoryDocs.forEach((docSnap, index) => {
-        if (!docSnap.exists()) {
-          throw new Error(`Inventory item ${data.items[index].name} not found in database.`);
-        }
-        const invData = docSnap.data();
-        // Negative inventory guard
-        if (invData.quantity < data.items[index].quantity) {
-          throw new Error(`Insufficient stock for ${data.items[index].name}. Requested: ${data.items[index].quantity}, Available: ${invData.quantity}`);
-        }
-        inventoryData.set(docSnap.id, { 
-          quantity: invData.quantity as number, 
-          costPriceMinor: invData.costPriceMinor as number 
-        });
-      });
-
-      // -------------------------------------------------------------
-      // 2. Perform all writes
-      // -------------------------------------------------------------
-
-      // Map incoming items to true SaleItems preserving historical COGS
-      const finalizedSaleItems: SaleItem[] = data.items.map(item => {
-        const inv = inventoryData.get(item.itemId)!;
-        return {
-          itemId: item.itemId,
-          sku: item.sku || "N/A",
-          name: item.name || "Product",
-          quantity: Number(item.quantity || 1),
-          unitPriceMinor: Number(item.unitPriceMinor || 0),
-          discountMinor: Number(item.discountMinor || 0),
-          costPriceMinor: Number(inv?.costPriceMinor || 0),
-          totalMinor: Number((item.unitPriceMinor * item.quantity) - item.discountMinor)
-        };
-      });
-
-      // A. Create Sale Record with sanitized non-undefined fields
-      const saleRecord: Sale = {
-        id: saleRef.id,
-        invoiceNumber,
-        customerId: data.customerId ?? null,
-        customerName: data.customerName || "Guest Customer",
-        items: finalizedSaleItems,
-        subtotalMinor: Number(data.subtotalMinor || 0),
-        taxMinor: Number(data.taxMinor || 0),
-        discountMinor: Number(data.discountMinor || 0),
-        grandTotalMinor: Number(data.grandTotalMinor || 0),
-        paymentMethod: data.paymentMethod || "cash",
-        paymentStatus: data.paymentStatus || "paid",
-        amountPaidMinor: Number(data.amountPaidMinor ?? 0),
-        status: "completed",
-        createdBy: userId || "system",
-        createdAt: now,
-      };
-
-      const cleanSaleRecord = sanitizeFirestorePayload(saleRecord);
-      transaction.set(saleRef, cleanSaleRecord);
-
-      // B. Update Inventory & Log Movements
-      for (const item of finalizedSaleItems) {
-        const invRef = doc(firestore, "businesses", businessId, "shops", shopId, "inventory", item.itemId);
-        const invData = inventoryData.get(item.itemId)!;
-        
-        const newQty = invData.quantity - item.quantity; // Decrement stock
-
-        // Update inventory qty
-        transaction.update(invRef, {
-          quantity: newQty,
-          updatedAt: now,
-        });
-
-        // Log stock movement to shop-level stockMovements subcollection
-        const movementRef = doc(collection(firestore, "businesses", businessId, "shops", shopId, "stockMovements"));
-        const movementLog: Omit<StockMovement, "id"> = {
-          itemId: item.itemId,
-          businessId,
-          shopId,
-          type: "sale",
-          quantityBefore: invData.quantity,
-          quantityChange: -item.quantity, // Negative change for sale
-          quantityAfter: newQty,
-          referenceType: "sale",
-          referenceId: saleRef.id,
-          reason: `POS Sale ${invoiceNumber}`,
-          createdBy: userId || "system",
-          createdAt: now,
-        };
-        transaction.set(movementRef, sanitizeFirestorePayload(movementLog));
-      }
-
-      // C. Update Customer Ledger if customer is attached
-      if (hasCustomer && customerRef && customerDoc && customerDoc.exists()) {
-        const currentBalance = (customerDoc.data()?.currentBalanceMinor as number) ?? 0;
-        const newBalance = currentBalance + amountUnpaid; // Customer balance is receivables (how much they owe us)
-
-        transaction.update(customerRef, {
-          currentBalanceMinor: newBalance,
-          updatedAt: now,
-        });
-
-        const ledgerRef = doc(collection(firestore, "businesses", businessId, "shops", shopId, "customers", data.customerId!, "ledger"));
-        const ledgerEntry: Omit<CustomerLedgerEntry, "id"> = {
-          customerId: data.customerId!,
-          type: data.paymentMethod === "credit" ? "credit_sale" : (amountUnpaid > 0 ? "credit_sale" : "sale"),
-          amountMinor: amountUnpaid > 0 ? amountUnpaid : data.grandTotalMinor,
-          referenceType: "sale",
-          referenceId: saleRef.id,
-          balanceBeforeMinor: currentBalance,
-          balanceAfterMinor: newBalance,
-          createdBy: userId || "system",
-          createdAt: now,
-        };
-        transaction.set(ledgerRef, sanitizeFirestorePayload(ledgerEntry));
-      }
-
-      // D. Write general Audit Log
-      const auditRef = doc(collection(firestore, "businesses", businessId, "auditLogs"));
-      const auditLog: Omit<AuditLog, "id"> = {
-        action: "sale_created",
-        entityType: "sale",
-        entityId: saleRef.id,
-        actorId: userId,
-        shopId: shopId,
-        metadata: { invoiceNumber, amount: data.grandTotalMinor },
-        createdAt: now,
-      };
-      transaction.set(auditRef, auditLog);
+    const response = await fetch("/api/sales/checkout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ businessId, shopId, userId, data })
     });
 
-    return saleRef.id;
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || "Transaction failed");
+    }
+
+    return result;
   }
 
   /**
@@ -351,16 +194,24 @@ export class SaleTransactionService {
             invoiceNumber,
             customerId: sale.customerId || "walk_in",
             customerName: sale.customerName || "Walk-in Customer",
-            items: (sale.items || []).map(item => ({
-              itemId: item.itemId || item.sku || "item_custom",
-              sku: item.sku || "N/A",
-              name: item.name || "General Product",
-              quantity: Number(item.quantity || 1),
-              unitPriceMinor: Number(item.unitPriceMinor || 0),
-              discountMinor: Number(item.discountMinor || 0),
-              costPriceMinor: Number(item.costPriceMinor || 0),
-              totalMinor: Number(item.totalMinor || (item.unitPriceMinor * item.quantity - item.discountMinor))
-            })),
+            items: (sale.items || []).map((item: any) => {
+              const unitPriceMinor = item.unitPriceMinor !== undefined ? Number(item.unitPriceMinor) : (item.unitRetailPKR ? toMinorUnit(item.unitRetailPKR) : 0);
+              const costPriceMinor = item.costPriceMinor !== undefined ? Number(item.costPriceMinor) : (item.unitCostPKR ? toMinorUnit(item.unitCostPKR) : 0);
+              const discountMinor = item.discountMinor !== undefined ? Number(item.discountMinor) : (item.discountPKR ? toMinorUnit(item.discountPKR) : 0);
+              const quantity = Number(item.quantity || 1);
+              const totalMinor = item.totalMinor !== undefined ? Number(item.totalMinor) : (item.totalPKR ? toMinorUnit(item.totalPKR) : (unitPriceMinor * quantity - discountMinor));
+              
+              return {
+                itemId: item.itemId || item.sku || "item_custom",
+                sku: item.sku || "N/A",
+                name: item.name || "General Product",
+                quantity,
+                unitPriceMinor,
+                discountMinor,
+                costPriceMinor,
+                totalMinor
+              };
+            }),
             subtotalMinor: Number(sale.subtotalMinor || sale.grandTotalMinor || 0),
             taxMinor: Number(sale.taxMinor || 0),
             discountMinor: Number(sale.discountMinor || 0),

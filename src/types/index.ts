@@ -110,11 +110,15 @@ export interface InventoryItem {
   updatedAt: string;
 }
 
+export type DuplicateStrategy = "upsert" | "skip" | "add_stock" | "overwrite";
+
 export type StockMovementType = "opening_stock" | "purchase" | "sale" | "customer_return" | "supplier_return" | "damage" | "adjustment" | "transfer";
 
 export interface StockMovement {
   id: string;
   itemId: string;
+  businessId?: string;
+  shopId?: string;
   type: StockMovementType;
   quantityBefore: number;
   quantityChange: number;
@@ -143,7 +147,7 @@ export interface Supplier {
   updatedAt: string;
 }
 
-export type LedgerEntryType = "credit_purchase" | "payment" | "return" | "adjustment";
+export type LedgerEntryType = "credit_purchase" | "purchase" | "payment" | "return" | "adjustment";
 
 export interface SupplierLedgerEntry {
   id: string;
@@ -216,11 +220,13 @@ export interface Customer {
   updatedAt: string;
 }
 
+export type CustomerLedgerEntryType = "credit_sale" | "sale" | "payment" | "refund" | "adjustment";
+
 export interface CustomerLedgerEntry {
   id: string;
-  supplierId?: string; // Legacy field if needed, otherwise omit. Wait, this should be customerId
+  supplierId?: string; // Legacy field if needed, otherwise omit.
   customerId: string;
-  type: "credit_sale" | "payment" | "refund" | "adjustment";
+  type: CustomerLedgerEntryType;
   amountMinor: number;
   referenceType?: "sale" | "payment" | "refund" | "adjustment";
   referenceId?: string;
@@ -248,7 +254,7 @@ export interface SaleItem {
 export interface Sale {
   id: string;
   invoiceNumber: string;
-  customerId?: string;
+  customerId?: string | null;
   customerName?: string;
   items: SaleItem[];
   subtotalMinor: number;

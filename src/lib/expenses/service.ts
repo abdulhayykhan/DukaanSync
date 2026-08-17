@@ -12,8 +12,8 @@ import {
   QueryConstraint
 } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase/client";
-import type { Expense, ExpenseCategory } from "@/types";
-import type { BulkImportResult, DuplicateStrategy } from "@/components/ui/BulkImportModal";
+import type { Expense, ExpenseCategory, DuplicateStrategy } from "@/types";
+import type { BulkImportResult } from "@/components/ui/BulkImportModal";
 
 export interface ExpenseImportPayload {
   date: string;
@@ -128,9 +128,12 @@ export class ExpenseService {
       try {
         const existingSnap = await getDocs(expensesRef);
         if (!existingSnap.empty) {
-          const deleteBatch = writeBatch(db);
-          existingSnap.docs.forEach((d) => deleteBatch.delete(d.ref));
-          await deleteBatch.commit();
+          const DEL_CHUNK = 450;
+          for (let d = 0; d < existingSnap.docs.length; d += DEL_CHUNK) {
+            const delBatch = writeBatch(db);
+            existingSnap.docs.slice(d, d + DEL_CHUNK).forEach((doc) => delBatch.delete(doc.ref));
+            await delBatch.commit();
+          }
         }
       } catch (err) {
         console.error("Error clearing existing expenses during overwrite import:", err);

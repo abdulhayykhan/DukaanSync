@@ -19,7 +19,7 @@ import { ExportDropdown } from "@/components/ui/ExportDropdown";
 import { exportToCSV, exportToExcel } from "@/lib/utils/exportData";
 
 type ReportType = "pnl" | "sales" | "expenses" | "inventory";
-type DateRange = "today" | "this_week" | "this_month" | "this_year" | "last_30_days";
+type DateRange = "today" | "this_week" | "this_month" | "this_year";
 
 export default function ReportsPage() {
   const { business } = useBusiness();

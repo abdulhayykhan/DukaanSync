@@ -9,7 +9,8 @@ import Papa from "papaparse";
 import { Button } from "@/components/ui/Button";
 import { parseFile } from "@/lib/utils/fileParser";
 
-export type DuplicateStrategy = "upsert" | "skip" | "add_stock";
+import type { DuplicateStrategy } from "@/types";
+export type { DuplicateStrategy };
 
 export interface BulkImportResult {
   successCount: number;

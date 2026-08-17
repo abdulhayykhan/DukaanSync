@@ -10,7 +10,8 @@ import {
   writeBatch
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
-import type { Supplier, SupplierLedgerEntry } from "@/types";
+import type { Supplier, SupplierLedgerEntry, DuplicateStrategy } from "@/types";
+import type { BulkImportResult } from "@/components/ui/BulkImportModal";
 
 export class SupplierService {
   /**
@@ -153,7 +154,7 @@ export class SupplierService {
     suppliers: { name: string; phone?: string; email?: string; currentBalanceMinor: number }[],
     strategy: DuplicateStrategy = "upsert",
     onProgress?: (processed: number, total: number) => void
-  ): Promise<{ successCount: number; errors: string[] }> {
+  ): Promise<BulkImportResult> {
     if (!db) throw new Error("Firestore not initialized");
 
     const CHUNK_SIZE = 250;
@@ -221,6 +222,6 @@ export class SupplierService {
       }
     }
 
-    return { successCount, errors };
+    return { successCount, updatedCount: 0, skippedCount: 0, errors };
   }
 }

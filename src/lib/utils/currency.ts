@@ -9,7 +9,7 @@ export function toMinorUnit(amount: string | number): number {
   if (isNaN(num)) return 0;
 
   // Multiply by 100 to get minor units (e.g. paisa for PKR, cents for USD)
-  return Math.round(num * 100);
+  return Math.max(0, Math.round(num * 100));
 }
 
 /**

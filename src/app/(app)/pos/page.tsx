@@ -194,6 +194,11 @@ export default function POSTerminalPage() {
     if (!business || !activeShop || !member) return;
     if (cart.length === 0) return;
 
+    if (Number(amountPaidDecimal) < 0) {
+      toast.error("Amount paid cannot be negative.");
+      return;
+    }
+
     const amountPaidMinor = toMinorUnit(amountPaidDecimal);
     const selectedCustomer = customers.find(c => c.id === selectedCustomerId);
 
@@ -232,7 +237,7 @@ export default function POSTerminalPage() {
 
     try {
       setIsSubmitting(true);
-      const saleId = await SaleTransactionService.executeSaleTransaction(
+      const { saleId, invoiceNumber } = await SaleTransactionService.executeSaleTransaction(
         business.id,
         activeShop.id,
         member.uid,
@@ -244,7 +249,7 @@ export default function POSTerminalPage() {
       // Load the new sale to pass to invoice modal
       const generatedSale: Sale = {
         id: saleId,
-        invoiceNumber: "Generated",
+        invoiceNumber: invoiceNumber,
         customerId: txData.customerId ?? null,
         customerName: txData.customerName || "Guest Customer",
         items: txData.items.map(i => ({...i, costPriceMinor: 0, totalMinor: (i.unitPriceMinor * i.quantity) - i.discountMinor})),
@@ -275,7 +280,6 @@ export default function POSTerminalPage() {
     } catch (err: any) {
       toast.error(err.message || "Transaction failed");
     } finally {
-      setIsSubmitting(false);
       setIsSubmitting(false);
     }
   };

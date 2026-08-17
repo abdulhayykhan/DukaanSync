@@ -138,6 +138,10 @@ export default function NewPurchasePage() {
     if (!selectedSupplierId) return toast.error("Please select a supplier");
     if (cart.length === 0) return toast.error("Please add items to purchase");
 
+    if (Number(amountPaidDecimal) < 0) {
+      return toast.error("Amount paid cannot be negative.");
+    }
+
     const amountPaidMinor = toMinorUnit(amountPaidDecimal);
     
     let paymentStatus: "paid" | "partial" | "unpaid" = "unpaid";
