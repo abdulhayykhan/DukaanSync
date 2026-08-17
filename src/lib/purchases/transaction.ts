@@ -71,16 +71,29 @@ export class PurchaseTransactionService {
         doc(firestore, "businesses", businessId, "shops", shopId, "inventory", item.itemId)
       );
       
+      const costRefs = data.items.map(item => 
+        doc(firestore, "businesses", businessId, "shops", shopId, "inventory", item.itemId, "cost", "data")
+      );
+      
       const inventoryDocs = await Promise.all(
         inventoryRefs.map(ref => transaction.get(ref))
       );
+
+      const costDocs = await Promise.all(
+        costRefs.map(ref => transaction.get(ref))
+      );
       
-      const inventoryQuantities = new Map<string, number>();
+      const inventoryData = new Map<string, any>();
       inventoryDocs.forEach((docSnap, index) => {
         if (!docSnap.exists()) {
           throw new Error(`Inventory item ${data.items[index].name} not found`);
         }
-        inventoryQuantities.set(docSnap.id, docSnap.data().quantity as number);
+        inventoryData.set(docSnap.id, docSnap.data());
+      });
+
+      const costData = new Map<string, any>();
+      costDocs.forEach((docSnap, index) => {
+        costData.set(data.items[index].itemId, docSnap.exists() ? docSnap.data() : {});
       });
 
       // -------------------------------------------------------------
@@ -119,14 +132,26 @@ export class PurchaseTransactionService {
       // B. Update Inventory & Log Movements
       for (const item of sanitizedItems) {
         const invRef = doc(firestore, "businesses", businessId, "shops", shopId, "inventory", item.itemId);
-        const currentQty = inventoryQuantities.get(item.itemId) || 0;
+        const currentData = inventoryData.get(item.itemId) || {};
+        const currentQty = currentData.quantity || 0;
         const newQty = currentQty + item.quantity;
 
-        // Update inventory qty
+        // Policy: Weighted Average Cost.
+        // As per PRD.md, historical profit must use the cost recorded at the time of sale.
+        // Weighted Average prevents COGS from swinging wildly on every restock.
+        const currentCostData = costData.get(item.itemId) || {};
+        const oldCost = currentCostData.costPriceMinor || 0;
+        const newWeightedCost = currentQty + item.quantity > 0
+          ? Math.round(((currentQty * oldCost) + (item.quantity * item.unitCostMinor)) / (currentQty + item.quantity))
+          : item.unitCostMinor;
+
         transaction.update(invRef, {
           quantity: newQty,
           updatedAt: now,
         });
+
+        const costRef = doc(firestore, "businesses", businessId, "shops", shopId, "inventory", item.itemId, "cost", "data");
+        transaction.set(costRef, { costPriceMinor: newWeightedCost, updatedAt: now }, { merge: true });
 
         // Log stock movement to shop-level stockMovements subcollection
         const movementRef = doc(collection(firestore, "businesses", businessId, "shops", shopId, "stockMovements"));
