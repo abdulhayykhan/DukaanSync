@@ -45,7 +45,10 @@ export function Sidebar() {
   const { user } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const isSeedAdmin = user?.email === "seed.admin@metromart.com" || user?.uid === "QhlEJoMLs0geF2lZB8k9wokL0PJ3";
+  const isSeedAdmin = 
+    user?.email === "seed.admin@metromart.com" || 
+    user?.uid === "QhlEJoMLs0geF2lZB8k9wokL0PJ3" ||
+    (process.env.NEXT_PUBLIC_SEED_ADMIN_UIDS || "").includes(user?.uid || "");
 
   // Filter routes based on role (fallback to empty if memberRole is null)
   const filteredNav = NAV_ITEMS.filter(
@@ -54,8 +57,8 @@ export function Sidebar() {
 
   if (isSeedAdmin) {
     filteredNav.push({ 
-      name: "Admin Setup", 
-      href: "/admin/billing", 
+      name: "Admin Hub", 
+      href: "/admin", 
       icon: ShieldAlert as any, 
       roles: ["owner"] 
     });

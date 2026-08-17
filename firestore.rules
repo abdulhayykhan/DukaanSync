@@ -78,6 +78,13 @@ service cloud.firestore {
     // =========================================================================
 
     // =========================================================================
+    // Collection Group Queries
+    // =========================================================================
+    match /{path=**}/billingHistory/{document} {
+      allow read: if isSeedAdmin();
+    }
+
+    // =========================================================================
     // Users Collection — /users/{uid}
     // =========================================================================
     match /users/{uid} {
@@ -91,7 +98,7 @@ service cloud.firestore {
     // =========================================================================
     match /businesses/{businessId} {
       // Only members can read the business document
-      allow read: if isBusinessMember(businessId);
+      allow read: if isBusinessMember(businessId) || isSeedAdmin();
 
       // Allow any authenticated user to create a business with a free plan
       allow create: if isAuthenticated() 

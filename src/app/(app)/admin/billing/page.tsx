@@ -24,21 +24,7 @@ export default function AdminBillingPage() {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  // 1. Authorization Guard
-  useEffect(() => {
-    if (!user) return;
-    const isSeedAdmin = 
-      user.email === "seed.admin@metromart.com" || 
-      user.uid === "QhlEJoMLs0geF2lZB8k9wokL0PJ3" ||
-      (process.env.NEXT_PUBLIC_SEED_ADMIN_UIDS || "").includes(user.uid);
-      
-    if (!isSeedAdmin) {
-      toast.error("Unauthorized access.");
-      router.push("/dashboard");
-    }
-  }, [user, router]);
-
-  // 2. Fetch Pending Upgrades
+  // 1. Fetch Pending Upgrades
   const fetchPending = async () => {
     if (!db) return;
     try {
@@ -156,21 +142,8 @@ export default function AdminBillingPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-300">
-      
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-gray-900 flex items-center gap-3">
-            <ShieldAlert className="w-8 h-8 text-red-500" />
-            Admin: Billing Approvals
-          </h1>
-          <p className="text-gray-500 mt-2 text-sm leading-relaxed max-w-2xl">
-            Review manual payment submissions for subscription upgrades. Verify the transaction reference with your EasyPaisa/JazzCash account before approving.
-          </p>
-        </div>
-      </div>
-
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+    <div className="animate-in fade-in zoom-in-95 duration-300">
+      <div className="bg-white rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 border-b border-gray-200 text-xs uppercase font-bold text-slate-500">
