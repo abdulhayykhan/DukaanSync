@@ -53,8 +53,12 @@ export class PurchaseReversalService {
       const amountOwed = purchaseData.grandTotalMinor - purchaseData.amountPaidMinor;
       
       if (purchaseData.paymentMethod === 'credit' || amountOwed > 0) {
-        supplierRef = doc(firestore, "businesses", businessId, "suppliers", purchaseData.supplierId);
-        const supplierDoc = await transaction.get(supplierRef);
+        supplierRef = doc(firestore, "businesses", businessId, "shops", shopId, "suppliers", purchaseData.supplierId);
+        let supplierDoc = await transaction.get(supplierRef);
+        if (!supplierDoc.exists()) {
+          supplierRef = doc(firestore, "businesses", businessId, "suppliers", purchaseData.supplierId);
+          supplierDoc = await transaction.get(supplierRef);
+        }
         if (supplierDoc.exists()) {
           supplierData = supplierDoc.data() as Supplier;
         }
@@ -108,7 +112,7 @@ export class PurchaseReversalService {
           updatedAt: now
         });
 
-        const ledgerRef = doc(collection(firestore, "businesses", businessId, "suppliers", supplierData.id, "ledger"));
+        const ledgerRef = doc(collection(supplierRef, "ledger"));
         transaction.set(ledgerRef, {
           type: "adjustment", // Debt reversal
           amountMinor: amountOwed,

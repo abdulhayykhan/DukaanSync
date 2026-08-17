@@ -42,8 +42,12 @@ export class SaleReversalService {
       const amountOwed = saleData.grandTotalMinor - saleData.amountPaidMinor;
       
       if (saleData.customerId && (saleData.paymentMethod === 'credit' || amountOwed > 0)) {
-        customerRef = doc(firestore, "businesses", businessId, "customers", saleData.customerId);
-        const customerDoc = await transaction.get(customerRef);
+        customerRef = doc(firestore, "businesses", businessId, "shops", shopId, "customers", saleData.customerId);
+        let customerDoc = await transaction.get(customerRef);
+        if (!customerDoc.exists()) {
+          customerRef = doc(firestore, "businesses", businessId, "customers", saleData.customerId);
+          customerDoc = await transaction.get(customerRef);
+        }
         if (customerDoc.exists()) {
           customerData = customerDoc.data() as Customer;
         }
@@ -97,7 +101,7 @@ export class SaleReversalService {
           updatedAt: now
         });
 
-        const ledgerRef = doc(collection(firestore, "businesses", businessId, "customers", customerData.id, "ledger"));
+        const ledgerRef = doc(collection(customerRef, "ledger"));
         transaction.set(ledgerRef, {
           type: "adjustment", // Credit reversal
           amountMinor: amountOwed,
