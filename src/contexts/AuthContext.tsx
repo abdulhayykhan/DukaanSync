@@ -236,7 +236,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = useCallback(async () => {
     if (user) {
-      await fetchProfile(user.uid);
+      await fetchProfile(user);
     }
   }, [user, fetchProfile]);
 
