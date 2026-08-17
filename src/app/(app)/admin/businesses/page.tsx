@@ -97,10 +97,10 @@ export default function AdminBusinessesPage() {
                   </td>
                   <td className="px-6 py-4 text-gray-500 font-mono text-xs">{business.ownerId}</td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      business.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                    <span className={`inline-flex items-center capitalize px-2 py-1 rounded-full text-xs font-medium ${
+                      (business.status || 'active') === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
                     }`}>
-                      {business.status}
+                      {business.status || "active"}
                     </span>
                   </td>
                   <td className="px-6 py-4">
