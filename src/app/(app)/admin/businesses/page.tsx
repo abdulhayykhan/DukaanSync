@@ -71,14 +71,14 @@ export default function AdminBusinessesPage() {
         <div className="overflow-x-auto pb-4">
           <div className="inline-block min-w-full align-middle">
             <table className="min-w-full text-sm text-left">
-              <thead className="bg-slate-50 border-b border-gray-200 text-xs uppercase font-bold text-slate-500">
+              <thead className="text-xs uppercase font-bold text-slate-500">
             <tr>
-              <th className="px-6 py-4">Business Name</th>
-              <th className="px-6 py-4">Owner ID</th>
-              <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4">Current Plan</th>
-              <th className="px-6 py-4">Created Date</th>
-              <th className="px-6 py-4 text-right">Actions</th>
+              <th className="px-6 py-4 bg-slate-50 border-b border-gray-200">Business Name</th>
+              <th className="px-6 py-4 bg-slate-50 border-b border-gray-200">Owner ID</th>
+              <th className="px-6 py-4 bg-slate-50 border-b border-gray-200">Status</th>
+              <th className="px-6 py-4 bg-slate-50 border-b border-gray-200">Current Plan</th>
+              <th className="px-6 py-4 bg-slate-50 border-b border-gray-200">Created Date</th>
+              <th className="px-6 py-4 text-right bg-slate-50 border-b border-gray-200">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">

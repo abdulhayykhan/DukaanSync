@@ -50,12 +50,12 @@ export default function AdminUsersPage() {
         <div className="overflow-x-auto pb-4">
           <div className="inline-block min-w-full align-middle">
             <table className="min-w-full text-sm text-left">
-              <thead className="bg-slate-50 border-b border-gray-200 text-xs uppercase font-bold text-slate-500">
+              <thead className="text-xs uppercase font-bold text-slate-500">
                 <tr>
-                  <th className="px-6 py-4">User Name</th>
-                  <th className="px-6 py-4">Email Address</th>
-                  <th className="px-6 py-4">User ID (UID)</th>
-                  <th className="px-6 py-4">Joined Date</th>
+                  <th className="px-6 py-4 bg-slate-50 border-b border-gray-200">User Name</th>
+                  <th className="px-6 py-4 bg-slate-50 border-b border-gray-200">Email Address</th>
+                  <th className="px-6 py-4 bg-slate-50 border-b border-gray-200">User ID (UID)</th>
+                  <th className="px-6 py-4 bg-slate-50 border-b border-gray-200">Joined Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

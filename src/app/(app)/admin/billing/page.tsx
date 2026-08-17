@@ -148,16 +148,15 @@ export default function AdminBillingPage() {
     <div className="animate-in fade-in zoom-in-95 duration-300">
       <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
         <div className="overflow-x-auto pb-4">
-          <div className="inline-block min-w-full align-middle">
-            <table className="min-w-full text-sm text-left">
-              <thead className="bg-slate-50 border-b border-gray-200 text-xs uppercase font-bold text-slate-500">
+          <table className="w-full text-sm text-left whitespace-nowrap">
+              <thead className="text-xs uppercase font-bold text-slate-500">
               <tr>
-                <th className="px-6 py-4">Submission Date</th>
-                <th className="px-6 py-4">Business ID</th>
-                <th className="px-6 py-4">Requested Plan</th>
-                <th className="px-6 py-4">Amount</th>
-                <th className="px-6 py-4">Txn Reference</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+                <th className="px-6 py-4 bg-slate-50 border-b border-gray-200">Submission Date</th>
+                <th className="px-6 py-4 bg-slate-50 border-b border-gray-200">Business ID</th>
+                <th className="px-6 py-4 bg-slate-50 border-b border-gray-200">Requested Plan</th>
+                <th className="px-6 py-4 bg-slate-50 border-b border-gray-200">Amount</th>
+                <th className="px-6 py-4 bg-slate-50 border-b border-gray-200">Txn Reference</th>
+                <th className="px-6 py-4 text-right bg-slate-50 border-b border-gray-200">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -196,7 +195,8 @@ export default function AdminBillingPage() {
                         {upgrade.submittedTxnRef}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+<div className="flex items-center justify-end gap-2">
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -214,14 +214,13 @@ export default function AdminBillingPage() {
                       >
                         <Check className="w-4 h-4 mr-1" /> Approve
                       </Button>
-                    </td>
+                    </div>
+</td>
                   </tr>
                 ))
               )}
               </tbody>
-            </table>
-          </div>
-        </div>
+        </table>
       </div>
 
     </div>
