@@ -48,8 +48,7 @@ export default function AdminUsersPage() {
     <div className="space-y-4">
       <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
         <div className="overflow-x-auto pb-4">
-          <div className="inline-block min-w-full align-middle">
-            <table className="min-w-full text-sm text-left">
+          <table className="w-full text-sm text-left whitespace-nowrap">
               <thead className="text-xs uppercase font-bold text-slate-500">
                 <tr>
                   <th className="px-6 py-4 bg-slate-50 border-b border-gray-200">User Name</th>
@@ -86,7 +85,6 @@ export default function AdminUsersPage() {
                 )}
               </tbody>
             </table>
-          </div>
         </div>
       </div>
     </div>

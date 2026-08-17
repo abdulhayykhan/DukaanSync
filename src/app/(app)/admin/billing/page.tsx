@@ -222,7 +222,7 @@ export default function AdminBillingPage() {
               </tbody>
         </table>
       </div>
-
+      </div>
     </div>
   );
 }
