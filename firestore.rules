@@ -134,14 +134,14 @@ service cloud.firestore {
       // Business-Level Customers — /businesses/{businessId}/customers/{document=**}
       // -----------------------------------------------------------------------
       match /customers/{document=**} {
-        allow read, write: if isBusinessMember(businessId);
+        allow read: if isBusinessOwner(businessId);
       }
 
       // -----------------------------------------------------------------------
       // Business-Level Suppliers — /businesses/{businessId}/suppliers/{document=**}
       // -----------------------------------------------------------------------
       match /suppliers/{document=**} {
-        allow read, write: if isBusinessMember(businessId);
+        allow read: if isBusinessOwner(businessId);
       }
 
       // -----------------------------------------------------------------------
@@ -175,8 +175,13 @@ service cloud.firestore {
         // Shop Subcollections — All require canAccessShop()
         // =====================================================================
 
-        match /inventory/{document=**} {
+        match /inventory/{itemId} {
           allow read, write: if canAccessShop(businessId, shopId);
+          
+          match /cost/{document=**} {
+            allow read, write: if canAccessShop(businessId, shopId)
+              && getMember(businessId).role in ['owner', 'manager'];
+          }
         }
 
         match /sales/{document=**} {
