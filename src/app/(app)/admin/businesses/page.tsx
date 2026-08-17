@@ -68,8 +68,8 @@ export default function AdminBusinessesPage() {
 
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-      <div className="overflow-x-auto pb-2">
-        <table className="w-full text-sm text-left">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm text-left min-w-[800px] mb-2">
           <thead className="bg-slate-50 border-b border-gray-200 text-xs uppercase font-bold text-slate-500">
             <tr>
               <th className="px-6 py-4">Business Name</th>
