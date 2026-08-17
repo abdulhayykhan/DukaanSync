@@ -18,10 +18,9 @@ import { Button } from "@/components/ui/Button";
 import type { Shop } from "@/types";
 
 const PLAN_MAX_SHOPS: Record<string, number> = {
-  trial: 1,
+  free: 1,
   basic: 2,
   pro: 999,
-  enterprise: 999,
 };
 
 export default function ShopsSettingsPage() {
@@ -36,7 +35,7 @@ export default function ShopsSettingsPage() {
   const [shopToEdit, setShopToEdit] = useState<Shop | null>(null);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
 
-  const currentPlan = business?.plan || "trial";
+  const currentPlan = business?.plan || "free";
   const maxAllowedShops = PLAN_MAX_SHOPS[currentPlan] || 1;
   const isLimitReached = allShops.length >= maxAllowedShops;
 

@@ -9,7 +9,7 @@ import { useShop } from "@/contexts/ShopContext";
 import { Button } from "@/components/ui/Button";
 
 export default function SettingsPage() {
-  const { memberRole } = useBusiness();
+  const { memberRole, business } = useBusiness();
   const { shops } = useShop();
   const router = useRouter();
 
@@ -146,8 +146,11 @@ export default function SettingsPage() {
 
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
             <span className="text-xs font-semibold uppercase text-slate-400">Billing Status</span>
-            <p className="text-lg font-bold text-gray-900 mt-1">Free Trial</p>
-            <p className="text-xs text-amber-600 font-medium mt-0.5">30 Days Remaining</p>
+            <p className="text-lg font-bold text-gray-900 mt-1 capitalize">{business?.plan || 'free'} Plan</p>
+            <p className="text-xs text-[#10B981] font-medium mt-0.5 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
+              Active
+            </p>
           </div>
         </div>
       </div>

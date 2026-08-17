@@ -18,9 +18,11 @@ import {
   Store,
   ChevronLeft,
   ChevronRight,
+  ShieldAlert,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBusiness } from "@/contexts/BusinessContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 
 const NAV_ITEMS = [
@@ -40,12 +42,24 @@ const NAV_ITEMS = [
 export function Sidebar() {
   const pathname = usePathname();
   const { memberRole } = useBusiness();
+  const { user } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const isSeedAdmin = user?.email === "seed.admin@metromart.com" || user?.uid === "QhlEJoMLs0geF2lZB8k9wokL0PJ3";
 
   // Filter routes based on role (fallback to empty if memberRole is null)
   const filteredNav = NAV_ITEMS.filter(
     (item) => memberRole && item.roles.includes(memberRole)
   );
+
+  if (isSeedAdmin) {
+    filteredNav.push({ 
+      name: "Admin Setup", 
+      href: "/admin/billing", 
+      icon: ShieldAlert as any, 
+      roles: ["owner"] 
+    });
+  }
 
   return (
     <aside

@@ -31,6 +31,14 @@
         { "fieldPath": "businessId", "order": "ASCENDING" },
         { "fieldPath": "shopId", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "billingHistory",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

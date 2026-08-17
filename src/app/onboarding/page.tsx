@@ -50,6 +50,7 @@ export default function OnboardingPage() {
       batch.set(businessRef, {
         name: data.businessName,
         ownerId: user.uid,
+        plan: "free",
         currency: data.currency,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),

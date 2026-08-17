@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useShop } from "@/contexts/ShopContext";
 import { Button } from "@/components/ui/Button";
+import { PaymentInstructionsModal } from "@/components/billing/PaymentInstructionsModal";
 import type { BusinessPlan } from "@/types";
 
 interface PlanTier {
@@ -38,13 +39,13 @@ interface PlanTier {
 
 const PLAN_TIERS: PlanTier[] = [
   {
-    id: "trial",
-    name: "Free Trial",
+    id: "free",
+    name: "Free Plan",
     pricePKR: "PKR 0",
-    period: "14 Days",
+    period: "Forever",
     maxShopsText: "1 Shop Branch",
     maxShopsLimit: 1,
-    description: "Ideal for single-location retail setups evaluating DukaanSync.",
+    description: "Ideal for single-location retail setups.",
     features: [
       "1 Store Branch Limit",
       "Full POS Terminal & Guest Checkout",
@@ -54,7 +55,7 @@ const PLAN_TIERS: PlanTier[] = [
     ],
   },
   {
-    id: "basic" as BusinessPlan,
+    id: "basic",
     name: "Basic Plan",
     pricePKR: "PKR 1,500",
     period: "per month",
@@ -113,7 +114,10 @@ export default function BillingSettingsPage() {
     fetchShopsCount();
   }, [business, shops]);
 
-  const currentPlanId = business?.plan || "trial";
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedUpgradePlan, setSelectedUpgradePlan] = useState<BusinessPlan | null>(null);
+
+  const currentPlanId = business?.plan || "free";
   const currentPlanTier = PLAN_TIERS.find(p => p.id === currentPlanId) || PLAN_TIERS[0];
   const maxShopsAllowed = currentPlanTier.maxShopsLimit;
 
@@ -124,23 +128,29 @@ export default function BillingSettingsPage() {
       return;
     }
 
-    try {
-      setIsUpdating(true);
-      const bizRef = doc(db, "businesses", business.id);
-      await updateDoc(bizRef, {
-        plan: targetPlan,
-        updatedAt: new Date().toISOString(),
-      });
-
-      await refreshBusiness();
-      const newTierName = PLAN_TIERS.find(p => p.id === targetPlan)?.name || targetPlan;
-      toast.success(`Successfully upgraded plan to ${newTierName}!`);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to update subscription plan";
-      toast.error(msg);
-    } finally {
-      setIsUpdating(false);
+    // Downgrade to free is always allowed directly
+    if (targetPlan === "free") {
+      try {
+        setIsUpdating(true);
+        const bizRef = doc(db, "businesses", business.id);
+        await updateDoc(bizRef, {
+          plan: "free",
+          updatedAt: new Date().toISOString(),
+        });
+        await refreshBusiness();
+        toast.success("Successfully downgraded to Free Plan.");
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Failed to update subscription plan";
+        toast.error(msg);
+      } finally {
+        setIsUpdating(false);
+      }
+      return;
     }
+
+    // Upgrades require manual payment verification
+    setSelectedUpgradePlan(targetPlan);
+    setIsPaymentModalOpen(true);
   };
 
   // Only Owner and Manager allowed
@@ -284,12 +294,18 @@ export default function BillingSettingsPage() {
                   className={`w-full font-bold text-xs py-2.5 ${
                     isCurrent 
                       ? "bg-slate-100 text-slate-500 hover:bg-slate-100 cursor-default" 
-                      : "bg-[#10B981] hover:bg-emerald-600 text-white"
+                      : tier.id === "free"
+                        ? "bg-white border-2 border-slate-200 text-slate-600 hover:bg-slate-50"
+                        : "bg-[#10B981] hover:bg-emerald-600 text-white"
                   }`}
                   disabled={isCurrent || isUpdating}
                   onClick={() => handleSelectPlan(tier.id)}
                 >
-                  {isCurrent ? "Current Plan Active" : `Upgrade to ${tier.name}`}
+                  {isCurrent 
+                    ? "Current Plan Active" 
+                    : tier.id === "free" 
+                      ? "Downgrade to Free" 
+                      : `Upgrade to ${tier.name}`}
                 </Button>
               </div>
 
@@ -297,6 +313,14 @@ export default function BillingSettingsPage() {
           );
         })}
       </div>
+
+      <PaymentInstructionsModal 
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        targetPlan={selectedUpgradePlan}
+        targetPlanName={PLAN_TIERS.find(p => p.id === selectedUpgradePlan)?.name || ""}
+        amountPKR={PLAN_TIERS.find(p => p.id === selectedUpgradePlan)?.pricePKR || ""}
+      />
 
     </div>
   );

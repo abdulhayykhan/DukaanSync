@@ -29,7 +29,21 @@ export interface UserProfile {
 // -----------------------------------------------------------------------------
 
 /** Subscription plan tiers */
-export type BusinessPlan = "trial" | "pro" | "enterprise";
+export type BusinessPlan = "free" | "basic" | "pro";
+
+export interface BillingTransaction {
+  id: string;
+  businessId: string;
+  plan: BusinessPlan;
+  amountPKR: number;
+  submittedTxnRef: string;
+  submittedBy: string;
+  status: "pending_approval" | "approved" | "rejected";
+  reviewedBy?: string;
+  reviewNote?: string;
+  createdAt: string;
+  reviewedAt?: string;
+}
 
 /** Account-level status */
 export type BusinessStatus = "active" | "suspended";

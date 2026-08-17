@@ -16,7 +16,7 @@ interface UpgradeModalProps {
 export function UpgradeModal({
   isOpen,
   onClose,
-  currentPlan = "Trial",
+  currentPlan = "Free",
   currentShopCount = 1,
   limit = 1,
 }: UpgradeModalProps) {

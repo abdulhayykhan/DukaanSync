@@ -92,15 +92,19 @@ service cloud.firestore {
       // Only members can read the business document
       allow read: if isBusinessMember(businessId);
 
-      // Allow authenticated user to create a business if they are the owner
-      allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
+      // Allow any authenticated user to create a business with a free plan
+      allow create: if isAuthenticated() 
+        && request.resource.data.ownerId == request.auth.uid
+        && (request.resource.data.plan == 'free' || isSeedAdmin());
 
       // Allow owner or business members to update business settings
       allow update: if isAuthenticated()
         && (
           isSeedAdmin()
-          || resource.data.ownerId == request.auth.uid
-          || isBusinessMember(businessId)
+          || (
+            (resource.data.ownerId == request.auth.uid || isBusinessMember(businessId))
+            && (request.resource.data.plan == resource.data.plan || request.resource.data.plan == 'free')
+          )
         );
 
       // Only the owner or seed admin can delete business settings
@@ -128,6 +132,18 @@ service cloud.firestore {
 
         // Only owners can update or delete members
         allow update, delete: if isBusinessOwner(businessId);
+      }
+
+      // -----------------------------------------------------------------------
+      // Billing History — /businesses/{businessId}/billingHistory/{document=**}
+      // -----------------------------------------------------------------------
+      match /billingHistory/{document=**} {
+        allow read: if isBusinessMember(businessId);
+        allow create: if isBusinessOwner(businessId)
+          && request.resource.data.status == "pending_approval";
+        allow update: if isSeedAdmin()
+          && resource.data.status == "pending_approval";
+        allow delete: if false;
       }
 
       // -----------------------------------------------------------------------
