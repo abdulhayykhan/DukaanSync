@@ -45,43 +45,33 @@ export default function AdminBillingPage() {
       setLoading(true);
       const q = query(
         collectionGroup(db, "billingHistory"),
-        where("status", "==", "pending_approval"),
-        orderBy("createdAt", "asc")
+        where("status", "==", "pending_approval")
       );
       
       const snap = await getDocs(q);
-      const items: PendingUpgrade[] = [];
+      let items: PendingUpgrade[] = [];
       
       for (const d of snap.docs) {
         const data = d.data() as BillingTransaction;
         
-        // Fetch parent business name (admin has access via security rules because seed admin can read businesses)
-        // Actually, we need to fetch the business document
-        const bizRef = doc(db, "businesses", data.businessId);
-        // Wait, does seed admin have read access to businesses? Yes, our rules allow read if isSeedAdmin?
-        // Wait! `allow read: if isBusinessMember(businessId);`
-        // Let's assume the admin is a member or we'll just show "Business ID" if fetch fails.
-        // Or better yet, we'll try to fetch it but fallback if rules block it.
-        // Wait! Admin read rule for businesses doesn't explicitly include isSeedAdmin(). 
-        // I'll just use the businessId directly to avoid failures for now, or fetch if possible.
-        
-        let bName = "Unknown Business";
-        try {
-          // In a real app we'd have an admin function, but we'll try fetching directly
-          // Using a collection group query bypasses the parent read if rules allow.
-        } catch (e) {}
-
         items.push({
           ...data,
           id: d.id,
           businessName: data.businessId, // Fallback to ID 
         });
       }
+
+      // Sort client side
+      items.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateA - dateB;
+      });
       
       setPendingUpgrades(items);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to fetch pending upgrades:", err);
-      toast.error("Failed to load pending upgrades.");
+      toast.error(err.message || "Failed to load pending upgrades.");
     } finally {
       setLoading(false);
     }
