@@ -16,8 +16,10 @@ export default function AdminUsersPage() {
   const { user } = useAuth();
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (user) {
+      fetchUsers();
+    }
+  }, [user]);
 
   const fetchUsers = async () => {
     if (!user) return;
@@ -31,6 +33,8 @@ export default function AdminUsersPage() {
           return dateB - dateA;
         });
         setUsers(items);
+      } else {
+        toast.error(res.error || "Failed to load users");
       }
     } catch (error: any) {
       console.error("Failed to fetch users:", error);
