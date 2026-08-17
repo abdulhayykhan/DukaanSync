@@ -19,4 +19,11 @@ if (!getApps().length) {
   }
 }
 
-export const adminDb = getFirestore();
+let firestoreDb: any = null;
+try {
+  firestoreDb = getFirestore();
+} catch (error) {
+  console.error('Firebase admin firestore initialization error', error);
+}
+
+export const adminDb = firestoreDb;
