@@ -11,7 +11,6 @@ import { toast } from "sonner";
 const ADMIN_TABS = [
   { name: "Overview", href: "/admin", icon: Shield },
   { name: "Businesses & Plans", href: "/admin/businesses", icon: Building2 },
-  { name: "Users", href: "/admin/users", icon: Users },
   { name: "Billing Approvals", href: "/admin/billing", icon: Receipt },
 ];
 
