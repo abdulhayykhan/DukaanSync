@@ -47,12 +47,15 @@ export default function AdminBillingPage() {
         });
       }
 
+      // Safely parse dates that might be Firestore Timestamps or ISO strings
+      const getTime = (ts: any) => {
+        if (!ts) return 0;
+        if (ts.seconds) return ts.seconds * 1000;
+        return new Date(ts).getTime();
+      };
+
       // Sort client side
-      items.sort((a, b) => {
-        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return dateA - dateB;
-      });
+      items.sort((a, b) => getTime(a.createdAt) - getTime(b.createdAt));
       
       setPendingUpgrades(items);
     } catch (err: any) {
@@ -168,7 +171,12 @@ export default function AdminBillingPage() {
                 pendingUpgrades.map(upgrade => (
                   <tr key={upgrade.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                      {upgrade.createdAt ? format(new Date(upgrade.createdAt), "MMM d, yyyy HH:mm") : "N/A"}
+                      {upgrade.createdAt 
+                        ? format(
+                            new Date((upgrade.createdAt as any).seconds ? (upgrade.createdAt as any).seconds * 1000 : upgrade.createdAt), 
+                            "MMM d, yyyy HH:mm"
+                          ) 
+                        : "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap font-mono text-xs text-gray-900">
                       {upgrade.businessId}
