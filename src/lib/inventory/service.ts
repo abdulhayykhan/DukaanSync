@@ -7,11 +7,13 @@ import {
   where,
   writeBatch,
   updateDoc,
+  setDoc,
+  collectionGroup
 } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase/client";
 import type { InventoryServicePayload } from "@/lib/validation/inventory";
-import type { InventoryItem, StockMovementType } from "@/types";
-import type { DuplicateStrategy, BulkImportResult } from "@/components/ui/BulkImportModal";
+import type { InventoryItem, StockMovementType, DuplicateStrategy } from "@/types";
+import type { BulkImportResult } from "@/components/ui/BulkImportModal";
 
 export class InventoryService {
   /**
@@ -33,6 +35,25 @@ export class InventoryService {
       items.push({ id: doc.id, ...doc.data() } as InventoryItem);
     });
 
+    // Optionally fetch costs if privileged (will fail if not owner/manager, so catch and ignore)
+    try {
+      const costQ = query(collectionGroup(db, "cost"), where("shopId", "==", shopId), where("businessId", "==", businessId));
+      const costSnap = await getDocs(costQ);
+      const costs = new Map();
+      costSnap.forEach(d => costs.set(d.data().itemId, d.data().costPriceMinor));
+      items.forEach(item => {
+        if (costs.has(item.id)) {
+          item.costPriceMinor = costs.get(item.id);
+        }
+      });
+    } catch (e: any) {
+      if (e?.code === 'permission-denied') {
+        // Cashier or permissions error, silently ignore
+      } else {
+        console.error("Failed to fetch cost data for inventory items:", e);
+      }
+    }
+
     return items;
   }
 
@@ -52,6 +73,24 @@ export class InventoryService {
     snapshot.forEach((doc) => {
       items.push({ id: doc.id, ...doc.data() } as InventoryItem);
     });
+
+    try {
+      const costQ = query(collectionGroup(db, "cost"), where("shopId", "==", shopId), where("businessId", "==", businessId));
+      const costSnap = await getDocs(costQ);
+      const costs = new Map();
+      costSnap.forEach(d => costs.set(d.data().itemId, d.data().costPriceMinor));
+      items.forEach(item => {
+        if (costs.has(item.id)) {
+          item.costPriceMinor = costs.get(item.id);
+        }
+      });
+    } catch (e: any) {
+      if (e?.code === 'permission-denied') {
+        // Cashier or permissions error, silently ignore
+      } else {
+        console.error("Failed to fetch cost data for all inventory items:", e);
+      }
+    }
 
     return items;
   }
@@ -117,15 +156,17 @@ export class InventoryService {
   ): Promise<string> {
     if (!db) throw new Error("Firestore not initialized");
 
-    // 1. Uniqueness check for SKU
+    // 1. Uniqueness check for SKU (skip for empty/blank SKUs)
     const itemsRef = collection(db, "businesses", businessId, "shops", shopId, "inventory");
-    const q = query(itemsRef, where("sku", "==", data.sku));
-    const snapshot = await getDocs(q);
+    if (data.sku && data.sku.trim() !== "") {
+      const q = query(itemsRef, where("sku", "==", data.sku));
+      const snapshot = await getDocs(q);
 
-    // Allow inactive items to have the same SKU, but not active ones
-    const activeDup = snapshot.docs.find(d => d.data().isActive === true);
-    if (activeDup) {
-      throw new Error(`An active product with SKU ${data.sku} already exists.`);
+      // Allow inactive items to have the same SKU, but not active ones
+      const activeDup = snapshot.docs.find(d => d.data().isActive === true);
+      if (activeDup) {
+        throw new Error(`An active product with SKU ${data.sku} already exists.`);
+      }
     }
 
     const batch = writeBatch(db);
@@ -134,13 +175,24 @@ export class InventoryService {
     const newItemRef = doc(itemsRef);
     const now = new Date().toISOString();
 
+    const { costPriceMinor, ...publicData } = data;
+
     batch.set(newItemRef, {
-      ...data,
+      ...publicData,
       businessId,
       shopId,
       createdBy: auth?.currentUser?.uid || "system",
       isActive: true,
       createdAt: now,
+      updatedAt: now,
+    });
+
+    const costRef = doc(itemsRef, newItemRef.id, "cost", "data");
+    batch.set(costRef, {
+      itemId: newItemRef.id,
+      businessId,
+      shopId,
+      costPriceMinor: costPriceMinor || 0,
       updatedAt: now,
     });
 
@@ -183,11 +235,21 @@ export class InventoryService {
     // Stock must be updated via movements (adjustments, sales, purchases).
     const safeUpdates: Record<string, unknown> = { ...updates };
     delete safeUpdates.quantity;
+    
+    const costPriceMinor = safeUpdates.costPriceMinor as number | undefined;
+    delete safeUpdates.costPriceMinor;
 
     await updateDoc(itemRef, {
       ...safeUpdates,
       updatedAt: new Date().toISOString(),
     });
+
+    if (costPriceMinor !== undefined) {
+      const costRef = doc(db, "businesses", businessId, "shops", shopId, "inventory", itemId, "cost", "data");
+      await setDoc(costRef, { 
+        itemId, businessId, shopId, costPriceMinor, updatedAt: new Date().toISOString() 
+      }, { merge: true });
+    }
   }
 
   /**
@@ -248,9 +310,12 @@ export class InventoryService {
       try {
         const existingSnap = await getDocs(itemsRef);
         if (!existingSnap.empty) {
-          const deleteBatch = writeBatch(db);
-          existingSnap.docs.forEach((d) => deleteBatch.delete(d.ref));
-          await deleteBatch.commit();
+          const DEL_CHUNK = 450;
+          for (let d = 0; d < existingSnap.docs.length; d += DEL_CHUNK) {
+            const delBatch = writeBatch(db);
+            existingSnap.docs.slice(d, d + DEL_CHUNK).forEach((doc) => delBatch.delete(doc.ref));
+            await delBatch.commit();
+          }
         }
         existingBySku.clear();
       } catch (err) {
@@ -297,13 +362,21 @@ export class InventoryService {
             unit: item.unit,
             quantity: item.quantity,
             reorderLevel: item.reorderLevel,
-            costPriceMinor: item.costPriceMinor,
             retailPriceMinor: item.retailPriceMinor,
             businessId,
             shopId,
             createdBy: uid,
             isActive: true,
             createdAt: now,
+            updatedAt: now,
+          });
+
+          const costRef = doc(itemsRef, newItemRef.id, "cost", "data");
+          batch.set(costRef, {
+            itemId: newItemRef.id,
+            businessId,
+            shopId,
+            costPriceMinor: item.costPriceMinor || 0,
             updatedAt: now,
           });
 
@@ -349,12 +422,22 @@ export class InventoryService {
             unit: item.unit,
             quantity: newQuantity,
             reorderLevel: item.reorderLevel,
-            costPriceMinor: item.costPriceMinor,
             retailPriceMinor: item.retailPriceMinor,
             businessId,
             shopId,
             updatedAt: now,
           }, { merge: true });
+
+          if (item.costPriceMinor !== undefined) {
+            const costRef = doc(db, "businesses", businessId, "shops", shopId, "inventory", existing.id, "cost", "data");
+            batch.set(costRef, {
+              itemId: existing.id,
+              businessId,
+              shopId,
+              costPriceMinor: item.costPriceMinor,
+              updatedAt: now,
+            }, { merge: true });
+          }
 
           // Write stock movement audit entry
           const quantityDelta = newQuantity - existing.quantity;

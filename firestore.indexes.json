@@ -23,6 +23,14 @@
         { "fieldPath": "sku", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "cost",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "businessId", "order": "ASCENDING" },
+        { "fieldPath": "shopId", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
