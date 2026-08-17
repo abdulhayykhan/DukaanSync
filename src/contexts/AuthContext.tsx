@@ -29,7 +29,7 @@ import {
   signInWithPopup,
   type User,
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/client";
 import type { UserProfile } from "@/types";
 
@@ -70,13 +70,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ---------------------------------------------------------------------------
   // Fetch profile helper
   // ---------------------------------------------------------------------------
-  const fetchProfile = useCallback(async (uid: string) => {
+  const fetchProfile = useCallback(async (firebaseUser: User) => {
     if (!db) return;
     try {
-      const profileRef = doc(db, "users", uid);
+      const profileRef = doc(db, "users", firebaseUser.uid);
       const profileSnap = await getDoc(profileRef);
       if (profileSnap.exists()) {
-        setUserProfile({ uid, ...profileSnap.data() } as UserProfile);
+        const data = profileSnap.data();
+        let needsUpdate = false;
+        
+        // Self-heal older accounts that might be missing these fields
+        if (!data.email || !data.displayName || !data.createdAt) {
+          needsUpdate = true;
+          data.email = data.email || firebaseUser.email || "";
+          data.displayName = data.displayName || firebaseUser.displayName || "Admin";
+          data.createdAt = data.createdAt || firebaseUser.metadata.creationTime || new Date().toISOString();
+          
+          await updateDoc(profileRef, {
+            email: data.email,
+            displayName: data.displayName,
+            createdAt: data.createdAt,
+          });
+        }
+        
+        setUserProfile({ uid: firebaseUser.uid, ...data } as UserProfile);
       } else {
         setUserProfile(null);
       }
@@ -97,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(firebaseUser);
 
       if (firebaseUser) {
-        await fetchProfile(firebaseUser.uid);
+        await fetchProfile(firebaseUser);
       } else {
         setUserProfile(null);
       }
