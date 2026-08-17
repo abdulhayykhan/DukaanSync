@@ -148,8 +148,9 @@ export default function AdminBillingPage() {
     <div className="animate-in fade-in zoom-in-95 duration-300">
       <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
         <div className="overflow-x-auto pb-4">
-          <table className="w-full min-w-max text-sm text-left">
-            <thead className="bg-slate-50 border-b border-gray-200 text-xs uppercase font-bold text-slate-500">
+          <div className="inline-block min-w-full align-middle">
+            <table className="min-w-full text-sm text-left">
+              <thead className="bg-slate-50 border-b border-gray-200 text-xs uppercase font-bold text-slate-500">
               <tr>
                 <th className="px-6 py-4">Submission Date</th>
                 <th className="px-6 py-4">Business ID</th>
@@ -217,8 +218,9 @@ export default function AdminBillingPage() {
                   </tr>
                 ))
               )}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 

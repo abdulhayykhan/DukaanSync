@@ -67,10 +67,11 @@ export default function AdminBusinessesPage() {
   }
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-      <div className="overflow-x-auto pb-4">
-        <table className="w-full min-w-max text-sm text-left">
-          <thead className="bg-slate-50 border-b border-gray-200 text-xs uppercase font-bold text-slate-500">
+      <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+        <div className="overflow-x-auto pb-4">
+          <div className="inline-block min-w-full align-middle">
+            <table className="min-w-full text-sm text-left">
+              <thead className="bg-slate-50 border-b border-gray-200 text-xs uppercase font-bold text-slate-500">
             <tr>
               <th className="px-6 py-4">Business Name</th>
               <th className="px-6 py-4">Owner ID</th>
@@ -160,9 +161,10 @@ export default function AdminBusinessesPage() {
                 </tr>
               ))
             )}
-          </tbody>
-        </table>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-    </div>
   );
 }

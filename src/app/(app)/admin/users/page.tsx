@@ -79,45 +79,47 @@ export default function AdminUsersPage() {
       </div>
       <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
         <div className="overflow-x-auto pb-4">
-          <table className="w-full min-w-max text-sm text-left">
-          <thead className="bg-slate-50 border-b border-gray-200 text-xs uppercase font-bold text-slate-500">
-            <tr>
-              <th className="px-6 py-4">User Name</th>
-              <th className="px-6 py-4">Email Address</th>
-              <th className="px-6 py-4">User ID (UID)</th>
-              <th className="px-6 py-4">Joined Date</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {users.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
-                  <UsersIcon className="w-8 h-8 mx-auto text-gray-300 mb-3" />
-                  No users found.
-                </td>
-              </tr>
-            ) : (
-              users.map(u => (
-                <tr key={u.uid} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-900">
-                    {u.displayName || "N/A"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-500">
-                    {u.email}
-                  </td>
-                  <td className="px-6 py-4 text-gray-400 font-mono text-xs">
-                    {u.uid}
-                  </td>
-                  <td className="px-6 py-4 text-gray-500 text-xs">
-                    {u.createdAt ? format(new Date(((u.createdAt as any).seconds ? (u.createdAt as any).seconds * 1000 : u.createdAt) as number), "MMM d, yyyy") : "N/A"}
-                  </td>
+          <div className="inline-block min-w-full align-middle">
+            <table className="min-w-full text-sm text-left">
+              <thead className="bg-slate-50 border-b border-gray-200 text-xs uppercase font-bold text-slate-500">
+                <tr>
+                  <th className="px-6 py-4">User Name</th>
+                  <th className="px-6 py-4">Email Address</th>
+                  <th className="px-6 py-4">User ID (UID)</th>
+                  <th className="px-6 py-4">Joined Date</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {users.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                      <UsersIcon className="w-8 h-8 mx-auto text-gray-300 mb-3" />
+                      No users found.
+                    </td>
+                  </tr>
+                ) : (
+                  users.map(u => (
+                    <tr key={u.uid} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4 font-medium text-gray-900">
+                        {u.displayName || "N/A"}
+                      </td>
+                      <td className="px-6 py-4 text-gray-500">
+                        {u.email}
+                      </td>
+                      <td className="px-6 py-4 text-gray-400 font-mono text-xs">
+                        {u.uid}
+                      </td>
+                      <td className="px-6 py-4 text-gray-500 text-xs">
+                        {u.createdAt ? format(new Date(((u.createdAt as any).seconds ? (u.createdAt as any).seconds * 1000 : u.createdAt) as number), "MMM d, yyyy") : "N/A"}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-    </div>
     </div>
   );
 }
