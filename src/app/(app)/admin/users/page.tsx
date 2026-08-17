@@ -6,11 +6,16 @@ import { useEffect, useState } from "react";
 import { UserProfile } from "@/types";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Users as UsersIcon } from "lucide-react";
+import { Users as UsersIcon, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { useAuth } from "@/contexts/AuthContext";
+import { repairUsersAction } from "./actions";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchUsers();
@@ -43,7 +48,35 @@ export default function AdminUsersPage() {
     return <div className="p-8 text-center text-gray-500 animate-pulse">Loading users...</div>;
   }
 
+  const handleSyncData = async () => {
+    if (!user) return;
+    setSyncing(true);
+    try {
+      const res = await repairUsersAction(user.uid);
+      if (res.success) {
+        toast.success(`Successfully synchronized ${res.count} user(s).`);
+        fetchUsers();
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to sync user data");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button 
+          variant="outline" 
+          onClick={handleSyncData} 
+          disabled={syncing}
+          className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200"
+        >
+          <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
+          {syncing ? 'Syncing Data...' : 'Sync Missing User Data'}
+        </Button>
+      </div>
       <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
         <div className="overflow-x-auto pb-4">
           <table className="w-full min-w-max text-sm text-left">
@@ -84,6 +117,7 @@ export default function AdminUsersPage() {
           </tbody>
         </table>
       </div>
+    </div>
     </div>
   );
 }
